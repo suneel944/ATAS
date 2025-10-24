@@ -1,0 +1,80 @@
+name: Commit Message Lint
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main, master]
+
+jobs:
+  commit-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate commit messages
+        run: |
+          echo "## 🔍 Commit Message Validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Get commits in this PR
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            COMMITS=$(git log --oneline ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
+          else
+            COMMITS=$(git log --oneline -1)
+          fi
+          
+          echo "**Commits to validate:**" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "$COMMITS" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Validate each commit
+          VALID_COUNT=0
+          TOTAL_COUNT=0
+          
+          while IFS= read -r commit; do
+            if [ -n "$commit" ]; then
+              TOTAL_COUNT=$((TOTAL_COUNT + 1))
+              COMMIT_MSG=$(echo "$commit" | cut -d' ' -f2-)
+              
+              # Check if commit message follows conventional commits format
+              if echo "$COMMIT_MSG" | grep -qE "^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\(.+\))?(!)?: .+"; then
+                VALID_COUNT=$((VALID_COUNT + 1))
+                echo "✅ \`$commit\`" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "❌ \`$commit\` - Invalid format" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+          done <<< "$COMMITS"
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Validation Results:** $VALID_COUNT/$TOTAL_COUNT commits follow conventional commit format" >> $GITHUB_STEP_SUMMARY
+          
+          if [ $VALID_COUNT -eq $TOTAL_COUNT ] && [ $TOTAL_COUNT -gt 0 ]; then
+            echo "🎉 All commit messages follow the conventional commit format!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Some commit messages don't follow the conventional commit format." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Required format:** \`<type>[optional scope]: <description>\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Valid types:** feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert" >> $GITHUB_STEP_SUMMARY
+            echo "**Valid scopes:** framework, tests, ui, api, auth, monitoring, docker, ci, docs, deps" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Examples:**" >> $GITHUB_STEP_SUMMARY
+            echo "- \`feat(auth): add OAuth2 login support\`" >> $GITHUB_STEP_SUMMARY
+            echo "- \`fix(ui): resolve login button click issue\`" >> $GITHUB_STEP_SUMMARY
+            echo "- \`docs(api): update test execution endpoint documentation\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "See [CONTRIBUTING.md](CONTRIBUTING.md#commit-guidelines) for complete guidelines." >> $GITHUB_STEP_SUMMARY
+            
+            # Exit with error if any commits failed validation
+            if [ $VALID_COUNT -ne $TOTAL_COUNT ]; then
+              echo "::error::Some commit messages don't follow the conventional commit format"
+              exit 1
+            fi
+          fi

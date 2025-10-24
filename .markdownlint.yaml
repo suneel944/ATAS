@@ -1,0 +1,24 @@
+# Markdown linting configuration
+default: true
+
+# Line length
+MD013:
+  line_length: 120
+  code_blocks: false
+  tables: false
+
+# Multiple consecutive blank lines
+MD012:
+  maximum: 2
+
+# Inline HTML
+MD033: false
+
+# First line should be a top level header
+MD041: false
+
+# Lists should be surrounded by blank lines
+MD032: false
+
+# Emphasis used instead of a header
+MD036: false

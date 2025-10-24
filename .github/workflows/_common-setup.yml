@@ -1,0 +1,57 @@
+name: Common Setup
+
+on:
+  workflow_call:
+    inputs:
+      java-version:
+        description: 'Java version to use'
+        required: false
+        type: string
+        default: '21'
+      maven-goals:
+        description: 'Maven goals to run'
+        required: false
+        type: string
+        default: 'clean compile'
+      skip-tests:
+        description: 'Skip tests'
+        required: false
+        type: boolean
+        default: false
+      test-profile:
+        description: 'Test profile to use'
+        required: false
+        type: string
+        default: 'test'
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      cache-hit: ${{ steps.cache.outputs.cache-hit }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK ${{ inputs.java-version }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ inputs.java-version }}
+          distribution: 'eclipse-temurin'
+
+      - name: Cache Maven dependencies
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Run Maven goals
+        run: |
+          if [ "${{ inputs.skip-tests }}" = "true" ]; then
+            mvn ${{ inputs.maven-goals }} -DskipTests
+          else
+            mvn ${{ inputs.maven-goals }} -Dspring.profiles.active=${{ inputs.test-profile }}
+          fi

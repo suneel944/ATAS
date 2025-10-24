@@ -5,10 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 /**
- * Repository for {@link TestAttachment} entities.  Attachments
- * include screenshots, videos and log files and can be queried
- * directly or via their parent result.
+ * Repository for {@link TestAttachment} entities. Attachments include screenshots, videos and log
+ * files and can be queried directly or via their parent result.
  */
 @Repository
-public interface TestAttachmentRepository extends JpaRepository<TestAttachment, Long> {
-}
+public interface TestAttachmentRepository extends JpaRepository<TestAttachment, Long> {}

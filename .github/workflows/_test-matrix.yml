@@ -1,0 +1,129 @@
+name: Test Matrix
+
+on:
+  workflow_call:
+    inputs:
+      test-suite:
+        description: 'Test suite to run'
+        required: true
+        type: string
+      environment:
+        description: 'Test environment'
+        required: false
+        type: string
+        default: 'test'
+      java-version:
+        description: 'Java version to use'
+        required: false
+        type: string
+        default: '21'
+      browser-matrix:
+        description: 'Browser matrix for UI tests'
+        required: false
+        type: string
+        default: 'chromium,firefox,webkit'
+    outputs:
+      test-results:
+        description: 'Test results summary'
+        value: ${{ jobs.test-matrix.outputs.test-results }}
+
+jobs:
+  test-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: ${{ fromJSON(format('["{0}"]', inputs.browser-matrix)) }}
+        include:
+          - browser: chromium
+            browser-name: Chromium
+          - browser: firefox
+            browser-name: Firefox
+          - browser: webkit
+            browser-name: WebKit
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: atasdb
+          POSTGRES_USER: atas
+          POSTGRES_PASSWORD: ataspass
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ inputs.java-version }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ inputs.java-version }}
+          distribution: 'eclipse-temurin'
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Install Playwright browsers
+        run: |
+          mvn -q -pl atas-framework exec:java \
+            -Dexec.mainClass=com.microsoft.playwright.CLI \
+            -Dexec.args="install ${{ matrix.browser }}"
+
+      - name: Run test suite with ${{ matrix.browser-name }}
+        run: |
+          case "${{ inputs.test-suite }}" in
+            "all")
+              mvn test -Dtest="com.atas.suites.AllTestSuites" \
+                -Dspring.profiles.active=${{ inputs.environment }} \
+                -Dbrowser=${{ matrix.browser }}
+              ;;
+            "authentication-ui")
+              mvn test -Dtest="com.atas.suites.authentication.ui.AuthenticationUiTestSuite" \
+                -Dspring.profiles.active=${{ inputs.environment }} \
+                -Dbrowser=${{ matrix.browser }}
+              ;;
+            "authentication-api")
+              mvn test -Dtest="com.atas.suites.authentication.api.AuthenticationApiTestSuite" \
+                -Dspring.profiles.active=${{ inputs.environment }} \
+                -Dbrowser=${{ matrix.browser }}
+              ;;
+            "monitoring-ui")
+              mvn test -Dtest="com.atas.suites.monitoring.ui.MonitoringUiTestSuite" \
+                -Dspring.profiles.active=${{ inputs.environment }} \
+                -Dbrowser=${{ matrix.browser }}
+              ;;
+            "monitoring-api")
+              mvn test -Dtest="com.atas.suites.monitoring.api.MonitoringApiTestSuite" \
+                -Dspring.profiles.active=${{ inputs.environment }} \
+                -Dbrowser=${{ matrix.browser }}
+              ;;
+          esac
+
+      - name: Generate Allure Report
+        if: always()
+        run: |
+          mvn allure:report
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ inputs.test-suite }}-${{ matrix.browser }}-${{ inputs.environment }}
+          path: |
+            **/target/surefire-reports/
+            **/target/allure-results/
+            **/target/site/allure-maven-plugin/
+          retention-days: 30
+
+    outputs:
+      test-results: ${{ job.status }}

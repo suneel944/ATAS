@@ -1,0 +1,119 @@
+name: Test Suites
+
+on:
+  workflow_dispatch:
+    inputs:
+      test-suite:
+        description: 'Test suite to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - authentication-ui
+        - authentication-api
+        - monitoring-ui
+        - monitoring-api
+      environment:
+        description: 'Test environment'
+        required: true
+        default: 'test'
+        type: choice
+        options:
+        - test
+        - staging
+        - production
+      browser-matrix:
+        description: 'Browser matrix for UI tests'
+        required: false
+        default: 'chromium,firefox,webkit'
+        type: string
+      parallel-jobs:
+        description: 'Number of parallel jobs'
+        required: false
+        default: '3'
+        type: choice
+        options:
+        - '1'
+        - '2'
+        - '3'
+        - '4'
+        - '5'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'atas-tests/**'
+      - 'atas-framework/**'
+
+jobs:
+  # Use the reusable test matrix workflow
+  run-test-suite:
+    uses: ./.github/workflows/_test-matrix.yml
+    with:
+      test-suite: ${{ github.event.inputs.test-suite || 'all' }}
+      environment: ${{ github.event.inputs.environment || 'test' }}
+      browser-matrix: ${{ github.event.inputs.browser-matrix || 'chromium,firefox,webkit' }}
+    secrets: inherit
+
+  # Enhanced test reporting and notifications
+  test-reporting:
+    runs-on: ubuntu-latest
+    needs: [run-test-suite]
+    if: always()
+    steps:
+      - name: Download all test artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./test-results
+
+      - name: Generate comprehensive test report
+        run: |
+          echo "## 🧪 Comprehensive Test Suite Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Test Suite:** ${{ github.event.inputs.test-suite || 'all' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event.inputs.environment || 'test' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Browser Matrix:** ${{ github.event.inputs.browser-matrix || 'chromium,firefox,webkit' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Event:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Count test results
+          if [ -d "./test-results" ]; then
+            total_artifacts=$(find ./test-results -name "*.xml" | wc -l)
+            echo "**Total Test Artifacts:** $total_artifacts" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "**Overall Status:** ${{ needs.run-test-suite.result == 'success' && '✅ Passed' || '❌ Failed' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.run-test-suite.result }}" = "success" ]; then
+            echo "🎉 All tests passed successfully!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Some tests failed. Please check the logs and artifacts for details." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Comment PR with test results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const summary = `## 🧪 Test Suite Results: ${{ github.event.inputs.test-suite || 'all' }}
+            
+            **Environment:** ${{ github.event.inputs.environment || 'test' }}
+            **Browser Matrix:** ${{ github.event.inputs.browser-matrix || 'chromium,firefox,webkit' }}
+            **Status:** ${{ needs.run-test-suite.result == 'success' && '✅ Passed' || '❌ Failed' }}
+            **Triggered by:** @${{ github.actor }}
+            **Event:** ${{ github.event_name }}
+            
+            ${{ needs.run-test-suite.result == 'success' && '🎉 All tests passed successfully!' || '⚠️ Some tests failed. Please check the logs for details.' }}
+            
+            [View detailed results](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
+            
+            if (context.payload.pull_request) {
+              github.rest.issues.createComment({
+                issue_number: context.payload.pull_request.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: summary
+              });
+            }

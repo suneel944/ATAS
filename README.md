@@ -27,9 +27,15 @@ Traditional frameworks are great for test execution, but they often lack:
 ```bash
 git clone https://github.com/<your-username>/atas-monorepo.git
 cd atas-monorepo
+make setup    # Initial setup
+make dev      # Start development environment
+```
+
+**Or use traditional commands:**
+```bash
 ./mvnw clean package -DskipTests
 docker-compose -f docker/docker-compose.yml up --build
-````
+```
 
 This launches:
 
@@ -293,12 +299,51 @@ graph TB
 
 ## 🤝 Contributing
 
-We welcome improvements!
+We welcome improvements! Please read our [Contributing Guidelines](CONTRIBUTING.md) for detailed information on how to contribute to ATAS.
 
-* Fork the repo
-* Create a feature branch
-* Run `./mvnw verify` before submitting PRs
-* Add yourself to `CONTRIBUTORS.md` ❤️
+### Quick Start for Contributors
+
+1. **Fork the repository**
+2. **Setup and build**:
+   ```bash
+   make setup    # Initial setup
+   make build    # Build project
+   ```
+3. **Create a feature branch**:
+   ```bash
+   make branch NAME=feature/your-feature-name
+   ```
+4. **Follow commit guidelines** (see [CONTRIBUTING.md](CONTRIBUTING.md#commit-guidelines))
+5. **Run tests** before submitting:
+   ```bash
+   make test     # Run all tests
+   make pr-check # Run PR checks locally
+   ```
+6. **Submit a pull request** following our [PR template](.github/pull_request_template.md)
+
+### Common Commands
+
+```bash
+make help       # Show all available commands
+make dev        # Start development environment
+make test       # Run tests
+make build      # Build project
+make lint       # Run code quality checks
+make report     # Generate test reports
+make clean      # Clean build artifacts
+```
+
+### Commit Message Format
+
+We follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+```bash
+feat(auth): add OAuth2 login support
+fix(ui): resolve login button click issue
+docs(api): update test execution endpoint documentation
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md#commit-guidelines) for complete guidelines.
 
 ---
 

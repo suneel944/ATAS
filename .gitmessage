@@ -1,0 +1,21 @@
+# <type>[optional scope]: <description>
+#
+# [optional body]
+#
+# [optional footer(s)]
+#
+# Type: feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert
+# Scope: framework, tests, ui, api, auth, monitoring, docker, ci, docs
+#
+# Examples:
+# feat(auth): add OAuth2 login support
+# fix(ui): resolve login button click issue
+# docs(api): update test execution endpoint documentation
+# test(monitoring): add dashboard UI test coverage
+# ci: implement smart workflow execution based on file changes
+#
+# Breaking changes: Use ! after type/scope
+# feat(api)!: change test execution response format
+#
+# Closes #123
+# Fixes #456

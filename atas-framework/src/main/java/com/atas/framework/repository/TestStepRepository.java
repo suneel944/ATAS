@@ -5,10 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 /**
- * Repository for {@link TestStep} entities.  Step-level operations
- * are usually managed through their parent result, but this
- * interface allows direct access if needed.
+ * Repository for {@link TestStep} entities. Step-level operations are usually managed through their
+ * parent result, but this interface allows direct access if needed.
  */
 @Repository
-public interface TestStepRepository extends JpaRepository<TestStep, Long> {
-}
+public interface TestStepRepository extends JpaRepository<TestStep, Long> {}
