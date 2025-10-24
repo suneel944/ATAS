@@ -33,7 +33,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: ${{ fromJSON(format('["{0}"]', inputs.browser-matrix)) }}
         include:
           - browser: chromium
             browser-name: Chromium
@@ -72,6 +71,10 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
+
+      - name: Build framework first
+        run: |
+          mvn clean install -pl atas-framework -DskipTests
 
       - name: Install Playwright browsers
         run: |
