@@ -58,6 +58,7 @@ logs/
 # === Local environments and secrets ===
 .env
 .env.*
+.secrets
 application-local.yml
 application-dev.yml
 application-test.yml.local
