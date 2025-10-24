@@ -1,4 +1,4 @@
-package com.atas.tests.api;
+package com.atas.features.monitoring.api;
 
 import com.atas.framework.AtasFrameworkApplication;
 import com.atas.framework.model.TestExecution;
@@ -88,9 +88,9 @@ class TestMonitoringApiTest {
 
     @Test
     void statusEndpointReturnsAggregatedCounts() {
-        RestTemplate rest = new RestTemplate();
+        RestTemplate restTemplate = new RestTemplate();
         String url = String.format("http://localhost:%d/api/v1/test-execution/status?executionId=%s", port, execution.getExecutionId());
-        ResponseEntity<String> response = rest.getForEntity(url, String.class);
+        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         String body = response.getBody();
         assertThat(body).contains("\"total\":3");

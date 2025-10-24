@@ -1,7 +1,8 @@
-package com.atas.tests.pages;
+package com.atas.features.authentication.pages;
 
 import com.microsoft.playwright.Page;
 import static org.assertj.core.api.Assertions.assertThat;
+import com.atas.shared.pages.BasePage;
 
 /**
  * Page Object representing a dashboard page shown after successful

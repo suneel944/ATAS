@@ -1,4 +1,4 @@
-package com.atas.tests.ui;
+package com.atas.features.authentication.ui;
 
 import com.atas.framework.AtasFrameworkApplication;
 import com.atas.framework.core.driver.BrowserType;
@@ -10,7 +10,7 @@ import com.atas.framework.model.TestStatus;
 import com.atas.framework.recording.VideoRecordingService;
 import com.atas.framework.repository.TestExecutionRepository;
 import com.atas.framework.repository.TestResultRepository;
-import com.atas.tests.pages.LoginPage;
+import com.atas.features.authentication.pages.LoginPage;
 import com.microsoft.playwright.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;

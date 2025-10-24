@@ -1,4 +1,4 @@
-package com.atas.tests.pages;
+package com.atas.shared.pages;
 
 import com.microsoft.playwright.Page;
 

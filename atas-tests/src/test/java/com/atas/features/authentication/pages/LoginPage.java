@@ -1,6 +1,7 @@
-package com.atas.tests.pages;
+package com.atas.features.authentication.pages;
 
 import com.microsoft.playwright.Page;
+import com.atas.shared.pages.BasePage;
 
 /**
  * Page Object representing a login page.  Provides fluent methods
