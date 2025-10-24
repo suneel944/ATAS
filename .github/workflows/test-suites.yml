@@ -1,5 +1,11 @@
 name: Test Suites
 
+# Required permissions for PR commenting
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
 on:
   workflow_dispatch:
     inputs:
@@ -93,27 +99,49 @@ jobs:
           fi
 
       - name: Comment PR with test results
+        id: comment
         if: github.event_name == 'pull_request' && always()
         uses: actions/github-script@v7
         with:
           script: |
-            const summary = `## 🧪 Test Suite Results: ${{ github.event.inputs.test-suite || 'all' }}
-            
-            **Environment:** ${{ github.event.inputs.environment || 'test' }}
-            **Browser Matrix:** ${{ github.event.inputs.browser-matrix || 'chromium,firefox,webkit' }}
-            **Status:** ${{ needs.run-test-suite.result == 'success' && '✅ Passed' || '❌ Failed' }}
-            **Triggered by:** @${{ github.actor }}
-            **Event:** ${{ github.event_name }}
-            
-            ${{ needs.run-test-suite.result == 'success' && '🎉 All tests passed successfully!' || '⚠️ Some tests failed. Please check the logs for details.' }}
-            
-            [View detailed results](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
-            
-            if (context.payload.pull_request) {
-              github.rest.issues.createComment({
-                issue_number: context.payload.pull_request.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: summary
-              });
+            try {
+              const summary = `## 🧪 Test Suite Results: ${{ github.event.inputs.test-suite || 'all' }}
+              
+              **Environment:** ${{ github.event.inputs.environment || 'test' }}
+              **Browser Matrix:** ${{ github.event.inputs.browser-matrix || 'chromium,firefox,webkit' }}
+              **Status:** ${{ needs.run-test-suite.result == 'success' && '✅ Passed' || '❌ Failed' }}
+              **Triggered by:** @${{ github.actor }}
+              **Event:** ${{ github.event_name }}
+              
+              ${{ needs.run-test-suite.result == 'success' && '🎉 All tests passed successfully!' || '⚠️ Some tests failed. Please check the logs for details.' }}
+              
+              [View detailed results](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
+              
+              if (context.payload.pull_request) {
+                await github.rest.issues.createComment({
+                  issue_number: context.payload.pull_request.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: summary
+                });
+                console.log('Successfully posted comment to PR');
+              } else {
+                console.log('No pull request found in context');
+              }
+            } catch (error) {
+              console.error('Failed to post comment:', error.message);
+              // Don't fail the job if commenting fails
+              core.setOutput('comment-error', error.message);
+              process.exitCode = 0; // Don't fail the step
             }
+
+      - name: Report comment status
+        if: always()
+        run: |
+          echo "## 📝 PR Comment Status" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.comment.outcome }}" = "success" ]; then
+            echo "✅ **Successfully posted PR comment**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Failed to post PR comment**" >> $GITHUB_STEP_SUMMARY
+            echo "This is likely due to insufficient permissions. The test results are still available in the workflow summary above." >> $GITHUB_STEP_SUMMARY
+          fi

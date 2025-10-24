@@ -12,6 +12,7 @@ import com.atas.framework.model.TestStatus;
 import com.atas.framework.repository.TestExecutionRepository;
 import com.atas.framework.repository.TestResultRepository;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.WaitForSelectorState;
 import io.qameta.allure.Description;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
@@ -22,12 +23,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 /** UI tests for Monitoring functionality Tests monitoring dashboard and UI components */
-@SpringBootTest(classes = AtasFrameworkApplication.class)
+@SpringBootTest(classes = AtasFrameworkApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @Epic("Monitoring")
 @Feature("Dashboard UI")
@@ -40,6 +42,8 @@ public class MonitoringDashboardUiTest {
   @Autowired private TestExecutionRepository executionRepository;
 
   @Autowired private TestResultRepository resultRepository;
+
+  @LocalServerPort private int port;
 
   private TestExecution execution;
   private Page page;
@@ -92,7 +96,7 @@ public class MonitoringDashboardUiTest {
 
     try {
       // When - Navigate to dashboard (placeholder implementation)
-      page.navigate("http://localhost:8080/monitoring/dashboard");
+      page.navigate("http://localhost:" + port + "/monitoring/dashboard");
 
       // Then - Verify dashboard elements
       String title = page.title();
@@ -127,10 +131,13 @@ public class MonitoringDashboardUiTest {
 
     try {
       // When - Navigate to dashboard
-      page.navigate("http://localhost:8080/monitoring/dashboard");
+      page.navigate("http://localhost:" + port + "/monitoring/dashboard");
+      
+      // Wait for page to load and element to be visible
+      page.waitForSelector("#test-status", new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE));
 
       // Then - Verify status display
-      assertThat(page.isVisible("test-status")).isTrue();
+      assertThat(page.isVisible("#test-status")).isTrue();
       result.setStatus(TestStatus.PASSED);
     } catch (Exception e) {
       result.setStatus(TestStatus.FAILED);
@@ -161,13 +168,19 @@ public class MonitoringDashboardUiTest {
 
     try {
       // When - Navigate to dashboard
-      page.navigate("http://localhost:8080/monitoring/dashboard");
+      page.navigate("http://localhost:" + port + "/monitoring/dashboard");
+      
+      // Wait for page to load and elements to be visible
+      page.waitForSelector("#metrics-container", new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE));
+      page.waitForSelector("#total-tests", new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE));
+      page.waitForSelector("#passed-tests", new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE));
+      page.waitForSelector("#failed-tests", new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE));
 
       // Then - Verify metrics display
-      assertThat(page.isVisible("metrics-container")).isTrue();
-      assertThat(page.isVisible("total-tests")).isTrue();
-      assertThat(page.isVisible("passed-tests")).isTrue();
-      assertThat(page.isVisible("failed-tests")).isTrue();
+      assertThat(page.isVisible("#metrics-container")).isTrue();
+      assertThat(page.isVisible("#total-tests")).isTrue();
+      assertThat(page.isVisible("#passed-tests")).isTrue();
+      assertThat(page.isVisible("#failed-tests")).isTrue();
       result.setStatus(TestStatus.PASSED);
     } catch (Exception e) {
       result.setStatus(TestStatus.FAILED);
@@ -198,12 +211,17 @@ public class MonitoringDashboardUiTest {
 
     try {
       // When - Navigate to dashboard and interact with filter
-      page.navigate("http://localhost:8080/monitoring/dashboard");
-      page.click("status-filter");
-      page.selectOption("status-filter", "PASSED");
+      page.navigate("http://localhost:" + port + "/monitoring/dashboard");
+      
+      // Wait for page to load and elements to be visible
+      page.waitForSelector("#status-filter", new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE));
+      page.waitForSelector("#test-row", new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE));
+      
+      page.click("#status-filter");
+      page.selectOption("#status-filter", "PASSED");
 
       // Then - Verify filtering works
-      assertThat(page.isVisible("test-row")).isTrue();
+      assertThat(page.isVisible("#test-row")).isTrue();
       result.setStatus(TestStatus.PASSED);
     } catch (Exception e) {
       result.setStatus(TestStatus.FAILED);

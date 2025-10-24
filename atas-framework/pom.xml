@@ -94,6 +94,12 @@
       <version>${aws.sdk.v2.version}</version>
     </dependency>
 
+    <!-- Thymeleaf for web templates -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-thymeleaf</artifactId>
+    </dependency>
+
     <!-- Allure reporting -->
     <dependency>
       <groupId>io.qameta.allure</groupId>
@@ -153,19 +159,25 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>3.5.6</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>repackage</goal>
-            </goals>
-          </execution>
-        </executions>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
       </plugin>
 
       <!-- Allure Maven plugin -->
       <plugin>
         <groupId>io.qameta.allure</groupId>
         <artifactId>allure-maven</artifactId>
+      </plugin>
+
+      <!-- Exec Maven plugin for Playwright CLI -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.1.0</version>
+        <configuration>
+          <mainClass>com.microsoft.playwright.CLI</mainClass>
+        </configuration>
       </plugin>
 
     </plugins>

@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * UI tests for login validation scenarios. Tests various input validation and error handling cases.
  */
-@SpringBootTest(classes = AtasFrameworkApplication.class)
+@SpringBootTest(classes = AtasFrameworkApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Slf4j

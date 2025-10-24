@@ -33,7 +33,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: ${{ fromJSON(format('["{0}"]', inputs.browser-matrix)) }}
         include:
           - browser: chromium
             browser-name: Chromium
@@ -64,7 +63,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: ${{ inputs.java-version }}
-          distribution: 'eclipse-temurin'
+          distribution: 'temurin'
 
       - name: Cache Maven dependencies
         uses: actions/cache@v4
@@ -73,37 +72,44 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+      - name: Install parent POM first
+        run: |
+          mvn clean install -N -DskipTests
+
+      - name: Build framework first
+        run: |
+          mvn clean install -pl atas-framework -DskipTests
+
       - name: Install Playwright browsers
         run: |
-          mvn -q -pl atas-framework exec:java \
-            -Dexec.mainClass=com.microsoft.playwright.CLI \
-            -Dexec.args="install ${{ matrix.browser }}"
+          cd atas-framework
+          mvn -q exec:java -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install ${{ matrix.browser }}"
 
       - name: Run test suite with ${{ matrix.browser-name }}
         run: |
           case "${{ inputs.test-suite }}" in
             "all")
-              mvn test -Dtest="com.atas.suites.AllTestSuites" \
+              mvn test -pl atas-tests -Dtest="com.atas.suites.AllTestSuites" \
                 -Dspring.profiles.active=${{ inputs.environment }} \
                 -Dbrowser=${{ matrix.browser }}
               ;;
             "authentication-ui")
-              mvn test -Dtest="com.atas.suites.authentication.ui.AuthenticationUiTestSuite" \
+              mvn test -pl atas-tests -Dtest="com.atas.suites.authentication.ui.AuthenticationUiTestSuite" \
                 -Dspring.profiles.active=${{ inputs.environment }} \
                 -Dbrowser=${{ matrix.browser }}
               ;;
             "authentication-api")
-              mvn test -Dtest="com.atas.suites.authentication.api.AuthenticationApiTestSuite" \
+              mvn test -pl atas-tests -Dtest="com.atas.suites.authentication.api.AuthenticationApiTestSuite" \
                 -Dspring.profiles.active=${{ inputs.environment }} \
                 -Dbrowser=${{ matrix.browser }}
               ;;
             "monitoring-ui")
-              mvn test -Dtest="com.atas.suites.monitoring.ui.MonitoringUiTestSuite" \
+              mvn test -pl atas-tests -Dtest="com.atas.suites.monitoring.ui.MonitoringUiTestSuite" \
                 -Dspring.profiles.active=${{ inputs.environment }} \
                 -Dbrowser=${{ matrix.browser }}
               ;;
             "monitoring-api")
-              mvn test -Dtest="com.atas.suites.monitoring.api.MonitoringApiTestSuite" \
+              mvn test -pl atas-tests -Dtest="com.atas.suites.monitoring.api.MonitoringApiTestSuite" \
                 -Dspring.profiles.active=${{ inputs.environment }} \
                 -Dbrowser=${{ matrix.browser }}
               ;;
@@ -112,7 +118,7 @@ jobs:
       - name: Generate Allure Report
         if: always()
         run: |
-          mvn allure:report
+          mvn allure:report -pl atas-tests
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
