@@ -258,53 +258,32 @@ Once the ATAS service is running:
 
 ## 🌐 Architecture Overview
 ```mermaid
----
-config:
-  layout: dagre
----
-flowchart TB
- subgraph Tests["Tests"]
+graph TB
+    subgraph Tests
         ATAS_Tests["atas-tests
         (UI/API tests)"]
-  end
- subgraph Framework["Framework"]
-        ATAS_Framework["atas-framework
+    end
+
+    subgraph Framework
+        ATAS_Framework["atas-Framework
         (Spring Boot API)"]
-  end
- subgraph Data_Storage["Data_Storage"]
+    end
+
+    subgraph Data_Storage
         PostgreSQL["PostgreSQL
         (Results DB)"]
         S3["S3
         (Media Storage)"]
-  end
- subgraph Reports["Reports"]
-        AllureReports["Allure│           │           ├── pages
-│           │           │   ├── BasePage.class
-│           │           │   ├── DashboardPage.class
-│           │           │   └── LoginPage.class
-│           │           └── ui
-│           │               └── LoginUiTest.class
-│           ├── junit-platform.properties
-│           ├── test-dashboard.html
-│           └── test-login.html
-├── docker
-│   ├── docker-compose-local-db.yml
-│   ├── docker-compose-system-db.yml
-│   └── Dockerfile
-├── LICENSE
-├── mvnw
-├── mvnw.cmd
-├── pom.xml
-├── README.md
-└── scripts
-    ├── generate-reports.sh
-    └── run-tests.sh
+    end
 
-89 directories, 113 files Reports
+    subgraph Reports
+        AllureReports["Allure Reports
         (HTML dashboards)"]
-  end
+    end
+
     ATAS_Tests --> ATAS_Framework
-    ATAS_Framework --> PostgreSQL & S3
+    ATAS_Framework --> PostgreSQL
+    ATAS_Framework --> S3
     PostgreSQL --> AllureReports
     S3 --> AllureReports
 ```
