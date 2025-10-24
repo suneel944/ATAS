@@ -104,7 +104,6 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const core = require('@actions/core');
             try {
               const summary = `## 🧪 Test Suite Results: ${{ github.event.inputs.test-suite || 'all' }}
               
