@@ -26,7 +26,6 @@
       <groupId>com.atas</groupId>
       <artifactId>atas-framework</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
 
     <!-- Playwright for Java (tests only) -->
@@ -93,7 +92,6 @@
         <version>3.14.1</version>
         <configuration>
           <release>21</release>
-          <useModulePath>false</useModulePath>
           <compilerArgs>
             <arg>-parameters</arg>
           </compilerArgs>
