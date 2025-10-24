@@ -94,6 +94,12 @@
       <version>${aws.sdk.v2.version}</version>
     </dependency>
 
+    <!-- Thymeleaf for web templates -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-thymeleaf</artifactId>
+    </dependency>
+
     <!-- Allure reporting -->
     <dependency>
       <groupId>io.qameta.allure</groupId>
