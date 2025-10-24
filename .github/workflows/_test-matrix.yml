@@ -72,6 +72,10 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+      - name: Install parent POM first
+        run: |
+          mvn clean install -N -DskipTests
+
       - name: Build framework first
         run: |
           mvn clean install -pl atas-framework -DskipTests
