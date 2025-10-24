@@ -59,7 +59,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '21'
-          distribution: 'eclipse-temurin'
+          distribution: 'temurin'
 
       - name: Cache Maven dependencies
         uses: actions/cache@v4
@@ -157,49 +157,28 @@ jobs:
           path: ./artifacts
 
       - name: Create Release
-        uses: actions/create-release@v1
         id: create_release
+        run: |
+          gh release create ${{ needs.version.outputs.tag }} \
+            --title "Release ${{ needs.version.outputs.version }}" \
+            --notes "## Release ${{ needs.version.outputs.version }}
+          
+          ${{ github.event.inputs.release-notes || 'Automated release' }}
+          
+          ### Docker Image
+          \`\`\`bash
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.version.outputs.version }}
+          \`\`\`
+          
+          ### Artifacts
+          - Framework JAR: \`atas-framework-${{ needs.version.outputs.version }}.jar\`
+          - Tests JAR: \`atas-tests-${{ needs.version.outputs.version }}.jar\`
+          - SBOM generated and attached" \
+            ${{ github.event.inputs.pre-release == 'true' && '--prerelease' || '' }} \
+            ./artifacts/atas-framework/target/atas-framework.jar \
+            ./artifacts/atas-tests/target/atas-tests.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ needs.version.outputs.tag }}
-          release_name: Release ${{ needs.version.outputs.version }}
-          body: |
-            ## Release ${{ needs.version.outputs.version }}
-            
-            ${{ github.event.inputs.release-notes || 'Automated release' }}
-            
-            ### Docker Image
-            ```bash
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.version.outputs.version }}
-            ```
-            
-            ### Artifacts
-            - Framework JAR: `atas-framework-${{ needs.version.outputs.version }}.jar`
-            - Tests JAR: `atas-tests-${{ needs.version.outputs.version }}.jar`
-            - SBOM generated and attached
-          draft: false
-          prerelease: ${{ github.event.inputs.pre-release == 'true' }}
-
-      - name: Upload Release Assets
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/atas-framework/target/atas-framework.jar
-          asset_name: atas-framework-${{ needs.version.outputs.version }}.jar
-          asset_content_type: application/java-archive
-
-      - name: Upload Test JAR
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/atas-tests/target/atas-tests.jar
-          asset_name: atas-tests-${{ needs.version.outputs.version }}.jar
-          asset_content_type: application/java-archive
 
   # Release summary
   release-summary:

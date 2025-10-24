@@ -64,7 +64,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: ${{ inputs.java-version }}
-          distribution: 'eclipse-temurin'
+          distribution: 'temurin'
 
       - name: Cache Maven dependencies
         uses: actions/cache@v4
@@ -75,9 +75,8 @@ jobs:
 
       - name: Install Playwright browsers
         run: |
-          mvn -q -pl atas-framework exec:java \
-            -Dexec.mainClass=com.microsoft.playwright.CLI \
-            -Dexec.args="install ${{ matrix.browser }}"
+          cd atas-framework
+          mvn -q exec:java -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install ${{ matrix.browser }}"
 
       - name: Run test suite with ${{ matrix.browser-name }}
         run: |

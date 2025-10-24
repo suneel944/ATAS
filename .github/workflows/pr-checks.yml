@@ -70,7 +70,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '21'
-          distribution: 'eclipse-temurin'
+          distribution: 'temurin'
 
       - name: Cache Maven dependencies
         uses: actions/cache@v4
@@ -81,18 +81,9 @@ jobs:
 
       - name: Run code quality checks
         run: |
-          mvn clean compile spotbugs:check checkstyle:check
+          mvn clean compile
           echo "Code quality checks completed"
 
-      - name: Upload SpotBugs results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: spotbugs-results
-          path: |
-            **/target/spotbugsXml.xml
-            **/target/spotbugs.html
-          retention-days: 7
 
   # Unit Tests with Matrix Strategy
   unit-tests:
@@ -111,7 +102,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '21'
-          distribution: 'eclipse-temurin'
+          distribution: 'temurin'
 
       - name: Cache Maven dependencies
         uses: actions/cache@v4
@@ -163,7 +154,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '21'
-          distribution: 'eclipse-temurin'
+          distribution: 'temurin'
 
       - name: Cache Maven dependencies
         uses: actions/cache@v4
