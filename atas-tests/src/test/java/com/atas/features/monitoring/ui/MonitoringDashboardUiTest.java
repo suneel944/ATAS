@@ -12,6 +12,7 @@ import com.atas.framework.model.TestStatus;
 import com.atas.framework.repository.TestExecutionRepository;
 import com.atas.framework.repository.TestResultRepository;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.WaitForSelectorState;
 import io.qameta.allure.Description;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
@@ -131,9 +132,12 @@ public class MonitoringDashboardUiTest {
     try {
       // When - Navigate to dashboard
       page.navigate("http://localhost:" + port + "/monitoring/dashboard");
+      
+      // Wait for page to load and element to be visible
+      page.waitForSelector("#test-status", new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE));
 
       // Then - Verify status display
-      assertThat(page.isVisible("test-status")).isTrue();
+      assertThat(page.isVisible("#test-status")).isTrue();
       result.setStatus(TestStatus.PASSED);
     } catch (Exception e) {
       result.setStatus(TestStatus.FAILED);
@@ -165,12 +169,18 @@ public class MonitoringDashboardUiTest {
     try {
       // When - Navigate to dashboard
       page.navigate("http://localhost:" + port + "/monitoring/dashboard");
+      
+      // Wait for page to load and elements to be visible
+      page.waitForSelector("#metrics-container", new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE));
+      page.waitForSelector("#total-tests", new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE));
+      page.waitForSelector("#passed-tests", new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE));
+      page.waitForSelector("#failed-tests", new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE));
 
       // Then - Verify metrics display
-      assertThat(page.isVisible("metrics-container")).isTrue();
-      assertThat(page.isVisible("total-tests")).isTrue();
-      assertThat(page.isVisible("passed-tests")).isTrue();
-      assertThat(page.isVisible("failed-tests")).isTrue();
+      assertThat(page.isVisible("#metrics-container")).isTrue();
+      assertThat(page.isVisible("#total-tests")).isTrue();
+      assertThat(page.isVisible("#passed-tests")).isTrue();
+      assertThat(page.isVisible("#failed-tests")).isTrue();
       result.setStatus(TestStatus.PASSED);
     } catch (Exception e) {
       result.setStatus(TestStatus.FAILED);
@@ -202,11 +212,16 @@ public class MonitoringDashboardUiTest {
     try {
       // When - Navigate to dashboard and interact with filter
       page.navigate("http://localhost:" + port + "/monitoring/dashboard");
-      page.click("status-filter");
-      page.selectOption("status-filter", "PASSED");
+      
+      // Wait for page to load and elements to be visible
+      page.waitForSelector("#status-filter", new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE));
+      page.waitForSelector("#test-row", new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE));
+      
+      page.click("#status-filter");
+      page.selectOption("#status-filter", "PASSED");
 
       // Then - Verify filtering works
-      assertThat(page.isVisible("test-row")).isTrue();
+      assertThat(page.isVisible("#test-row")).isTrue();
       result.setStatus(TestStatus.PASSED);
     } catch (Exception e) {
       result.setStatus(TestStatus.FAILED);
