@@ -29,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
  * navigates to a dummy login page, enters invalid credentials and verifies that the dashboard does
  * not load.
  */
-@SpringBootTest(classes = AtasFrameworkApplication.class)
+@SpringBootTest(classes = AtasFrameworkApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @org.springframework.test.context.ActiveProfiles("test")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Slf4j

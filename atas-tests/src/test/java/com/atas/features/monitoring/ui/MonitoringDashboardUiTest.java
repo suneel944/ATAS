@@ -22,12 +22,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 /** UI tests for Monitoring functionality Tests monitoring dashboard and UI components */
-@SpringBootTest(classes = AtasFrameworkApplication.class)
+@SpringBootTest(classes = AtasFrameworkApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @Epic("Monitoring")
 @Feature("Dashboard UI")
@@ -40,6 +41,8 @@ public class MonitoringDashboardUiTest {
   @Autowired private TestExecutionRepository executionRepository;
 
   @Autowired private TestResultRepository resultRepository;
+
+  @LocalServerPort private int port;
 
   private TestExecution execution;
   private Page page;
@@ -92,7 +95,7 @@ public class MonitoringDashboardUiTest {
 
     try {
       // When - Navigate to dashboard (placeholder implementation)
-      page.navigate("http://localhost:8080/monitoring/dashboard");
+      page.navigate("http://localhost:" + port + "/monitoring/dashboard");
 
       // Then - Verify dashboard elements
       String title = page.title();
@@ -127,7 +130,7 @@ public class MonitoringDashboardUiTest {
 
     try {
       // When - Navigate to dashboard
-      page.navigate("http://localhost:8080/monitoring/dashboard");
+      page.navigate("http://localhost:" + port + "/monitoring/dashboard");
 
       // Then - Verify status display
       assertThat(page.isVisible("test-status")).isTrue();
@@ -161,7 +164,7 @@ public class MonitoringDashboardUiTest {
 
     try {
       // When - Navigate to dashboard
-      page.navigate("http://localhost:8080/monitoring/dashboard");
+      page.navigate("http://localhost:" + port + "/monitoring/dashboard");
 
       // Then - Verify metrics display
       assertThat(page.isVisible("metrics-container")).isTrue();
@@ -198,7 +201,7 @@ public class MonitoringDashboardUiTest {
 
     try {
       // When - Navigate to dashboard and interact with filter
-      page.navigate("http://localhost:8080/monitoring/dashboard");
+      page.navigate("http://localhost:" + port + "/monitoring/dashboard");
       page.click("status-filter");
       page.selectOption("status-filter", "PASSED");
 
