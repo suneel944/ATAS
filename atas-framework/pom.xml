@@ -161,7 +161,16 @@
         <version>3.5.6</version>
         <configuration>
           <skip>false</skip>
+          <!-- Create both fat jar and regular jar -->
+          <classifier>exec</classifier>
         </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
 
       <!-- Allure Maven plugin -->
