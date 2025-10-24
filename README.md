@@ -24,27 +24,28 @@ Traditional frameworks are great for test execution, but they often lack:
 
 ## ⚙️ Quick Start
 
+Get ATAS up and running in 3 simple commands:
+
 ```bash
 git clone https://github.com/<your-username>/atas-monorepo.git
 cd atas-monorepo
-make setup    # Initial setup
+make setup    # Initial setup & dependency installation
 make dev      # Start development environment
 ```
 
-**Or use traditional commands:**
-```bash
-./mvnw clean package -DskipTests
-docker-compose -f docker/docker-compose.yml up --build
-```
+This automatically:
+* ✅ Checks all prerequisites
+* 📦 Installs dependencies
+* 🏗️ Builds the project
+* 🐳 Starts Docker services (PostgreSQL + ATAS Framework)
+* 🧩 Auto-migrates database schema
 
-This launches:
+**Services will be available at:**
+* 🧠 **ATAS Framework**: [http://localhost:8080](http://localhost:8080)
+* 🗄️ **PostgreSQL**: localhost:5433
+* 📊 **Health Check**: [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health)
 
-* 🗄  **PostgreSQL** on port 5432
-* 🧠  **ATAS Framework Service** on port 8080
-* 🧩  Auto-migrated schema (via Flyway)
-* ☁️  Optional video uploads to Amazon S3
-
-Open [http://localhost:8080](http://localhost:8080) to confirm it’s alive.
+**Need help?** Run `make help` to see all available commands.
 
 ---
 
@@ -52,14 +53,35 @@ Open [http://localhost:8080](http://localhost:8080) to confirm it’s alive.
 
 ### 1️⃣ Prerequisites
 
-Make sure your system has:
+Make sure your system has the following dependencies:
 
-* **Linux / macOS / WSL2**
-* **Git**
-* **Docker & Docker Compose**
-* **Java 21 (LTS)** and **Maven 3.9+**
+#### System Dependencies
+* **Make** - Build automation tool (usually pre-installed on Linux/macOS)
+* **Git** - Version control system
+* **Docker & Docker Compose** - Containerization platform
+* **Java 21 (LTS)** and **Maven 3.9+** - Java runtime and build tool
 
-Install Java 21 easily using **SDKMAN!**:
+#### Installing System Dependencies
+
+**For Ubuntu/Debian:**
+```bash
+sudo apt update
+sudo apt install make git docker.io docker-compose-plugin
+```
+
+**For macOS (with Homebrew):**
+```bash
+brew install make git docker docker-compose
+```
+
+**For Windows (WSL2):**
+```bash
+# In WSL2 terminal
+sudo apt update
+sudo apt install make git docker.io docker-compose-plugin
+```
+
+#### Installing Java 21 with SDKMAN! (Recommended)
 
 ```bash
 # Install SDKMAN (once)
@@ -80,41 +102,61 @@ This sets up a clean, reproducible JDK + Maven environment.
 
 ---
 
-### 2️⃣ Clone and Build
+### 2️⃣ Project Setup
 
 ```bash
 git clone https://github.com/<your-username>/atas-monorepo.git
 cd atas-monorepo
-
-# Use Maven Wrapper (no local Maven needed)
-./mvnw clean package -DskipTests
+make setup    # Complete setup in one command
 ```
 
-This downloads all dependencies and compiles both modules.
+The `make setup` command automatically:
+* ✅ Verifies all prerequisites are installed
+* 🔧 Configures the project (Maven wrapper permissions, git config)
+* 📦 Downloads and installs all dependencies
+* 🏗️ Builds the project
 
-If you want to warm up Maven for offline use:
+---
 
+### 3️⃣ Development Workflow
+
+**Start development environment:**
 ```bash
-./mvnw dependency:go-offline
+make dev      # Start all services with Docker
+```
+
+**Run tests:**
+```bash
+make test     # Run all tests
+make test-ui  # Run only UI tests
+make test-api # Run only API tests
+```
+
+**Generate reports:**
+```bash
+make report        # Generate Allure reports
+make report-serve  # Serve reports locally
+```
+
+**Development commands:**
+```bash
+make build    # Build the project
+make clean    # Clean build artifacts
+make logs     # View service logs
+make stop     # Stop all services
 ```
 
 ---
 
-### 3️⃣ Run the Framework Locally (without Docker)
+### 4️⃣ Alternative: Run Without Docker
+
+If you prefer to run the framework locally without Docker:
 
 ```bash
-cd atas-framework
-./mvnw spring-boot:run
+make run      # Run ATAS framework locally
 ```
 
-Access the service at [http://localhost:8080](http://localhost:8080).
-The application will auto-create its schema in PostgreSQL (if configured) and expose REST APIs.
-
----
-
-### 4️⃣ Database Configuration
-
-Edit `atas-framework/src/main/resources/application.yml`:
+**Note:** You'll need to configure PostgreSQL separately. Edit `atas-framework/src/main/resources/application.yml`:
 
 ```yaml
 spring:
@@ -122,65 +164,109 @@ spring:
     url: jdbc:postgresql://localhost:5432/atas
     username: atas_user
     password: secret
-  jpa:
-    hibernate:
-      ddl-auto: update
-```
-
-Run PostgreSQL locally if you don’t already have it:
-
-```bash
-docker run -d --name postgres -e POSTGRES_PASSWORD=secret -p 5432:5432 postgres:16
 ```
 
 ---
 
-### 5️⃣ Run the Tests Module
+## 🛠️ Makefile Commands Reference
 
-```bash
-cd ../atas-tests
-./mvnw test
-```
+ATAS includes a comprehensive Makefile with 30+ commands to simplify development workflows. All commands are self-documenting - run `make help` to see the complete list.
 
-Allure reports are generated at:
+### 📋 Essential Commands
 
-```
-atas-tests/target/site/allure-maven-plugin/index.html
-```
+| Command | Description |
+|---------|-------------|
+| `make help` | Show all available commands with descriptions |
+| `make setup` | Complete project setup (prerequisites check, build, config) |
+| `make dev` | Start development environment (Docker services) |
+| `make test` | Run all tests |
+| `make build` | Build the project |
+| `make clean` | Clean build artifacts |
 
-To open the report interactively:
+### 🧪 Testing Commands
 
-```bash
-./mvnw allure:serve
-```
+| Command | Description |
+|---------|-------------|
+| `make test` | Run all tests |
+| `make test-ui` | Run UI tests only |
+| `make test-api` | Run API tests only |
+| `make test-integration` | Run integration tests |
+| `make test-suite SUITE=authentication-ui` | Run specific test suite |
+| `make test-with-service` | Run tests with framework service running |
+| `make quick-test` | Quick test (compile + basic tests) |
+
+### 🐳 Docker & Services
+
+| Command | Description |
+|---------|-------------|
+| `make docker-up` | Start Docker services |
+| `make docker-down` | Stop Docker services |
+| `make docker-logs` | Show Docker service logs |
+| `make docker-restart` | Restart Docker services |
+| `make docker-build` | Build Docker images |
+
+### 📊 Reporting & Quality
+
+| Command | Description |
+|---------|-------------|
+| `make report` | Generate test reports |
+| `make report-serve` | Serve test reports locally |
+| `make lint` | Run code quality checks |
+| `make format` | Format code |
+| `make security` | Run security checks |
+| `make check-all` | Run all checks (build, test, lint, security) |
+
+### 🔧 Development
+
+| Command | Description |
+|---------|-------------|
+| `make run` | Run framework locally (without Docker) |
+| `make logs` | Show application logs |
+| `make stop` | Stop all services |
+| `make deps` | Show dependency tree |
+| `make deps-update` | Update dependencies |
+| `make info` | Show project information |
+
+### 🌿 Git & Workflow
+
+| Command | Description |
+|---------|-------------|
+| `make commit MESSAGE="feat: add feature"` | Commit with message |
+| `make push` | Push changes to remote |
+| `make pull` | Pull latest changes |
+| `make status` | Show git status |
+| `make branch NAME=feature/new` | Create new branch |
+| `make release VERSION=1.0.0` | Create a release |
+
+### 🧹 Cleanup
+
+| Command | Description |
+|---------|-------------|
+| `make clean` | Clean build artifacts |
+| `make clean-all` | Clean everything (build, Docker, logs) |
+
+### 🚀 CI/CD
+
+| Command | Description |
+|---------|-------------|
+| `make ci` | Run CI pipeline locally |
+| `make pr-check` | Run PR checks locally |
+| `make deploy` | Deploy to staging |
 
 ---
 
-### 6️⃣ Run Everything with Docker (Recommended)
-
-```bash
-docker-compose -f docker/docker-compose.yml up --build
-```
-
-This spins up:
-
-* PostgreSQL → 5432
-* ATAS Framework → 8080
-* Optional Allure container for visual reports
-
-Stop services with `Ctrl + C` or `docker-compose down`.
-
----
-
-### 7️⃣ Troubleshooting
+### 5️⃣ Troubleshooting
 
 | Problem                         | Fix                                                                 |
 | ------------------------------- | ------------------------------------------------------------------- |
-| `mvnw: Permission denied`       | `chmod +x mvnw`                                                     |
-| `Port 8080 already in use`      | Change `server.port` in `application.yml`                           |
-| `Chrome not found (Playwright)` | Run any test once — Playwright downloads its browsers automatically |
-| Slow build                      | Add `-T 1C` for parallel Maven build                                |
-| `connection refused` to DB      | Ensure PostgreSQL is running and credentials match                  |
+| `make: command not found`       | Install Make: `sudo apt install make` (Ubuntu) or `brew install make` (macOS) |
+| `mvnw: Permission denied`       | Run `make setup` or `chmod +x mvnw`                                |
+| `Port 8080 already in use`      | Change `server.port` in `application.yml` or run `make stop` first |
+| `Chrome not found (Playwright)` | Run `make test` once — Playwright downloads browsers automatically |
+| `Docker not running`            | Start Docker service: `sudo systemctl start docker` (Linux)        |
+| `connection refused` to DB      | Run `make docker-up` to start PostgreSQL service                   |
+| Slow build                      | Use `make build-fast` for faster builds                            |
+| Tests failing with connection errors | Run `make test-with-service` instead of `make test`               |
 
 ---
 
@@ -210,6 +296,9 @@ Runs as a Spring Boot application exposing REST APIs to orchestrate and record e
 * SSE for live monitoring of test progress
 * AWS S3 integration for screenshots/videos
 * Allure integration for unified reports
+* **Test Execution API** - Trigger tests by individual test, tags, grep patterns, or suites
+* **Test Discovery API** - Discover available tests, suites, and tags dynamically
+* **Asynchronous Execution** - Non-blocking test execution with real-time monitoring
 
 ### **2. atas-tests**
 
@@ -230,24 +319,76 @@ void login_should_succeed() {
 Run them with:
 
 ```bash
-./scripts/run-tests.sh
-./scripts/generate-reports.sh
+make test           # Run all tests
+make test-ui        # Run UI tests only
+make test-api       # Run API tests only
+make report         # Generate Allure reports
+make report-serve   # Serve reports locally
 ```
 
-Open the generated report at
-`atas-tests/target/site/allure-maven-plugin/index.html`.
+Reports are automatically generated at:
+`atas-tests/target/site/allure-maven-plugin/index.html`
 
 ---
 
-## 🕹 Monitoring API
+## 📚 Documentation
 
-Once the ATAS service is running:
+Comprehensive documentation is available in the [`docs/`](docs/) directory:
 
-| Purpose            | Endpoint                                             |
-| ------------------ | ---------------------------------------------------- |
-| Poll status        | `GET /api/v1/test-execution/status?executionId={id}` |
-| Live updates (SSE) | `GET /api/v1/test-execution/live?executionId={id}`   |
-| Retrieve results   | `GET /api/v1/test-execution/results/{id}`            |
+- **[📖 Documentation Index](docs/README.md)** - Overview of all available documentation
+- **[🔧 API Reference](docs/API_REFERENCE.md)** - Complete REST API documentation with endpoints, parameters, and examples
+- **[🚀 Test Execution Guide](docs/TEST_EXECUTION_GUIDE.md)** - Step-by-step guide for executing and monitoring tests
+
+### Quick API Examples
+
+```bash
+# Discover available tests
+curl -s "http://localhost:8080/api/v1/tests/discover" | jq .
+
+# Execute tests by tags
+curl -s -X POST "http://localhost:8080/api/v1/tests/execute/tags?tags=smoke" | jq .
+
+# Monitor execution
+curl -s "http://localhost:8080/api/v1/test-execution/status?executionId=<executionId>" | jq .
+```
+
+---
+
+## 🕹 Test Execution & Monitoring API
+
+The ATAS framework provides comprehensive REST APIs for test discovery, execution, and monitoring. For complete API documentation, see the [API Reference](docs/API_REFERENCE.md).
+
+### 🚀 Key Features
+
+- **Test Discovery** - Dynamically discover available tests, suites, and tags
+- **Multiple Execution Types** - Individual tests, tag-based, pattern-based, and suite execution
+- **Real-time Monitoring** - Live updates via Server-Sent Events (SSE)
+- **Asynchronous Execution** - Non-blocking test execution with status tracking
+- **Flexible Configuration** - Environment, browser, timeout, and recording options
+
+### 📝 Quick Examples
+
+**Discover available tests:**
+```bash
+curl -s "http://localhost:8080/api/v1/tests/discover" | jq .
+```
+
+**Execute tests by tags:**
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/tests/execute/tags?tags=smoke,api" | jq .
+```
+
+**Execute individual test:**
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/tests/execute/individual?testClass=LoginApiTest&testMethod=login_api_should_return_token" | jq .
+```
+
+**Monitor execution:**
+```bash
+curl -s "http://localhost:8080/api/v1/test-execution/status?executionId=<executionId>" | jq .
+```
+
+For detailed API documentation with all endpoints, parameters, and examples, see the [API Reference](docs/API_REFERENCE.md).
 
 ---
 
@@ -259,6 +400,8 @@ Once the ATAS service is running:
 | **Custom storage**           | Implement `StorageService` and register via Spring                  |
 | **New metrics / dashboards** | Create new JPA entities or REST endpoints                           |
 | **CI/CD integration**        | Use Docker Compose in your pipeline for ephemeral test environments |
+| **Custom test execution**    | Extend `TestExecutionService` and add new execution types           |
+| **Test discovery**           | Implement custom test discovery logic in `TestDiscoveryService`     |
 
 ---
 
@@ -299,38 +442,43 @@ graph TB
 
 ## 🤝 Contributing
 
-We welcome improvements! Please read our [Contributing Guidelines](CONTRIBUTING.md) for detailed information on how to contribute to ATAS.
+We welcome improvements! Please follow the guidelines below for contributing to ATAS.
 
 ### Quick Start for Contributors
 
 1. **Fork the repository**
 2. **Setup and build**:
    ```bash
-   make setup    # Initial setup
-   make build    # Build project
+   make setup    # Complete setup (prerequisites, dependencies, build)
    ```
 3. **Create a feature branch**:
    ```bash
    make branch NAME=feature/your-feature-name
    ```
-4. **Follow commit guidelines** (see [CONTRIBUTING.md](CONTRIBUTING.md#commit-guidelines))
-5. **Run tests** before submitting:
+4. **Start development**:
    ```bash
-   make test     # Run all tests
-   make pr-check # Run PR checks locally
+   make dev      # Start development environment
    ```
-6. **Submit a pull request** following our [PR template](.github/pull_request_template.md)
+5. **Follow commit guidelines** (see below)
+6. **Run tests** before submitting:
+   ```bash
+   make pr-check # Run all PR checks locally (build, test, lint, security)
+   ```
+7. **Submit a pull request** with a clear description of your changes
 
-### Common Commands
+### Development Workflow
 
 ```bash
 make help       # Show all available commands
 make dev        # Start development environment
-make test       # Run tests
+make test       # Run all tests
+make test-ui    # Run UI tests only
+make test-api   # Run API tests only
 make build      # Build project
 make lint       # Run code quality checks
 make report     # Generate test reports
 make clean      # Clean build artifacts
+make ci         # Run CI pipeline locally
 ```
 
 ### Commit Message Format
@@ -343,7 +491,22 @@ fix(ui): resolve login button click issue
 docs(api): update test execution endpoint documentation
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md#commit-guidelines) for complete guidelines.
+### Commit Message Guidelines
+
+We follow [Conventional Commits](https://www.conventionalcommits.org/) for consistent commit messages:
+
+- `feat:` - New features
+- `fix:` - Bug fixes
+- `docs:` - Documentation changes
+- `style:` - Code style changes (formatting, etc.)
+- `refactor:` - Code refactoring
+- `test:` - Adding or updating tests
+- `chore:` - Maintenance tasks
+
+**Examples:**
+- `feat(api): add test execution by tags endpoint`
+- `fix(ui): resolve login button click issue`
+- `docs(readme): update API documentation`
 
 ---
 
