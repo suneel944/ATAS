@@ -1,0 +1,38 @@
+services:
+  # PostgreSQL database used for persisting test executions and results
+  atas-db:
+    image: postgres:18
+    container_name: atas-db
+    environment:
+      POSTGRES_DB: atasdb
+      POSTGRES_USER: atas
+      POSTGRES_PASSWORD: ataspass
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+
+  # Core ATAS framework service built from the Dockerfile
+  atas-service:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: atas-service
+    depends_on:
+      - atas-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://atas-db:5432/atasdb
+      SPRING_DATASOURCE_USERNAME: atas
+      SPRING_DATASOURCE_PASSWORD: ataspass
+      ATAS_STORAGE_BUCKET: ${ATAS_STORAGE_BUCKET:-atas-videos}
+      ATAS_STORAGE_REGION: ${ATAS_STORAGE_REGION:-us-east-1}
+    ports:
+      - "8080:8080"
+    volumes:
+      - videos:/videos
+      - screenshots:/screenshots
+
+volumes:
+  postgres-data:
+  videos:
+  screenshots:

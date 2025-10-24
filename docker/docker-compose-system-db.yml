@@ -1,0 +1,29 @@
+services:
+  atas-service:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: atas-service
+    environment:
+      # Talk to the HOST Postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://host.docker.internal:5432/atasdb
+      SPRING_DATASOURCE_USERNAME: atas
+      SPRING_DATASOURCE_PASSWORD: ataspass
+
+      ATAS_STORAGE_BUCKET: ${ATAS_STORAGE_BUCKET:-atas-videos}
+      ATAS_STORAGE_REGION: ${ATAS_STORAGE_REGION:-us-east-1}
+
+    ports:
+      - "8080:8080"
+
+    # This line ensures 'host.docker.internal' resolves correctly on Linux
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    volumes:
+      - videos:/videos
+      - screenshots:/screenshots
+
+volumes:
+  videos:
+  screenshots:

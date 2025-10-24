@@ -1,0 +1,38 @@
+spring:
+  datasource:
+    # These resolve from environment variables if set (Docker),
+    # otherwise fall back to local defaults.
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/atasdb}
+    username: ${SPRING_DATASOURCE_USERNAME:atas}
+    password: ${SPRING_DATASOURCE_PASSWORD:ataspass}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+# Management/Actuator endpoints (so /actuator/health is available)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: never
+
+# Custom ATAS configuration
+atas:
+  storage:
+    bucket: ${ATAS_STORAGE_BUCKET:atas-videos}
+    region: ${ATAS_STORAGE_REGION:us-east-1}
+    video-folder: videos
+    screenshot-folder: screenshots

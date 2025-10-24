@@ -1,0 +1,121 @@
+# -------------------------------------------------------------------
+# 🌐 ATAS Monorepo Git Ignore
+# Framework: Spring Boot (Java 21)
+# Tests: Playwright + JUnit 5 + Allure
+# Build Tool: Maven
+# Containers: Docker Compose
+# -------------------------------------------------------------------
+
+# === Maven build artifacts ===
+target/
+**/target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# === IDEs & Editors ===
+# IntelliJ / JetBrains
+.idea/
+*.iml
+out/
+# VSCode
+.vscode/
+.history/
+# Eclipse
+.classpath
+.project
+.settings/
+
+# === OS and system junk ===
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+Desktop.ini
+
+# === Logs & runtime data ===
+logs/
+*.log
+*.tmp
+*.swp
+
+# === Playwright cache & downloads ===
+# Browser binaries, traces, videos, screenshots
+playwright-report/
+blob-report/
+trace.zip
+*.webm
+*.png
+*.mp4
+test-results/
+# Playwright install cache inside Maven build layers
+**/.cache/ms-playwright/
+
+# === Allure ===
+# Results + generated HTML reports
+**/allure-results/
+**/allure-report/
+**/target/site/allure-maven-plugin/
+**/.allure/
+
+# === Test execution artifacts ===
+**/surefire-reports/
+**/failsafe-reports/
+**/jacoco.exec
+**/test-output/
+**/testng-output/
+*.exec
+
+# === Generated sources ===
+**/generated-sources/
+**/generated-test-sources/
+**/maven-status/
+
+# === Environment & local configs ===
+.env
+.env.*
+application-local.yml
+application-dev.yml
+application-test.yml.local
+# You can commit example env templates
+!application-example.yml
+
+# === Docker ===
+docker/*.log
+docker/*.pid
+**/tmp/
+**/.docker/
+**/.env
+
+# === Build scripts outputs ===
+scripts/*.log
+scripts/*.tmp
+
+# === Node/Frontend (if Playwright UI is extended) ===
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# === Reports / Coverage / Artifacts ===
+coverage/
+reports/
+**/html-report/
+**/json-report/
+
+# === Miscellaneous ===
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar
+*.tar.gz
+
+# === Local dev or editor backups ===
+*~
+*.bak
+*.orig
+*.rej
+
+# === Optional: allow specific resource templates ===
+!**/src/main/resources/application.yml
+!**/src/test/resources/application-test.yml

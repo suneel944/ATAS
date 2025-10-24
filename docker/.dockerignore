@@ -1,0 +1,96 @@
+# -------------------------------------------------------------------
+# 🐳 ATAS Docker Ignore
+# Context: Multi-module Maven + Spring Boot + Playwright
+# Purpose: keep build context small and secure
+# -------------------------------------------------------------------
+
+# === Git ===
+.git
+.gitignore
+.gitattributes
+
+# === IDE / Editor ===
+.idea/
+.vscode/
+*.iml
+*.sw?
+*.swp
+*.swo
+*.bak
+*.orig
+
+# === Maven build outputs ===
+target/
+**/target/
+!atas-framework/src/
+!atas-tests/src/
+.mvn/wrapper/maven-wrapper.jar
+
+# === Test reports and generated files ===
+**/allure-results/
+**/allure-report/
+**/target/site/
+**/surefire-reports/
+**/failsafe-reports/
+**/generated-sources/
+**/generated-test-sources/
+**/maven-status/
+reports/
+coverage/
+
+# === Playwright caches and media ===
+**/.cache/ms-playwright/
+playwright-report/
+blob-report/
+test-results/
+trace.zip
+*.webm
+*.mp4
+*.png
+
+# === Logs and runtime artifacts ===
+logs/
+*.log
+*.pid
+*.tmp
+*.lock
+
+# === Local environments and secrets ===
+.env
+.env.*
+application-local.yml
+application-dev.yml
+application-test.yml.local
+
+# === Docker metadata and junk ===
+docker-compose*.yml
+docker/*.log
+docker/*.pid
+docker/tmp/
+Dockerfile.old
+Dockerfile.bak
+
+# === Node/npm (future UI additions) ===
+node_modules/
+npm-debug.log
+yarn.lock
+pnpm-lock.yaml
+
+# === OS / System files ===
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# === Docs and non-runtime assets ===
+README.md
+LICENSE
+*.md
+*.pdf
+*.drawio
+*.excalidraw
+*.mermaid
+*.svg
+
+# === Scripts and non-runtime helpers ===
+scripts/
+!.scripts/*.sh

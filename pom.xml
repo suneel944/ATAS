@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.atas</groupId>
+  <artifactId>atas-monorepo</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>Advanced Testing As A Service (ATAS) Monorepo</name>
+  <description>Parent project for the ATAS framework and test modules.</description>
+
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://opensource.org/licenses/MIT</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <!-- Use a LITERAL version in <parent> -->
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.5.6</version>
+    <relativePath/>
+  </parent>
+
+  <properties>
+    <!-- Java toolchain -->
+    <java.version>21</java.version>
+    <maven.compiler.release>${java.version}</maven.compiler.release>
+
+    <!-- Keep for reference; not used in <parent> -->
+    <spring-boot.version>3.5.6</spring-boot.version>
+
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+    <!-- Shared library/plugin versions -->
+    <lombok.version>1.18.42</lombok.version>
+    <playwright.version>1.56.0</playwright.version>
+
+    <!-- Allure: split plugin vs library versions -->
+    <allure.plugin.version>2.16.1</allure.plugin.version>
+    <allure.lib.version>2.30.0</allure.lib.version>
+
+    <!-- Optional shared test libs -->
+    <assertj.version>3.27.6</assertj.version>
+    <aws.sdk.v2.version>2.25.8</aws.sdk.v2.version>
+  </properties>
+
+  <modules>
+    <module>atas-framework</module>
+    <module>atas-tests</module>
+  </modules>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <!-- Compiler -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.14.1</version>
+          <configuration>
+            <release>${maven.compiler.release}</release>
+            <encoding>${project.build.sourceEncoding}</encoding>
+          </configuration>
+        </plugin>
+
+        <!-- Allure Maven plugin (report generation) -->
+        <plugin>
+          <groupId>io.qameta.allure</groupId>
+          <artifactId>allure-maven</artifactId>
+          <version>${allure.plugin.version}</version>
+        </plugin>
+
+        <!-- Spring Boot plugin (version managed by parent) -->
+        <plugin>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-maven-plugin</artifactId>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+
+</project>
