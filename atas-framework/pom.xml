@@ -168,6 +168,16 @@
         <artifactId>allure-maven</artifactId>
       </plugin>
 
+      <!-- Exec Maven plugin for Playwright CLI -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.1.0</version>
+        <configuration>
+          <mainClass>com.microsoft.playwright.CLI</mainClass>
+        </configuration>
+      </plugin>
+
     </plugins>
   </build>
 
