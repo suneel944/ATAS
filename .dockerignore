@@ -1,0 +1,68 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+CONTRIBUTING.md
+DEVELOPMENT.md
+docs/
+*.md
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+target/
+!atas-framework/target/atas-framework-exec.jar
+build/
+out/
+
+# Test results
+allure-results/
+surefire-reports/
+test-results/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# Docker
+docker/
+Dockerfile*
+docker-compose*.yml
+
+# Scripts
+scripts/
+Makefile
+
+# CI/CD
+.github/
+
+# Node modules (if any)
+node_modules/
+
+# Other
+.env
+.env.local
+.env.*.local

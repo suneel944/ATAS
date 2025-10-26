@@ -2,10 +2,6 @@
 FROM maven:3.9.5-eclipse-temurin-21 AS build
 WORKDIR /build
 
-# Install Node.js for Playwright CLI
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs
-
 # Copy only the necessary files for dependency resolution first (better layer caching)
 COPY pom.xml ./
 COPY atas-framework/pom.xml ./atas-framework/
@@ -20,16 +16,11 @@ COPY atas-framework/src ./atas-framework/src
 # Build the framework module (fat jar via spring-boot-maven-plugin)
 RUN mvn -q -pl atas-framework -am -DskipTests clean package
 
-# Install only Chromium browser (smallest option for Playwright)
-RUN mvn -q -pl atas-framework exec:java \
-  -Dexec.mainClass=com.microsoft.playwright.CLI \
-  -Dexec.args="install chromium"
-
 # ---------- runtime stage ----------
 FROM eclipse-temurin:21-jre-alpine AS runtime
 WORKDIR /app
 
-# Install minimal dependencies for Playwright
+# Install minimal dependencies for Playwright (only if needed)
 RUN apk add --no-cache \
     chromium \
     nss \
@@ -38,14 +29,14 @@ RUN apk add --no-cache \
     harfbuzz \
     ca-certificates \
     ttf-freefont \
+    wget \
     && rm -rf /var/cache/apk/*
 
 # Copy the Spring Boot fat jar
 COPY --from=build /build/atas-framework/target/atas-framework-exec.jar /app/app.jar
 
-# Copy only Chromium browser from build stage
-COPY --from=build /root/.cache/ms-playwright/chromium-* /ms-playwright/chromium-*/
-ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+# Set Playwright to use system Chromium
+ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 ENV PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1
 
@@ -55,5 +46,4 @@ RUN addgroup -g 1001 -S atas && \
 USER atas
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "/app/app.jar"]
-  
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-XX:+UseG1GC", "-jar", "/app/app.jar"]
