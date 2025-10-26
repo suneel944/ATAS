@@ -79,9 +79,14 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+      - name: Setup Makefile
+        run: |
+          chmod +x ./mvnw
+          chmod +x Makefile
+
       - name: Run code quality checks
         run: |
-          mvn clean compile
+          make build
           echo "Code quality checks completed"
 
 
@@ -107,9 +112,14 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+      - name: Setup Makefile
+        run: |
+          chmod +x ./mvnw
+          chmod +x Makefile
+
       - name: Build framework
         run: |
-          mvn clean install -pl atas-framework -DskipTests
+          make build
           echo "Framework built successfully"
 
   # Unit Tests with Matrix Strategy
@@ -138,13 +148,19 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+      - name: Setup Makefile
+        run: |
+          chmod +x ./mvnw
+          chmod +x Makefile
+
       - name: Run unit tests for ${{ matrix.module }}
         run: |
           if [ "${{ matrix.module }}" = "atas-framework" ]; then
-            echo "Framework module has no unit tests to run"
+            echo "Running framework unit tests (H2-based)..."
+            make test-unit
           else
-            echo "Tests module has compilation issues - skipping for now"
-            echo "TODO: Fix test compilation dependencies"
+            echo "Running production tests (PostgreSQL-based)..."
+            make test-production
           fi
           echo "Unit tests completed for ${{ matrix.module }}"
 
@@ -195,10 +211,18 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+      - name: Setup Makefile
+        run: |
+          chmod +x ./mvnw
+          chmod +x Makefile
+
       - name: Run integration tests
         run: |
-          echo "Integration tests not implemented yet - skipping"
-          echo "TODO: Implement integration tests"
+          echo "Running framework integration tests (PostgreSQL with Testcontainers)..."
+          make test-integration
+          
+          echo "Running version consistency tests..."
+          mvn test -pl atas-framework -Dtest="**/*VersionConsistencyTest"
 
       - name: Upload integration test results
         uses: actions/upload-artifact@v4
@@ -212,10 +236,16 @@ jobs:
 
 
 
+  # Test Layers (New Structure)
+  test-layers:
+    needs: [changes]
+    if: github.event.inputs.skip-tests != 'true' && (github.event.inputs.run-full-suite == 'true' || needs.changes.outputs.framework == 'true' || needs.changes.outputs.tests == 'true')
+    uses: ./.github/workflows/test-layers.yml
+    # NOTE: ./.github/workflows/test-layers.yml must contain 'workflow_call:' at the top level
   # PR Summary
   pr-summary:
     runs-on: ubuntu-latest
-    needs: [changes, code-quality, build-framework, unit-tests, integration-tests]
+    needs: [changes, code-quality, build-framework, unit-tests, integration-tests, test-layers]
     if: always()
     steps:
       - name: PR Check Summary
@@ -232,14 +262,15 @@ jobs:
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Code Quality | ${{ needs.code-quality.result == 'success' && '✅ Passed' || needs.code-quality.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Build Framework | ${{ needs.build-framework.result == 'success' && '✅ Passed' || needs.build-framework.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Unit Tests | ${{ needs.unit-tests.result == 'success' && '✅ Passed' || needs.unit-tests.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Integration Tests | ${{ needs.integration-tests.result == 'success' && '✅ Passed' || needs.integration-tests.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Unit Tests (Legacy) | ${{ needs.unit-tests.result == 'success' && '✅ Passed' || needs.unit-tests.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Integration Tests (Legacy) | ${{ needs.integration-tests.result == 'success' && '✅ Passed' || needs.integration-tests.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Layers (New) | ${{ needs.test-layers.result == 'success' && '✅ Passed' || needs.test-layers.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Count successful jobs
           success_count=0
           total_count=0
-          for job in code-quality build-framework unit-tests integration-tests; do
+          for job in code-quality build-framework unit-tests integration-tests test-layers; do
             if [[ "${{ needs[job].result }}" != "skipped" ]]; then
               total_count=$((total_count + 1))
               if [[ "${{ needs[job].result }}" == "success" ]]; then
