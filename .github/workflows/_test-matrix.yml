@@ -81,9 +81,10 @@ jobs:
         run: |
           mvn clean install -N -DskipTests
 
-      - name: Build framework first
+      - name: Build and install framework first
         run: |
           make build
+          ./mvnw install -pl atas-framework -am
 
       - name: Install Playwright browsers
         run: |

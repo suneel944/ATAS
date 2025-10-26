@@ -117,10 +117,11 @@ jobs:
           chmod +x ./mvnw
           chmod +x Makefile
 
-      - name: Build framework
+      - name: Build and install framework
         run: |
           make build
-          echo "Framework built successfully"
+          ./mvnw install -pl atas-framework -am
+          echo "Framework built and installed successfully"
 
   # Unit Tests with Matrix Strategy
   unit-tests:
