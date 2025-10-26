@@ -74,7 +74,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: unit-test-results
+          name: test-layers-unit-test-results
           path: |
             atas-framework/target/surefire-reports/
             atas-framework/target/site/jacoco/
@@ -120,7 +120,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: integration-test-results
+          name: test-layers-integration-test-results
           path: |
             atas-framework/target/surefire-reports/
             atas-framework/target/site/jacoco/
@@ -165,7 +165,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: version-consistency-test-results
+          name: test-layers-version-consistency-test-results
           path: |
             atas-framework/target/surefire-reports/
           retention-days: 7
@@ -234,7 +234,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: production-test-results
+          name: test-layers-production-test-results
           path: |
             atas-tests/target/surefire-reports/
             atas-tests/target/site/jacoco/

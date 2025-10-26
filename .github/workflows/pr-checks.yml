@@ -154,6 +154,14 @@ jobs:
           chmod +x ./mvnw
           chmod +x Makefile
 
+      - name: Build and install framework (if needed)
+        run: |
+          if [ "${{ matrix.module }}" = "atas-tests" ]; then
+            echo "Installing framework for atas-tests module..."
+            make build
+            ./mvnw install -pl atas-framework -am
+          fi
+
       - name: Run unit tests for ${{ matrix.module }}
         run: |
           if [ "${{ matrix.module }}" = "atas-framework" ]; then
