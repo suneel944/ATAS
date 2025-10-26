@@ -69,27 +69,29 @@ jobs:
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+        outputs: type=image
 
     - name: List available images
       run: |
         echo "Available image tags:"
         docker images | grep ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} || echo "No local images found"
-        echo "Trying to pull image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-${{ github.sha }}"
+        echo "Generated tags: ${{ steps.meta.outputs.tags }}"
 
-    - name: Pull image for SBOM generation
+    - name: Generate SBOM from local image
       run: |
-        docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-${{ github.sha }}
-
-    - name: Verify image exists
-      run: |
-        docker images | grep ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-${{ github.sha }} || echo "Image not found locally"
-
-    - name: Generate SBOM
-      uses: anchore/sbom-action@v0
-      with:
-        image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-${{ github.sha }}
-        format: spdx-json
-        output-file: sbom.spdx.json
+        # Use the first tag from the generated tags for SBOM generation
+        IMAGE_TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -n1)
+        echo "Generating SBOM for image: $IMAGE_TAG"
+        
+        # Install syft if not available
+        if ! command -v syft &> /dev/null; then
+          echo "Installing syft..."
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+        fi
+        
+        # Generate SBOM
+        syft scan $IMAGE_TAG -o spdx-json > sbom.spdx.json
+        echo "SBOM generated successfully"
 
     - name: Upload SBOM
       uses: actions/upload-artifact@v4
@@ -102,5 +104,6 @@ jobs:
       if: success()
       run: |
         echo "✅ Successfully built and pushed image to GHCR"
-        echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-${{ github.sha }}"
+        echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}"
         echo "Tags: ${{ steps.meta.outputs.tags }}"
+        echo "SBOM: Generated and uploaded as artifact"
