@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/atas_production_test
+    url: jdbc:postgresql://localhost:5432/atas_integration_test
     username: atas
     password: ataspass
     driver-class-name: org.postgresql.Driver
@@ -15,17 +15,17 @@ spring:
   flyway:
     enabled: false
 
-# Production test configuration
+# Integration test configuration
 atas:
   storage:
-    bucket: production-test-bucket
+    bucket: integration-test-bucket
     region: us-east-1
-    video-folder: production-videos
-    screenshot-folder: production-screenshots
+    video-folder: integration-videos
+    screenshot-folder: integration-screenshots
 
-# Logging for production tests
+# Logging for integration tests
 logging:
   level:
-    com.atas: INFO
+    com.atas.framework: INFO
     org.springframework.test: INFO
     org.hibernate.SQL: DEBUG

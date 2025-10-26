@@ -1,7 +1,7 @@
 # ATAS Project Makefile
 # Advanced Testing As A Service - Easy command shortcuts
 
-.PHONY: help build test clean install docker-up docker-down docker-logs lint format check-all setup dev test-ui test-api test-all report release
+.PHONY: help build test clean install docker-up docker-down docker-logs lint format check-all setup dev test-ui test-api test-unit test-integration test-production test-by-type test-all report release
 
 # Default target
 .DEFAULT_GOAL := help
@@ -17,6 +17,9 @@ NC := \033[0m # No Color
 PROJECT_NAME := ATAS
 MAVEN_WRAPPER := ./mvnw
 DOCKER_COMPOSE := docker compose -f docker/docker-compose-local-db.yml
+
+# Common warning messages
+POSTGRES_WARNING := "⚠️  Note: This test requires PostgreSQL container to be running"
 
 ##@ Help
 help: ## Display this help message
@@ -63,20 +66,18 @@ setup: ## Initial project setup
 	@echo ""
 	@echo "$(BLUE)💡 Tip: Run 'make dev' to start the development environment$(NC)"
 
-install: ## Install dependencies and build project
-	@echo "$(BLUE)Installing dependencies and building project...$(NC)"
-	$(MAVEN_WRAPPER) clean compile -q
+install: build ## Install dependencies and build project
 	@echo "$(GREEN)✅ Installation complete!$(NC)"
 
 ##@ Building
 build: ## Build the project
 	@echo "$(BLUE)Building $(PROJECT_NAME)...$(NC)"
-	$(MAVEN_WRAPPER) clean compile
+	$(MAVEN_WRAPPER) compile
 	@echo "$(GREEN)✅ Build complete!$(NC)"
 
 build-fast: ## Fast build (skip tests)
 	@echo "$(BLUE)Fast building $(PROJECT_NAME)...$(NC)"
-	$(MAVEN_WRAPPER) clean compile -DskipTests -q
+	$(MAVEN_WRAPPER) compile -DskipTests -q
 	@echo "$(GREEN)✅ Fast build complete!$(NC)"
 
 package: ## Package the project (create JARs)
@@ -102,22 +103,36 @@ test-api: ## Run API tests only
 	$(MAVEN_WRAPPER) test -Dtest="**/*ApiTest"
 	@echo "$(GREEN)✅ API tests completed!$(NC)"
 
-test-integration: ## Run integration tests
+test-unit: ## Run unit tests only
+	@echo "$(BLUE)Running unit tests...$(NC)"
+	$(MAVEN_WRAPPER) test -Dtest="**/*Test,!**/*IntegrationTest,!**/*ProductionTest" -pl atas-framework
+	@echo "$(GREEN)✅ Unit tests completed!$(NC)"
+
+test-integration: ## Run integration tests only
 	@echo "$(BLUE)Running integration tests...$(NC)"
-	$(MAVEN_WRAPPER) test -Dtest="**/*IT"
+	@echo "$(YELLOW)$(POSTGRES_WARNING)$(NC)"
+	$(MAVEN_WRAPPER) test -Dtest="**/*IntegrationTest" -pl atas-framework
 	@echo "$(GREEN)✅ Integration tests completed!$(NC)"
+
+test-production: ## Run production tests only
+	@echo "$(BLUE)Running production tests...$(NC)"
+	@echo "$(YELLOW)$(POSTGRES_WARNING)$(NC)"
+	$(MAVEN_WRAPPER) test -Dtest="**/*ProductionTest" -pl atas-tests
+	@echo "$(GREEN)✅ Production tests completed!$(NC)"
 
 test-suite: ## Run specific test suite (usage: make test-suite SUITE=authentication-ui)
 	@echo "$(BLUE)Running test suite: $(SUITE)...$(NC)"
 	$(MAVEN_WRAPPER) test -Dtest="com.atas.suites.$(SUITE).*TestSuite"
 	@echo "$(GREEN)✅ Test suite $(SUITE) completed!$(NC)"
 
-test-all: ## Run all tests
-	@echo "$(BLUE)Running all tests...$(NC)"
-	@echo "$(YELLOW)⚠️  Note: Some UI tests require the ATAS framework service to be running$(NC)"
-	@echo "$(YELLOW)   If tests fail with connection errors, run: make test-with-service$(NC)"
-	$(MAVEN_WRAPPER) clean test
-	@echo "$(GREEN)✅ All tests completed!$(NC)"
+test-all: test ## Alias for test (for backward compatibility)
+
+test-by-type: ## Run all test types in sequence (unit, integration, production)
+	@echo "$(BLUE)Running all test types in sequence...$(NC)"
+	@$(MAKE) test-unit
+	@$(MAKE) test-integration
+	@$(MAKE) test-production
+	@echo "$(GREEN)✅ All test types completed!$(NC)"
 
 test-with-service: ## Run all tests with framework service running
 	@echo "$(BLUE)Starting framework service and running all tests...$(NC)"
@@ -125,7 +140,7 @@ test-with-service: ## Run all tests with framework service running
 	@$(MAKE) docker-up
 	@echo "$(BLUE)Waiting for service to be ready...$(NC)"
 	@sleep 10
-	$(MAVEN_WRAPPER) clean test
+	$(MAVEN_WRAPPER) test
 	@echo "$(GREEN)✅ All tests with service completed!$(NC)"
 
 ##@ Code Quality
@@ -199,10 +214,7 @@ logs: ## Show application logs
 	@echo "$(BLUE)Showing application logs...$(NC)"
 	$(DOCKER_COMPOSE) logs -f atas-service
 
-stop: ## Stop all services
-	@echo "$(BLUE)Stopping all services...$(NC)"
-	@$(MAKE) docker-down
-	@echo "$(GREEN)✅ All services stopped!$(NC)"
+stop: docker-down ## Alias for docker-down
 
 ##@ Reporting
 report: ## Generate test reports
@@ -310,20 +322,8 @@ info: ## Show project information
 	@echo "  make help     - Show all commands"
 
 ##@ Workflow Shortcuts
-ci: ## Run CI pipeline locally
-	@echo "$(BLUE)Running CI pipeline locally...$(NC)"
-	@$(MAKE) check-all
-	@echo "$(GREEN)✅ CI pipeline completed!$(NC)"
+ci: check-all ## Alias for check-all
 
-pr-check: ## Run PR checks locally
-	@echo "$(BLUE)Running PR checks...$(NC)"
-	@$(MAKE) build
-	@$(MAKE) test
-	@$(MAKE) lint
-	@$(MAKE) security
-	@echo "$(GREEN)✅ PR checks completed!$(NC)"
+pr-check: check-all ## Alias for check-all
 
-quick-test: ## Quick test (compile + basic tests)
-	@echo "$(BLUE)Running quick test...$(NC)"
-	$(MAVEN_WRAPPER) clean compile test -Dtest="**/*Test" -q
-	@echo "$(GREEN)✅ Quick test completed!$(NC)"
+quick-test: test-unit ## Alias for test-unit (for backward compatibility)

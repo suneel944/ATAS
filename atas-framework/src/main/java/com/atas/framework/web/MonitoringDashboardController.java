@@ -18,4 +18,13 @@ public class MonitoringDashboardController {
   public String dashboard() {
     return "monitoring-dashboard";
   }
+
+  /**
+   * Serves the database management page.
+   * @return the database management view name
+   */
+  @GetMapping("/monitoring/database")
+  public String databaseManagement() {
+    return "database-management";
+  }
 }

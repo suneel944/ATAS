@@ -127,9 +127,13 @@ make dev      # Start all services with Docker
 
 **Run tests:**
 ```bash
-make test     # Run all tests
-make test-ui  # Run only UI tests
-make test-api # Run only API tests
+make test              # Run all tests
+make test-unit         # Run unit tests only (fastest)
+make test-integration  # Run integration tests only
+make test-production   # Run production tests only
+make test-ui           # Run UI tests only
+make test-api          # Run API tests only
+make test-by-type      # Run all test types in sequence
 ```
 
 **Generate reports:**
@@ -188,12 +192,15 @@ ATAS includes a comprehensive Makefile with 30+ commands to simplify development
 | Command | Description |
 |---------|-------------|
 | `make test` | Run all tests |
+| `make test-unit` | Run unit tests only (fastest, H2-based) |
+| `make test-integration` | Run integration tests only (PostgreSQL with Testcontainers) |
+| `make test-production` | Run production tests only (PostgreSQL-based) |
+| `make test-by-type` | Run all test types in sequence (unit, integration, production) |
 | `make test-ui` | Run UI tests only |
 | `make test-api` | Run API tests only |
-| `make test-integration` | Run integration tests |
 | `make test-suite SUITE=authentication-ui` | Run specific test suite |
 | `make test-with-service` | Run tests with framework service running |
-| `make quick-test` | Quick test (compile + basic tests) |
+| `make quick-test` | Quick test (alias for test-unit) |
 
 ### 🐳 Docker & Services
 
@@ -267,6 +274,11 @@ ATAS includes a comprehensive Makefile with 30+ commands to simplify development
 | `connection refused` to DB      | Run `make docker-up` to start PostgreSQL service                   |
 | Slow build                      | Use `make build-fast` for faster builds                            |
 | Tests failing with connection errors | Run `make test-with-service` instead of `make test`               |
+| Integration tests failing       | Run `make docker-up` first, then `make test-integration`           |
+| Production tests failing        | Run `make docker-up` first, then `make test-production`            |
+| Need fastest test feedback      | Use `make test-unit` for H2-based unit tests                       |
+| Docker build issues             | Rebuild with `make docker-build` or reset with `make stop && docker system prune -f` |
+| PostgreSQL version conflicts    | Ensure all tests use PostgreSQL 18 (check docker-compose and test files) |
 
 ---
 
@@ -280,6 +292,52 @@ atas-monorepo/
 ├── docker/              → Dockerfile & Compose setup
 ├── scripts/             → build, run, and report helpers
 └── README.md
+```
+
+---
+
+## 🧪 Test Types & Execution
+
+ATAS supports multiple test types optimized for different scenarios:
+
+### **Unit Tests** (`make test-unit`)
+- **Fastest execution** - Uses H2 in-memory database
+- **No external dependencies** - Perfect for rapid feedback during development
+- **Framework tests only** - Tests the core ATAS framework functionality
+- **Pattern**: `*Test` (excludes `*IT` and `*ProductionTest`)
+
+### **Integration Tests** (`make test-integration`)
+- **PostgreSQL with Testcontainers** - Real database testing
+- **Framework integration** - Tests framework components with real database
+- **Pattern**: `*IT` (Integration Test)
+- **Requires**: PostgreSQL container running
+
+### **Production Tests** (`make test-production`)
+- **Production-like environment** - Simulates real-world scenarios
+- **PostgreSQL-based** - Uses actual database for realistic testing
+- **Test suite validation** - Tests the complete test execution flow
+- **Pattern**: `*ProductionTest`
+- **Requires**: PostgreSQL container running
+
+### **Test Execution Examples**
+
+```bash
+# Quick development feedback (fastest)
+make test-unit
+
+# Test with real database (integration)
+make test-integration
+
+# Full production simulation
+make test-production
+
+# Run all test types in sequence
+make test-by-type
+
+# Traditional test categories
+make test-ui    # UI tests only
+make test-api   # API tests only
+make test       # All tests
 ```
 
 ---
@@ -319,11 +377,15 @@ void login_should_succeed() {
 Run them with:
 
 ```bash
-make test           # Run all tests
-make test-ui        # Run UI tests only
-make test-api       # Run API tests only
-make report         # Generate Allure reports
-make report-serve   # Serve reports locally
+make test              # Run all tests
+make test-unit         # Run unit tests only (fastest)
+make test-integration  # Run integration tests only
+make test-production   # Run production tests only
+make test-ui           # Run UI tests only
+make test-api          # Run API tests only
+make test-by-type      # Run all test types in sequence
+make report            # Generate Allure reports
+make report-serve      # Serve reports locally
 ```
 
 Reports are automatically generated at:
@@ -469,16 +531,20 @@ We welcome improvements! Please follow the guidelines below for contributing to 
 ### Development Workflow
 
 ```bash
-make help       # Show all available commands
-make dev        # Start development environment
-make test       # Run all tests
-make test-ui    # Run UI tests only
-make test-api   # Run API tests only
-make build      # Build project
-make lint       # Run code quality checks
-make report     # Generate test reports
-make clean      # Clean build artifacts
-make ci         # Run CI pipeline locally
+make help              # Show all available commands
+make dev               # Start development environment
+make test              # Run all tests
+make test-unit         # Run unit tests only (fastest)
+make test-integration  # Run integration tests only
+make test-production   # Run production tests only
+make test-ui           # Run UI tests only
+make test-api          # Run API tests only
+make test-by-type      # Run all test types in sequence
+make build             # Build project
+make lint              # Run code quality checks
+make report            # Generate test reports
+make clean             # Clean build artifacts
+make ci                # Run CI pipeline locally
 ```
 
 ### Commit Message Format

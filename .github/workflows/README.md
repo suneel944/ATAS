@@ -1,173 +1,200 @@
-# GitHub Workflows Documentation
+# GitHub Workflows
 
-This document describes the GitHub Actions workflows used in the ATAS project.
+This directory contains GitHub Actions workflows for the ATAS project, including CI/CD pipelines, testing, and deployment automation.
 
 ## Workflow Overview
 
-| Workflow | Purpose | Trigger | Status |
-|----------|---------|---------|--------|
-| [PR Checks](.github/workflows/pr-checks.yml) | Quality gates for pull requests | PR to main/master | ![PR Checks](https://github.com/suneel/ATAS/workflows/PR%20Checks/badge.svg) |
-| [Test Suites](.github/workflows/test-suites.yml) | Comprehensive test execution | Manual dispatch, PR | ![Test Suites](https://github.com/suneel/ATAS/workflows/Test%20Suites/badge.svg) |
-| [Build and Push](.github/workflows/build-and-push.yml) | Build and deploy to GHCR | Push to main/master | ![Build and Push](https://github.com/suneel/ATAS/workflows/Build%20and%20Push%20to%20GHCR/badge.svg) |
-| [Release](.github/workflows/release.yml) | Create releases and artifacts | Tag push, manual | ![Release](https://github.com/suneel/ATAS/workflows/Release/badge.svg) |
+### Core Workflows
 
-## Workflow Details
+- **`pr-checks.yml`** - Main PR validation workflow
+- **`test-layers.yml`** - New test layer structure (unit, integration, production, version consistency)
+- **`test-suites.yml`** - Legacy test suite execution
+- **`_test-matrix.yml`** - Reusable test matrix configuration
+- **`build-and-push.yml`** - Docker image building and pushing
+- **`release.yml`** - Release automation
+
+## Test Architecture
+
+The project uses a multi-layer testing approach:
+
+### 1. Unit Tests (H2-based)
+- **Location**: `atas-framework/src/test/java/`
+- **Database**: H2 in-memory database
+- **Profile**: `unit-test`
+- **Purpose**: Fast, isolated tests for individual components
+- **Command**: `mvn test -pl atas-framework -Dtest="**/*Test" -Dspring.profiles.active=unit-test -Dtest="!**/*IntegrationTest"`
+
+### 2. Integration Tests (PostgreSQL with Testcontainers)
+- **Location**: `atas-framework/src/test/java/com/atas/framework/integration/`
+- **Database**: PostgreSQL via Testcontainers
+- **Profile**: `integration-test`
+- **Purpose**: Test component interactions with real database
+- **Command**: `mvn test -pl atas-framework -Dtest="**/*IntegrationTest" -Dspring.profiles.active=integration-test`
+
+### 3. Production Tests (PostgreSQL-based)
+- **Location**: `atas-tests/src/test/java/com/atas/production/`
+- **Database**: PostgreSQL (external or Testcontainers)
+- **Profile**: `test`
+- **Purpose**: End-to-end production-level testing
+- **Command**: `mvn test -pl atas-tests -Dtest="**/*ProductionTest" -Dspring.profiles.active=test`
+
+### 4. Version Consistency Tests
+- **Location**: `atas-framework/src/test/java/com/atas/framework/integration/VersionConsistencyTest.java`
+- **Purpose**: Ensure version consistency between Docker Compose and integration tests
+- **Command**: `mvn test -pl atas-framework -Dtest="**/*VersionConsistencyTest"`
+
+## Workflow Triggers
 
 ### PR Checks (`pr-checks.yml`)
+- **Trigger**: Pull requests to `main`/`master` branches
+- **Features**:
+  - Change detection (framework, tests, docker, workflows)
+  - Code quality checks
+  - Build framework
+  - Run all test layers
+  - Generate comprehensive PR summary
 
-**Purpose**: Comprehensive quality gates for pull requests with intelligent job execution based on file changes.
-
-**Features**:
-- **Smart Execution**: Only runs relevant jobs based on changed files
-- **Matrix Strategy**: Parallel execution of unit tests across modules
-- **Comprehensive Coverage**: Code quality, unit tests, integration tests, Docker builds
-- **Enhanced Reporting**: Detailed PR summaries with change detection
-
-**Jobs**:
-- `changes`: Detects which parts of the codebase changed
-- `code-quality`: SpotBugs and Checkstyle analysis
-- `unit-tests`: Matrix execution across `atas-framework` and `atas-tests` modules
-- `integration-tests`: Database integration tests with PostgreSQL
-- `docker-build-test`: Docker image build and health check
-- `pr-summary`: Comprehensive status summary
-
-**Manual Inputs**:
-- `skip-tests`: Skip test execution
-- `run-full-suite`: Force execution of all checks regardless of changes
+### Test Layers (`test-layers.yml`)
+- **Trigger**: Pull requests or manual dispatch
+- **Features**:
+  - Selective test layer execution
+  - Environment-specific testing
+  - Comprehensive test reporting
+  - Artifact collection
 
 ### Test Suites (`test-suites.yml`)
+- **Trigger**: Pull requests or manual dispatch
+- **Features**:
+  - Legacy test suite support
+  - Browser matrix testing
+  - Allure report generation
+  - PR commenting
 
-**Purpose**: Comprehensive test execution with browser matrix support and environment flexibility.
+## Environment Configuration
 
-**Features**:
-- **Browser Matrix**: Parallel execution across Chromium, Firefox, and WebKit
-- **Environment Support**: Test, staging, and production environments
-- **Reusable Components**: Uses `_test-matrix.yml` for consistent execution
-- **Enhanced Reporting**: Detailed test results with artifact management
+### Test Profiles
 
-**Manual Inputs**:
-- `test-suite`: Choose specific test suite (all, authentication-ui, authentication-api, monitoring-ui, monitoring-api)
-- `environment`: Target environment (test, staging, production)
-- `browser-matrix`: Custom browser selection
-- `parallel-jobs`: Number of parallel execution jobs
-
-### Build and Push (`build-and-push.yml`)
-
-**Purpose**: Build and push Docker images to GitHub Container Registry.
-
-**Features**:
-- **Multi-arch Support**: Builds for multiple architectures
-- **SBOM Generation**: Software Bill of Materials for transparency
-- **Smart Tagging**: Branch-based and SHA-based tagging
-- **Cache Optimization**: GitHub Actions cache for faster builds
-
-### Release (`release.yml`)
-
-**Purpose**: Automated release creation with comprehensive artifact management.
-
-**Features**:
-- **Multi-format Artifacts**: JAR files, Docker images, SBOMs
-- **GitHub Integration**: Automated release creation with assets
-- **Version Management**: Tag-based and manual version specification
-
-## Reusable Workflows
-
-### Common Setup (`_common-setup.yml`)
-
-**Purpose**: Shared setup steps for Java/Maven projects.
-
-**Features**:
-- **Configurable Java Version**: Support for different JDK versions
-- **Maven Caching**: Optimized dependency caching
-- **Flexible Goals**: Configurable Maven execution goals
-
-### Test Matrix (`_test-matrix.yml`)
-
-**Purpose**: Reusable test execution with browser matrix support.
-
-**Features**:
-- **Browser Matrix**: Parallel execution across multiple browsers
-- **Environment Support**: Configurable test environments
-- **Service Integration**: PostgreSQL service for integration tests
-- **Artifact Management**: Comprehensive test result collection
-
-## Best Practices
-
-### 1. **Conditional Execution**
-- Jobs only run when relevant files are changed
-- Reduces CI/CD costs and execution time
-- Improves developer experience
-
-### 2. **Matrix Strategies**
-- Parallel execution across modules and browsers
-- Faster feedback loops
-- Better resource utilization
-
-### 3. **Transparency**
-- SBOM generation for supply chain transparency
-
-### 4. **Comprehensive Reporting**
-- Detailed workflow summaries
-- Artifact management with retention policies
-- PR integration with status reporting
-
-### 5. **Cache Optimization**
-- Maven dependency caching
-- Docker layer caching
-- GitHub Actions cache utilization
-
-## Usage Examples
-
-### Running Full Test Suite
-```bash
-# Via GitHub CLI
-gh workflow run "Test Suites" -f test-suite=all -f environment=test
-
-# Via GitHub UI
-# Go to Actions → Test Suites → Run workflow
+#### Unit Tests (`application-unit-test.yml`)
+```yaml
+spring:
+  datasource:
+    url: jdbc:h2:mem:atas_unit_test_db;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
 ```
 
-### Creating a Release
-```bash
-# Via GitHub CLI
-gh workflow run "Release" -f version=v1.2.0 -f release-notes="Bug fixes and improvements"
-
-# Via GitHub UI
-# Go to Actions → Release → Run workflow
+#### Integration Tests (`application-integration-test.yml`)
+```yaml
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:18:///atas_integration_test_db
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
 ```
 
+#### Production Tests (`application-test.yml`)
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/atas_production_test
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+```
 
-## Monitoring and Maintenance
+## Database Versions
 
-### Workflow Status
-- Monitor workflow success rates
-- Review failed runs promptly
-- Update dependencies regularly
+- **Docker Compose**: PostgreSQL 18
+- **Integration Tests**: PostgreSQL 18 (via Testcontainers)
+- **Production Tests**: PostgreSQL 18
+- **Version Consistency**: Automatically validated
 
-### Performance Optimization
-- Review execution times
-- Optimize cache hit rates
-- Consider parallel job limits
+## Running Tests Locally
 
-### Maintenance
-- Update base images regularly
+### All Tests
+```bash
+# Run all test layers
+mvn test -pl atas-framework,atas-tests
+
+# Run with specific profiles
+mvn test -pl atas-framework -Dspring.profiles.active=unit-test
+mvn test -pl atas-framework -Dspring.profiles.active=integration-test
+mvn test -pl atas-tests -Dspring.profiles.active=test
+```
+
+### Specific Test Types
+```bash
+# Unit tests only
+mvn test -pl atas-framework -Dtest="**/*Test" -Dtest="!**/*IntegrationTest"
+
+# Integration tests only
+mvn test -pl atas-framework -Dtest="**/*IntegrationTest"
+
+# Production tests only
+mvn test -pl atas-tests -Dtest="**/*ProductionTest"
+
+# Version consistency tests
+mvn test -pl atas-framework -Dtest="**/*VersionConsistencyTest"
+```
+
+## Artifacts
+
+The workflows generate and upload the following artifacts:
+
+- **Test Reports**: Surefire reports for each test layer
+- **Coverage Reports**: JaCoCo coverage reports
+- **Allure Reports**: Detailed test execution reports
+- **Test Results**: XML test result files
+
+## Monitoring and Notifications
+
+- **PR Comments**: Automatic test result comments on pull requests
+- **Workflow Summaries**: Detailed execution summaries
+- **Artifact Retention**: 7-30 days depending on artifact type
+- **Status Checks**: Required for PR merging
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Cache Misses**: Clear caches if builds are slow
-2. **Test Failures**: Check environment-specific configurations
-3. **Docker Build Issues**: Verify Dockerfile and context paths
+1. **Test Failures**: Check the specific test layer logs
+2. **Database Connection**: Ensure PostgreSQL is running for production tests
+3. **Version Mismatches**: Run version consistency tests to detect issues
+4. **Dependency Issues**: Clear Maven cache and rebuild
 
-### Debug Mode
-Enable debug logging by adding `ACTIONS_STEP_DEBUG: true` to repository secrets.
+### Debug Commands
+
+```bash
+# Clean and rebuild
+mvn clean install -DskipTests
+
+# Run with debug logging
+mvn test -Dlogging.level.com.atas=DEBUG
+
+# Check test profiles
+mvn test -X -Dspring.profiles.active=unit-test
+```
 
 ## Contributing
 
-When adding new workflows:
-1. Follow the established naming conventions
-2. Include comprehensive documentation
-3. Add appropriate status badges
-4. Test thoroughly before merging
-5. Update this README with new workflow information
+When adding new tests:
+
+1. **Unit Tests**: Add to `atas-framework/src/test/java/`
+2. **Integration Tests**: Add to `atas-framework/src/test/java/com/atas/framework/integration/`
+3. **Production Tests**: Add to `atas-tests/src/test/java/com/atas/production/`
+4. **Update Workflows**: Modify relevant workflow files if needed
+5. **Test Locally**: Ensure tests pass before creating PR
+
+## Best Practices
+
+- Use appropriate test layers for different scenarios
+- Keep unit tests fast and isolated
+- Use integration tests for component interactions
+- Use production tests for end-to-end validation
+- Maintain version consistency across environments
+- Document test requirements and setup
