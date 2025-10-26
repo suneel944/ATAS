@@ -22,19 +22,39 @@ Welcome to the ATAS (Advanced Testing As A Service) documentation. This director
    make dev
    ```
 
-2. **Discover Available Tests:**
+2. **Run Tests (Choose your approach):**
+   ```bash
+   # Quick unit tests (fastest, no external dependencies)
+   make test-unit
+   
+   # Integration tests (PostgreSQL with Testcontainers)
+   make test-integration
+   
+   # Production tests (PostgreSQL-based, production-like)
+   make test-production
+   
+   # All test types in sequence
+   make test-by-type
+   
+   # Traditional test categories
+   make test-ui    # UI tests only
+   make test-api   # API tests only
+   make test       # All tests
+   ```
+
+3. **Discover Available Tests (API):**
    ```bash
    curl -s "http://localhost:8080/api/v1/tests/discover" | jq .
    ```
 
-3. **Execute Tests:**
+4. **Execute Tests via API:**
    ```bash
    curl -s -X POST \
      "http://localhost:8080/api/v1/tests/execute/tags?tags=smoke" \
      | jq .
    ```
 
-4. **Monitor Execution:**
+5. **Monitor Execution:**
    ```bash
    curl -s "http://localhost:8080/api/v1/test-execution/status?executionId=<executionId>" | jq .
    ```
