@@ -1,20 +1,31 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:atas_test_db;DB_CLOSE_DELAY=-1
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: 
+    url: jdbc:postgresql://localhost:5432/atas_production_test
+    username: atas
+    password: ataspass
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: create-drop
     show-sql: false
     properties:
       hibernate:
-        format_sql: false
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     enabled: false
 
+# Production test configuration
 atas:
   storage:
-    bucket: local
-    region: eu-central-1
+    bucket: production-test-bucket
+    region: us-east-1
+    video-folder: production-videos
+    screenshot-folder: production-screenshots
+
+# Logging for production tests
+logging:
+  level:
+    com.atas: INFO
+    org.springframework.test: INFO
+    org.hibernate.SQL: DEBUG
