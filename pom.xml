@@ -50,12 +50,25 @@
     <!-- Optional shared test libs -->
     <assertj.version>3.27.6</assertj.version>
     <aws.sdk.v2.version>2.25.8</aws.sdk.v2.version>
+    
+    <!-- Database drivers -->
+    <postgresql.version>42.7.4</postgresql.version>
   </properties>
 
   <modules>
     <module>atas-framework</module>
     <module>atas-tests</module>
   </modules>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <version>${postgresql.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <build>
     <pluginManagement>
