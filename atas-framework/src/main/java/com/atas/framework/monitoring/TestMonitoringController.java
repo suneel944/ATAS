@@ -3,7 +3,9 @@ package com.atas.framework.monitoring;
 import com.atas.framework.model.TestExecution;
 import com.atas.framework.model.TestResult;
 import com.atas.framework.repository.TestExecutionRepository;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,7 @@ public class TestMonitoringController {
 
   private final TestMonitoringService monitoringService;
   private final TestExecutionRepository executionRepository;
+  private final DatabaseHealthService databaseHealthService;
 
   /**
    * Endpoint to retrieve the current aggregated status of a test execution. The client must provide
@@ -72,6 +75,65 @@ public class TestMonitoringController {
   }
 
   /**
+   * Get dashboard overview with recent executions and overall statistics
+   * 
+   * @return Dashboard overview data
+   */
+  @GetMapping("/dashboard/overview")
+  public ResponseEntity<TestMonitoringService.DashboardOverviewDto> getDashboardOverview() {
+    TestMonitoringService.DashboardOverviewDto overview = monitoringService.getDashboardOverview();
+    return ResponseEntity.ok(overview);
+  }
+
+  /**
+   * Get recent test executions for dashboard
+   * 
+   * @param limit Maximum number of executions to return (default: 10)
+   * @return List of recent executions
+   */
+  @GetMapping("/dashboard/recent")
+  public ResponseEntity<List<TestMonitoringService.RecentExecutionDto>> getRecentExecutions(
+      @RequestParam(defaultValue = "10") int limit) {
+    List<TestMonitoringService.RecentExecutionDto> recent = monitoringService.getRecentExecutions(limit);
+    return ResponseEntity.ok(recent);
+  }
+
+  /**
+   * Get database health information for dashboard
+   * 
+   * @return Database health status
+   */
+  @GetMapping("/dashboard/database-health")
+  public ResponseEntity<DatabaseHealthService.DatabaseHealthDto> getDatabaseHealth() {
+    DatabaseHealthService.DatabaseHealthDto health = databaseHealthService.getDatabaseHealth();
+    return ResponseEntity.ok(health);
+  }
+
+  /**
+   * Get database operations summary for dashboard
+   * 
+   * @return Database operations statistics
+   */
+  @GetMapping("/dashboard/database-operations")
+  public ResponseEntity<DatabaseHealthService.DatabaseOperationsDto> getDatabaseOperations() {
+    DatabaseHealthService.DatabaseOperationsDto operations = databaseHealthService.getDatabaseOperations();
+    return ResponseEntity.ok(operations);
+  }
+
+  /**
+   * Get execution trends data for dashboard charts
+   * 
+   * @param days Number of days to include in trends (default: 7)
+   * @return Execution trends data
+   */
+  @GetMapping("/dashboard/execution-trends")
+  public ResponseEntity<TestMonitoringService.ExecutionTrendsDto> getExecutionTrends(
+      @RequestParam(defaultValue = "7") int days) {
+    TestMonitoringService.ExecutionTrendsDto trends = monitoringService.getExecutionTrends(days);
+    return ResponseEntity.ok(trends);
+  }
+
+  /**
    * Simple DTO for exposing test results via the API without exposing internal JPA entities.
    * Includes minimal fields; more can be added as needed (e.g. attachments, metrics).
    */
@@ -93,4 +155,5 @@ public class TestMonitoringController {
           entity.getEndTime() != null ? entity.getEndTime().toString() : null);
     }
   }
+
 }
