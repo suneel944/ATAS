@@ -106,9 +106,10 @@ jobs:
           chmod +x ./mvnw
           chmod +x Makefile
 
-      - name: Build framework first
+      - name: Build and install framework first
         run: |
           make build
+          ./mvnw install -pl atas-framework -am
 
       - name: Run integration tests (PostgreSQL with Testcontainers)
         run: |
@@ -210,9 +211,10 @@ jobs:
           chmod +x ./mvnw
           chmod +x Makefile
 
-      - name: Build framework first
+      - name: Build and install framework first
         run: |
           make build
+          ./mvnw install -pl atas-framework -am
 
       - name: Wait for PostgreSQL
         run: |
