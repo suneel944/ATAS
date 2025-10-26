@@ -20,11 +20,11 @@ jobs:
           echo "## 🔍 Commit Message Validation" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          # Get commits in this PR
+          # Get commits in this PR (exclude merge commits)
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            COMMITS=$(git log --oneline ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
+            COMMITS=$(git log --oneline --no-merges ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
           else
-            COMMITS=$(git log --oneline -1)
+            COMMITS=$(git log --oneline --no-merges -1)
           fi
           
           echo "**Commits to validate:**" >> $GITHUB_STEP_SUMMARY
@@ -32,6 +32,13 @@ jobs:
           echo "$COMMITS" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Check if there are any commits to validate
+          if [ -z "$COMMITS" ]; then
+            echo "ℹ️ No commits to validate (only merge commits found)" >> $GITHUB_STEP_SUMMARY
+            echo "✅ Commit validation passed - no non-merge commits to check" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
           
           # Validate each commit
           VALID_COUNT=0
