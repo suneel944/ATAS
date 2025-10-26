@@ -14,9 +14,37 @@ make dev
 
 This starts the ATAS framework and PostgreSQL database. The API will be available at `http://localhost:8080`.
 
-### 2. Discover Available Tests
+### 1.5. Run Tests Directly (Recommended)
 
-Before executing tests, you can discover what tests are available:
+Before using the API, you can run tests directly using the Makefile commands:
+
+```bash
+# Quick unit tests (fastest, H2-based, no external dependencies)
+make test-unit
+
+# Integration tests (PostgreSQL with Testcontainers)
+make test-integration
+
+# Production tests (PostgreSQL-based, production-like environment)
+make test-production
+
+# All test types in sequence
+make test-by-type
+
+# Traditional test categories
+make test-ui    # UI tests only
+make test-api   # API tests only
+make test       # All tests
+```
+
+**Test Type Comparison:**
+- **Unit Tests**: Fastest execution, H2 database, perfect for development feedback
+- **Integration Tests**: Real PostgreSQL with Testcontainers, tests framework integration
+- **Production Tests**: Production-like environment, validates complete test execution flow
+
+### 2. Discover Available Tests (API)
+
+Before executing tests via API, you can discover what tests are available:
 
 ```bash
 # Get all available tests, suites, and tags
@@ -32,9 +60,9 @@ curl -s "http://localhost:8080/api/v1/tests/discover/suites" | jq .
 curl -s "http://localhost:8080/api/v1/tests/discover/tags" | jq .
 ```
 
-### 3. Execute Tests
+### 3. Execute Tests (API)
 
-Choose one of the execution methods based on your needs:
+Choose one of the API execution methods based on your needs:
 
 #### Execute a Single Test
 ```bash
@@ -79,7 +107,52 @@ curl -s "http://localhost:8080/api/v1/test-execution/live?executionId=<execution
 curl -s "http://localhost:8080/api/v1/test-execution/results/<executionId>" | jq .
 ```
 
-## Execution Types
+## Execution Approaches
+
+ATAS supports two main approaches for test execution:
+
+### 1. Direct Makefile Commands (Recommended for Development)
+
+Use Makefile commands for direct, fast test execution:
+
+```bash
+# Development workflow
+make test-unit         # Fast unit tests (H2-based)
+make test-integration  # Integration tests (PostgreSQL)
+make test-production   # Production tests (PostgreSQL)
+make test-by-type      # All test types in sequence
+
+# Specific test categories
+make test-ui           # UI tests only
+make test-api          # API tests only
+make test              # All tests
+```
+
+**Advantages:**
+- Fastest execution
+- No API overhead
+- Direct Maven integration
+- Perfect for development and CI/CD
+
+### 2. REST API Execution (Advanced Use Cases)
+
+Use REST APIs for programmatic test execution:
+
+```bash
+# Execute via API
+curl -s -X POST "http://localhost:8080/api/v1/tests/execute/tags?tags=smoke" | jq .
+
+# Monitor execution
+curl -s "http://localhost:8080/api/v1/test-execution/status?executionId=<executionId>" | jq .
+```
+
+**Advantages:**
+- Programmatic control
+- Real-time monitoring
+- Integration with external systems
+- Asynchronous execution
+
+## Execution Types (API)
 
 ### 1. Individual Test Execution
 
@@ -337,9 +410,42 @@ docker logs atas-service
 
 ### CI/CD Integration
 
+#### Option 1: Direct Makefile Commands (Recommended)
+
 ```bash
 #!/bin/bash
-# Example CI/CD script
+# Example CI/CD script using Makefile commands
+
+# Start ATAS framework
+make dev
+
+# Wait for service to be ready
+sleep 30
+
+# Run tests based on CI stage
+if [ "$CI_STAGE" = "unit" ]; then
+  echo "Running unit tests..."
+  make test-unit
+elif [ "$CI_STAGE" = "integration" ]; then
+  echo "Running integration tests..."
+  make test-integration
+elif [ "$CI_STAGE" = "production" ]; then
+  echo "Running production tests..."
+  make test-production
+else
+  echo "Running all test types..."
+  make test-by-type
+fi
+
+# Generate reports
+make report
+```
+
+#### Option 2: API-Based Execution (Advanced)
+
+```bash
+#!/bin/bash
+# Example CI/CD script using API
 
 # Start ATAS framework
 make dev

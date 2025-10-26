@@ -16,7 +16,7 @@
   WORKDIR /app
   
   # Copy the Spring Boot *fat* jar by its deterministic name
-  COPY --from=build /build/atas-framework/target/atas-framework.jar /app/app.jar
+  COPY --from=build /build/atas-framework/target/atas-framework-exec.jar /app/app.jar
   
   # (Optional) ship the installed Playwright browsers with the image
   # The CLI puts them under /root/.cache/ms-playwright in the build stage
