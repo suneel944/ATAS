@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class DatabaseIntegrationTest {
 
     @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:18")
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:18-alpine")
             .withDatabaseName("atas_integration_test")
             .withUsername("atas")
             .withPassword("ataspass");

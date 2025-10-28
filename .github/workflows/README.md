@@ -31,14 +31,7 @@ The project uses a multi-layer testing approach:
 - **Purpose**: Test component interactions with real database
 - **Command**: `mvn test -pl atas-framework -Dtest="**/*IntegrationTest" -Dspring.profiles.active=integration-test`
 
-### 3. Production Tests (PostgreSQL-based)
-- **Location**: `atas-tests/src/test/java/com/atas/production/`
-- **Database**: PostgreSQL (external or Testcontainers)
-- **Profile**: `test`
-- **Purpose**: End-to-end production-level testing
-- **Command**: `mvn test -pl atas-tests -Dtest="**/*ProductionTest" -Dspring.profiles.active=test`
-
-### 4. Version Consistency Tests
+### 3. Version Consistency Tests
 - **Location**: `atas-framework/src/test/java/com/atas/framework/integration/VersionConsistencyTest.java`
 - **Purpose**: Ensure version consistency between Docker Compose and integration tests
 - **Command**: `mvn test -pl atas-framework -Dtest="**/*VersionConsistencyTest"`
@@ -134,9 +127,6 @@ mvn test -pl atas-framework -Dtest="**/*Test" -Dtest="!**/*IntegrationTest"
 
 # Integration tests only
 mvn test -pl atas-framework -Dtest="**/*IntegrationTest"
-
-# Production tests only
-mvn test -pl atas-tests -Dtest="**/*ProductionTest"
 
 # Version consistency tests
 mvn test -pl atas-framework -Dtest="**/*VersionConsistencyTest"

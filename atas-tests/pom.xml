@@ -68,7 +68,7 @@
       <optional>true</optional>
     </dependency>
 
-    <!-- PostgreSQL database for production testing -->
+    <!-- PostgreSQL database for testing -->
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
@@ -125,6 +125,9 @@
         <version>3.5.1</version>
         <configuration>
           <useModulePath>false</useModulePath>
+          <forkCount>1</forkCount>
+          <reuseForks>true</reuseForks>
+          <argLine>-Xmx1024m -XX:+UseG1GC -Djava.awt.headless=true</argLine>
           <!-- Put results exactly where the Allure Maven plugin expects -->
           <systemPropertyVariables>
             <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
@@ -137,7 +140,6 @@
         <groupId>io.qameta.allure</groupId>
         <artifactId>allure-maven</artifactId>
       </plugin>
-
     </plugins>
   </build>
 

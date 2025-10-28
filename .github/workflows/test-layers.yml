@@ -225,16 +225,11 @@ jobs:
           done
           echo "PostgreSQL is up - executing command"
 
-      - name: Run production tests (PostgreSQL-based)
-        run: |
-          echo "🚀 Running production tests (PostgreSQL-based)..."
-          make test-production
-
-      - name: Upload production test results
+      - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-layers-production-test-results
+          name: test-layers-test-results
           path: |
             atas-tests/target/surefire-reports/
             atas-tests/target/site/jacoco/

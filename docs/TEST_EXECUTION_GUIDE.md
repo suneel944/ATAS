@@ -25,8 +25,6 @@ make test-unit
 # Integration tests (PostgreSQL with Testcontainers)
 make test-integration
 
-# Production tests (PostgreSQL-based, production-like environment)
-make test-production
 
 # All test types in sequence
 make test-by-type
@@ -40,7 +38,6 @@ make test       # All tests
 **Test Type Comparison:**
 - **Unit Tests**: Fastest execution, H2 database, perfect for development feedback
 - **Integration Tests**: Real PostgreSQL with Testcontainers, tests framework integration
-- **Production Tests**: Production-like environment, validates complete test execution flow
 
 ### 2. Discover Available Tests (API)
 
@@ -119,7 +116,6 @@ Use Makefile commands for direct, fast test execution:
 # Development workflow
 make test-unit         # Fast unit tests (H2-based)
 make test-integration  # Integration tests (PostgreSQL)
-make test-production   # Production tests (PostgreSQL)
 make test-by-type      # All test types in sequence
 
 # Specific test categories
@@ -429,9 +425,6 @@ if [ "$CI_STAGE" = "unit" ]; then
 elif [ "$CI_STAGE" = "integration" ]; then
   echo "Running integration tests..."
   make test-integration
-elif [ "$CI_STAGE" = "production" ]; then
-  echo "Running production tests..."
-  make test-production
 else
   echo "Running all test types..."
   make test-by-type
