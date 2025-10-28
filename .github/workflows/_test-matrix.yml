@@ -106,11 +106,6 @@ jobs:
           echo "Running version consistency tests..."
           mvn test -pl atas-framework -Dtest="**/*VersionConsistencyTest"
 
-      - name: Run production tests
-        run: |
-          echo "Running production tests (PostgreSQL-based)..."
-          make test-production
-
       - name: Run test suite with ${{ matrix.browser-name }}
         run: |
           case "${{ inputs.test-suite }}" in

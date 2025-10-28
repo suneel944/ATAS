@@ -4,6 +4,13 @@ spring:
     username: atas
     password: ataspass
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      max-lifetime: 30000
+      connection-timeout: 20000
+      validation-timeout: 5000
+      leak-detection-threshold: 60000
   jpa:
     hibernate:
       ddl-auto: create-drop

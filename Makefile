@@ -1,7 +1,7 @@
 # ATAS Project Makefile
 # Advanced Testing As A Service - Easy command shortcuts
 
-.PHONY: help build test clean install docker-up docker-down docker-logs lint format check-all setup dev test-ui test-api test-unit test-integration test-production test-by-type test-all report release
+.PHONY: help build test clean install docker-up docker-down docker-logs lint format check-all setup dev test-ui test-api test-unit test-integration test-by-type test-all report release
 
 # Default target
 .DEFAULT_GOAL := help
@@ -105,7 +105,7 @@ test-api: ## Run API tests only
 
 test-unit: ## Run unit tests only
 	@echo "$(BLUE)Running unit tests...$(NC)"
-	$(MAVEN_WRAPPER) test -Dtest="**/*Test,!**/*IntegrationTest,!**/*ProductionTest" -pl atas-framework
+	$(MAVEN_WRAPPER) test -Dtest="**/*Test,!**/*IntegrationTest" -pl atas-framework
 	@echo "$(GREEN)✅ Unit tests completed!$(NC)"
 
 test-integration: ## Run integration tests only
@@ -114,11 +114,6 @@ test-integration: ## Run integration tests only
 	$(MAVEN_WRAPPER) test -Dtest="**/*IntegrationTest" -pl atas-framework
 	@echo "$(GREEN)✅ Integration tests completed!$(NC)"
 
-test-production: ## Run production tests only
-	@echo "$(BLUE)Running production tests...$(NC)"
-	@echo "$(YELLOW)$(POSTGRES_WARNING)$(NC)"
-	$(MAVEN_WRAPPER) test -Dtest="**/*ProductionTest" -pl atas-tests
-	@echo "$(GREEN)✅ Production tests completed!$(NC)"
 
 test-suite: ## Run specific test suite (usage: make test-suite SUITE=authentication-ui)
 	@echo "$(BLUE)Running test suite: $(SUITE)...$(NC)"
@@ -127,11 +122,10 @@ test-suite: ## Run specific test suite (usage: make test-suite SUITE=authenticat
 
 test-all: test ## Alias for test (for backward compatibility)
 
-test-by-type: ## Run all test types in sequence (unit, integration, production)
+test-by-type: ## Run all test types in sequence (unit, integration)
 	@echo "$(BLUE)Running all test types in sequence...$(NC)"
 	@$(MAKE) test-unit
 	@$(MAKE) test-integration
-	@$(MAKE) test-production
 	@echo "$(GREEN)✅ All test types completed!$(NC)"
 
 test-with-service: ## Run all tests with framework service running

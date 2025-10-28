@@ -25,7 +25,6 @@
     <lombok.version>1.18.32</lombok.version>
     <playwright.version>1.45.0</playwright.version>
     <assertj.version>3.25.3</assertj.version>
-    <allure.lib.version>2.25.0</allure.lib.version>
   </properties>
 
   <!-- ──────────────────────────────── -->
@@ -100,12 +99,6 @@
       <artifactId>spring-boot-starter-thymeleaf</artifactId>
     </dependency>
 
-    <!-- Allure reporting -->
-    <dependency>
-      <groupId>io.qameta.allure</groupId>
-      <artifactId>allure-java-commons</artifactId>
-      <version>${allure.lib.version}</version>
-    </dependency>
 
     <!-- Test stack -->
     <dependency>
@@ -187,13 +180,6 @@
           </execution>
         </executions>
       </plugin>
-
-      <!-- Allure Maven plugin -->
-      <plugin>
-        <groupId>io.qameta.allure</groupId>
-        <artifactId>allure-maven</artifactId>
-      </plugin>
-
       <!-- Exec Maven plugin for Playwright CLI -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>

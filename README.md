@@ -130,7 +130,6 @@ make dev      # Start all services with Docker
 make test              # Run all tests
 make test-unit         # Run unit tests only (fastest)
 make test-integration  # Run integration tests only
-make test-production   # Run production tests only
 make test-ui           # Run UI tests only
 make test-api          # Run API tests only
 make test-by-type      # Run all test types in sequence
@@ -194,8 +193,7 @@ ATAS includes a comprehensive Makefile with 30+ commands to simplify development
 | `make test` | Run all tests |
 | `make test-unit` | Run unit tests only (fastest, H2-based) |
 | `make test-integration` | Run integration tests only (PostgreSQL with Testcontainers) |
-| `make test-production` | Run production tests only (PostgreSQL-based) |
-| `make test-by-type` | Run all test types in sequence (unit, integration, production) |
+| `make test-by-type` | Run all test types in sequence (unit, integration) |
 | `make test-ui` | Run UI tests only |
 | `make test-api` | Run API tests only |
 | `make test-suite SUITE=authentication-ui` | Run specific test suite |
@@ -275,7 +273,6 @@ ATAS includes a comprehensive Makefile with 30+ commands to simplify development
 | Slow build                      | Use `make build-fast` for faster builds                            |
 | Tests failing with connection errors | Run `make test-with-service` instead of `make test`               |
 | Integration tests failing       | Run `make docker-up` first, then `make test-integration`           |
-| Production tests failing        | Run `make docker-up` first, then `make test-production`            |
 | Need fastest test feedback      | Use `make test-unit` for H2-based unit tests                       |
 | Docker build issues             | Rebuild with `make docker-build` or reset with `make stop && docker system prune -f` |
 | PostgreSQL version conflicts    | Ensure all tests use PostgreSQL 18 (check docker-compose and test files) |
@@ -304,7 +301,7 @@ ATAS supports multiple test types optimized for different scenarios:
 - **Fastest execution** - Uses H2 in-memory database
 - **No external dependencies** - Perfect for rapid feedback during development
 - **Framework tests only** - Tests the core ATAS framework functionality
-- **Pattern**: `*Test` (excludes `*IT` and `*ProductionTest`)
+- **Pattern**: `*Test` (excludes `*IT`)
 
 ### **Integration Tests** (`make test-integration`)
 - **PostgreSQL with Testcontainers** - Real database testing
@@ -312,12 +309,6 @@ ATAS supports multiple test types optimized for different scenarios:
 - **Pattern**: `*IT` (Integration Test)
 - **Requires**: PostgreSQL container running
 
-### **Production Tests** (`make test-production`)
-- **Production-like environment** - Simulates real-world scenarios
-- **PostgreSQL-based** - Uses actual database for realistic testing
-- **Test suite validation** - Tests the complete test execution flow
-- **Pattern**: `*ProductionTest`
-- **Requires**: PostgreSQL container running
 
 ### **Test Execution Examples**
 
@@ -327,9 +318,6 @@ make test-unit
 
 # Test with real database (integration)
 make test-integration
-
-# Full production simulation
-make test-production
 
 # Run all test types in sequence
 make test-by-type
@@ -380,7 +368,6 @@ Run them with:
 make test              # Run all tests
 make test-unit         # Run unit tests only (fastest)
 make test-integration  # Run integration tests only
-make test-production   # Run production tests only
 make test-ui           # Run UI tests only
 make test-api          # Run API tests only
 make test-by-type      # Run all test types in sequence
@@ -536,7 +523,6 @@ make dev               # Start development environment
 make test              # Run all tests
 make test-unit         # Run unit tests only (fastest)
 make test-integration  # Run integration tests only
-make test-production   # Run production tests only
 make test-ui           # Run UI tests only
 make test-api          # Run API tests only
 make test-by-type      # Run all test types in sequence

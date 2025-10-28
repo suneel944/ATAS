@@ -30,8 +30,6 @@ Welcome to the ATAS (Advanced Testing As A Service) documentation. This director
    # Integration tests (PostgreSQL with Testcontainers)
    make test-integration
    
-   # Production tests (PostgreSQL-based, production-like)
-   make test-production
    
    # All test types in sequence
    make test-by-type

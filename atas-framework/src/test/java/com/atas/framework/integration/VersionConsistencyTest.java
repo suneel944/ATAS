@@ -41,11 +41,11 @@ class VersionConsistencyTest {
         // Then - Both versions should be valid PostgreSQL versions
         assertThat(dockerComposeVersion)
                 .withFailMessage("Invalid PostgreSQL version in Docker Compose: %s", dockerComposeVersion)
-                .matches("\\d+(\\.\\d+)?");
+                .matches("\\d+(\\.\\d+)?(-[a-zA-Z0-9]+)?");
                 
         assertThat(integrationTestVersion)
                 .withFailMessage("Invalid PostgreSQL version in integration test: %s", integrationTestVersion)
-                .matches("\\d+(\\.\\d+)?");
+                .matches("\\d+(\\.\\d+)?(-[a-zA-Z0-9]+)?");
     }
 
     @Test
@@ -131,7 +131,9 @@ class VersionConsistencyTest {
 
     private int extractMajorVersion(String version) {
         try {
-            String majorVersionStr = version.split("\\.")[0];
+            // Handle versions like "18" or "18-alpine" or "18.5" or "18.5-alpine"
+            String cleanVersion = version.split("-")[0]; // Remove any suffix like "-alpine"
+            String majorVersionStr = cleanVersion.split("\\.")[0];
             return Integer.parseInt(majorVersionStr);
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid version format: " + version, e);

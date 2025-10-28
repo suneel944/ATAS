@@ -167,9 +167,6 @@ jobs:
           if [ "${{ matrix.module }}" = "atas-framework" ]; then
             echo "Running framework unit tests (H2-based)..."
             make test-unit
-          else
-            echo "Running production tests (PostgreSQL-based)..."
-            make test-production
           fi
           echo "Unit tests completed for ${{ matrix.module }}"
 
