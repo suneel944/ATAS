@@ -74,7 +74,8 @@ Welcome to the ATAS (Advanced Testing As A Service) documentation. This director
 docs/
 ├── README.md                    # This file - documentation index
 ├── API_REFERENCE.md            # Complete API documentation
-└── TEST_EXECUTION_GUIDE.md     # Test execution guide
+├── TEST_EXECUTION_GUIDE.md     # Test execution guide
+└── ENVIRONMENT_CONFIGURATION.md # Environment configuration guide
 ```
 
 ## 🔧 API Overview
@@ -129,8 +130,9 @@ For questions, issues, or contributions:
 
 1. Check the [API Reference](API_REFERENCE.md) for detailed endpoint information
 2. Follow the [Test Execution Guide](TEST_EXECUTION_GUIDE.md) for step-by-step instructions
-3. Review the main [README.md](../README.md) for project setup and configuration
-4. Check the troubleshooting sections in the guides for common issues
+3. Review the [Environment Configuration](ENVIRONMENT_CONFIGURATION.md) for multi-environment setup
+4. Review the main [README.md](../README.md) for project setup and configuration
+5. Check the troubleshooting sections in the guides for common issues
 
 ## 🔄 Updates
 

@@ -89,12 +89,20 @@ spring:
       ddl-auto: create-drop
 ```
 
-#### Production Tests (`application-test.yml`)
+#### Test Environment Profiles
+
+Tests use environment-specific profiles:
+- `application-dev.yml` - Development test settings (default)
+- `application-stage.yml` - Staging test settings
+- `application-prod.yml` - Production test settings
+
+Tests are environment-agnostic and use environment variables:
 ```yaml
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/atas_production_test
-    driver-class-name: org.postgresql.Driver
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/atas_test}
+    username: ${DB_USERNAME:atas}
+    password: ${DB_PASSWORD:ataspass}
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -117,7 +125,9 @@ mvn test -pl atas-framework,atas-tests
 # Run with specific profiles
 mvn test -pl atas-framework -Dspring.profiles.active=unit-test
 mvn test -pl atas-framework -Dspring.profiles.active=integration-test
-mvn test -pl atas-tests -Dspring.profiles.active=test
+mvn test -pl atas-tests -Dspring.profiles.active=dev    # Development (default)
+mvn test -pl atas-tests -Dspring.profiles.active=stage  # Staging
+mvn test -pl atas-tests -Dspring.profiles.active=prod   # Production
 ```
 
 ### Specific Test Types
@@ -153,9 +163,13 @@ The workflows generate and upload the following artifacts:
 ### Common Issues
 
 1. **Test Failures**: Check the specific test layer logs
-2. **Database Connection**: Ensure PostgreSQL is running for production tests
+2. **Database Connection**: 
+   - For integration tests: Testcontainers handles PostgreSQL automatically
+   - For local testing: Ensure PostgreSQL is running or use Testcontainers
+   - Check environment variables (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`)
 3. **Version Mismatches**: Run version consistency tests to detect issues
 4. **Dependency Issues**: Clear Maven cache and rebuild
+5. **Profile Issues**: Ensure correct Spring profile is set (`dev`, `stage`, or `prod`)
 
 ### Debug Commands
 
@@ -176,15 +190,50 @@ When adding new tests:
 
 1. **Unit Tests**: Add to `atas-framework/src/test/java/`
 2. **Integration Tests**: Add to `atas-framework/src/test/java/com/atas/framework/integration/`
-3. **Production Tests**: Add to `atas-tests/src/test/java/com/atas/production/`
-4. **Update Workflows**: Modify relevant workflow files if needed
-5. **Test Locally**: Ensure tests pass before creating PR
+3. **Product Tests**: Add to `atas-tests/src/test/java/com/atas/products/{product-name}/features/`
+   - **UI Tests**: Add to `features/{feature-name}/ui/`
+   - **API Tests**: Add to `features/{feature-name}/api/`
+   - **Page Objects**: Add to `products/{product-name}/pages/`
+4. **Test Structure**:
+   - Use `TestTags` for categorization (e.g., `@Tag(TestTags.UI)`, `@Tag(TestTags.SMOKE)`)
+   - Use `TestConfiguration` for environment-agnostic configuration
+   - Use `ApiTestHooks` or `UiTestHooks` for test lifecycle management
+5. **Update Workflows**: Modify relevant workflow files if needed
+6. **Test Locally**: Ensure tests pass before creating PR
+
+## Test Organization
+
+The test layer uses a product-based structure:
+
+```
+atas-tests/src/test/java/com/atas/
+├── config/
+│   └── TestConfiguration.java          # Environment-agnostic test config
+├── products/
+│   └── automationexercise/
+│       ├── features/                   # Feature-based organization
+│       │   ├── {feature-name}/
+│       │   │   ├── api/               # API tests
+│       │   │   └── ui/                # UI tests
+│       └── pages/                      # Page Object Model
+└── shared/
+    ├── pages/
+    │   └── BasePage.java              # Base page class
+    ├── testing/
+    │   ├── TestTags.java              # Standardized test tags
+    │   ├── ApiTestHooks.java          # API test lifecycle hooks
+    │   └── UiTestHooks.java           # UI test lifecycle hooks
+    └── utils/
+        └── TestUtils.java             # Common test utilities
+```
 
 ## Best Practices
 
 - Use appropriate test layers for different scenarios
 - Keep unit tests fast and isolated
 - Use integration tests for component interactions
-- Use production tests for end-to-end validation
+- Use product-based organization for test structure
+- Tag tests appropriately using `TestTags` constants
+- Use environment-agnostic configuration via `TestConfiguration`
 - Maintain version consistency across environments
 - Document test requirements and setup
