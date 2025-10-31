@@ -12,6 +12,9 @@ public abstract class BasePage<T extends BasePage<T>> {
 
   protected BasePage(Page page) {
     this.page = page;
+    // Increase default timeouts to reduce flakiness in slower environments
+    this.page.setDefaultNavigationTimeout(60000);
+    this.page.setDefaultTimeout(60000);
   }
 
   /**
