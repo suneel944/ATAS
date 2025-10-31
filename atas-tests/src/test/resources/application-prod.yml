@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://prod-db:5432/atas}
+    username: ${DB_USERNAME:atas_prod}
+    password: ${DB_PASSWORD:changeMe}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+
+atas:
+  storage:
+    bucket: ${S3_BUCKET:atas-prod-bucket}
+    region: ${S3_REGION:us-east-1}
+    video-folder: ${S3_VIDEO_FOLDER:prod-videos}
+    screenshot-folder: ${S3_SCREENSHOT_FOLDER:prod-screenshots}
+
+logging:
+  level:
+    com.atas: INFO
+    org.springframework.test: WARN
+    org.hibernate.SQL: ERROR
