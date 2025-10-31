@@ -8,6 +8,7 @@ Welcome to the ATAS (Advanced Testing As A Service) documentation. This director
 
 - **[API Reference](API_REFERENCE.md)** - Complete REST API documentation with endpoints, parameters, and examples
 - **[Test Execution Guide](TEST_EXECUTION_GUIDE.md)** - Step-by-step guide for executing and monitoring tests
+- **[Environment Configuration](ENVIRONMENT_CONFIGURATION.md)** - Complete guide for environment-agnostic configuration
 
 ### Quick Links
 
@@ -19,7 +20,14 @@ Welcome to the ATAS (Advanced Testing As A Service) documentation. This director
 
 1. **Start the Framework:**
    ```bash
+   # Development environment (default)
    make dev
+   
+   # Staging environment
+   make dev-stage
+   
+   # Production environment
+   make dev-prod
    ```
 
 2. **Run Tests (Choose your approach):**
@@ -30,14 +38,17 @@ Welcome to the ATAS (Advanced Testing As A Service) documentation. This director
    # Integration tests (PostgreSQL with Testcontainers)
    make test-integration
    
-   
    # All test types in sequence
    make test-by-type
    
    # Traditional test categories
    make test-ui    # UI tests only
    make test-api   # API tests only
-   make test       # All tests
+   make test       # All tests (uses dev profile by default)
+   
+   # Environment-specific testing
+   SPRING_PROFILES_ACTIVE=stage make test  # Staging environment
+   SPRING_PROFILES_ACTIVE=prod make test   # Production environment
    ```
 
 3. **Discover Available Tests (API):**
