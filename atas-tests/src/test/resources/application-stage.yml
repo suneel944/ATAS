@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://stage-db:5432/atas}
+    username: ${DB_USERNAME:atas_stage}
+    password: ${DB_PASSWORD:changeMe}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+
+atas:
+  storage:
+    bucket: ${S3_BUCKET:atas-stage-bucket}
+    region: ${S3_REGION:us-east-2}
+    video-folder: ${S3_VIDEO_FOLDER:stage-videos}
+    screenshot-folder: ${S3_SCREENSHOT_FOLDER:stage-screenshots}
+
+logging:
+  level:
+    com.atas: INFO
+    org.springframework.test: INFO
+    org.hibernate.SQL: WARN
