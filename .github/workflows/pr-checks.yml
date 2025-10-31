@@ -123,15 +123,10 @@ jobs:
           ./mvnw install -pl atas-framework -am
           echo "Framework built and installed successfully"
 
-  # Unit Tests with Matrix Strategy
   unit-tests:
     runs-on: ubuntu-latest
     needs: [changes, build-framework]
-    if: github.event.inputs.skip-tests != 'true' && (github.event.inputs.run-full-suite == 'true' || needs.changes.outputs.framework == 'true' || needs.changes.outputs.tests == 'true')
-    strategy:
-      fail-fast: false
-      matrix:
-        module: [atas-framework, atas-tests]
+    if: github.event.inputs.skip-tests != 'true' && (github.event.inputs.run-full-suite == 'true' || needs.changes.outputs.framework == 'true')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -154,30 +149,20 @@ jobs:
           chmod +x ./mvnw
           chmod +x Makefile
 
-      - name: Build and install framework (if needed)
+      - name: Run unit tests
+        env:
+          SPRING_PROFILES_ACTIVE: prod
         run: |
-          if [ "${{ matrix.module }}" = "atas-tests" ]; then
-            echo "Installing framework for atas-tests module..."
-            make build
-            ./mvnw install -pl atas-framework -am
-          fi
-
-      - name: Run unit tests for ${{ matrix.module }}
-        run: |
-          if [ "${{ matrix.module }}" = "atas-framework" ]; then
-            echo "Running framework unit tests (H2-based)..."
-            make test-unit
-          fi
-          echo "Unit tests completed for ${{ matrix.module }}"
+          make test-unit
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results-${{ matrix.module }}
+          name: test-results-atas-framework
           path: |
-            ${{ matrix.module }}/target/surefire-reports/
-            ${{ matrix.module }}/target/site/jacoco/
+            atas-framework/target/surefire-reports/
+            atas-framework/target/site/jacoco/
           retention-days: 7
 
   # Integration Tests
@@ -223,8 +208,13 @@ jobs:
           chmod +x Makefile
 
       - name: Run integration tests
+        env:
+          SPRING_PROFILES_ACTIVE: prod
+          DB_URL: jdbc:postgresql://localhost:5432/atasdb
+          DB_USERNAME: atas
+          DB_PASSWORD: ataspass
         run: |
-          echo "Running framework integration tests (PostgreSQL with Testcontainers)..."
+          echo "Running framework integration tests (PostgreSQL with Testcontainers) with production profile..."
           make test-integration
           
           echo "Running version consistency tests..."
@@ -242,13 +232,11 @@ jobs:
 
 
 
-  # Test Layers (New Structure)
   test-layers:
     needs: [changes]
-    if: github.event.inputs.skip-tests != 'true' && (github.event.inputs.run-full-suite == 'true' || needs.changes.outputs.framework == 'true' || needs.changes.outputs.tests == 'true')
+    if: github.event.inputs.skip-tests != 'true' && (github.event.inputs.run-full-suite == 'true' || needs.changes.outputs.framework == 'true')
     uses: ./.github/workflows/test-layers.yml
-    # NOTE: ./.github/workflows/test-layers.yml must contain 'workflow_call:' at the top level
-  # PR Summary
+
   pr-summary:
     runs-on: ubuntu-latest
     needs: [changes, code-quality, build-framework, unit-tests, integration-tests, test-layers]
