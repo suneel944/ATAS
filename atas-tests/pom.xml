@@ -128,10 +128,44 @@
           <forkCount>1</forkCount>
           <reuseForks>true</reuseForks>
           <argLine>-Xmx1024m -XX:+UseG1GC -Djava.awt.headless=true</argLine>
+          <!-- Tag-based test filtering using JUnit 5 tags -->
+          <!-- 
+            Examples:
+            - Run only UI tests: mvn test -Dgroups=ui
+            - Run only API tests: mvn test -Dgroups=api
+            - Run smoke tests: mvn test -Dgroups=smoke
+            - Run UI tests excluding slow ones: mvn test -Dgroups=ui -DexcludedGroups=slow
+            - Run multiple tags: mvn test -Dgroups="ui|smoke"
+            - Run tests matching all tags: mvn test -Dgroups="ui&smoke"
+            - Exclude multiple tags: mvn test -DexcludedGroups="slow|db"
+          -->
+          <groups>${groups}</groups>
+          <excludedGroups>${excludedGroups}</excludedGroups>
           <!-- Put results exactly where the Allure Maven plugin expects -->
           <systemPropertyVariables>
             <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
+            <!-- Activate profile: default to 'dev', allow overrides like 'stage' or 'prod' -->
+            <spring.profiles.active>${env.SPRING_PROFILES_ACTIVE:dev}</spring.profiles.active>
+            <!-- Environment-agnostic database configuration -->
+            <spring.datasource.url>${DB_URL:jdbc:postgresql://localhost:5432/atas_test}</spring.datasource.url>
+            <spring.datasource.username>${DB_USERNAME:atas}</spring.datasource.username>
+            <spring.datasource.password>${DB_PASSWORD:ataspass}</spring.datasource.password>
+            <!-- Environment-agnostic S3 configuration -->
+            <atas.storage.bucket>${S3_BUCKET:test-bucket}</atas.storage.bucket>
+            <atas.storage.region>${S3_REGION:us-east-1}</atas.storage.region>
+            <atas.storage.video-folder>${S3_VIDEO_FOLDER:test-videos}</atas.storage.video-folder>
+            <atas.storage.screenshot-folder>${S3_SCREENSHOT_FOLDER:test-screenshots}</atas.storage.screenshot-folder>
           </systemPropertyVariables>
+          <!-- Pass environment variables to the test JVM -->
+          <environmentVariables>
+            <DB_URL>${env.DB_URL}</DB_URL>
+            <DB_USERNAME>${env.DB_USERNAME}</DB_USERNAME>
+            <DB_PASSWORD>${env.DB_PASSWORD}</DB_PASSWORD>
+            <S3_BUCKET>${env.S3_BUCKET}</S3_BUCKET>
+            <S3_REGION>${env.S3_REGION}</S3_REGION>
+            <S3_VIDEO_FOLDER>${env.S3_VIDEO_FOLDER}</S3_VIDEO_FOLDER>
+            <S3_SCREENSHOT_FOLDER>${env.S3_SCREENSHOT_FOLDER}</S3_SCREENSHOT_FOLDER>
+          </environmentVariables>
         </configuration>
       </plugin>
 
