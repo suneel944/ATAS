@@ -24,7 +24,7 @@ public class DriverConfig {
   @Builder.Default boolean recordVideo = true;
 
   /** Directory where Playwright should save videos */
-  @Builder.Default String videoDir = "videos";
+  @Builder.Default String videoDir = System.getProperty("playwright.video.dir", "videos");
 
   /** Viewport width in pixels */
   @Builder.Default int viewportWidth = 1280;
