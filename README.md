@@ -68,11 +68,15 @@ make dev  # Uses dev profile automatically
 
 **Staging:**
 ```bash
+make dev-stage
+# or
 SPRING_PROFILES_ACTIVE=stage make dev
 ```
 
 **Production:**
 ```bash
+make dev-prod
+# or
 SPRING_PROFILES_ACTIVE=prod make dev
 ```
 
@@ -395,10 +399,23 @@ Runs as a Spring Boot application exposing REST APIs to orchestrate and record e
 
 ### **2. atas-tests**
 
-Showcases how to implement tests on top of the framework using **Page Object Model** and **fluent chaining**.
+Showcases how to implement tests on top of the framework using **Page Object Model** and **fluent chaining**. The test layer is organized by product with feature-based test organization.
+
+**Test Organization:**
+- **Product-based structure**: `products/automationexercise/` - Tests organized by product
+- **Feature-based organization**: Tests grouped by features (UI/API separation)
+- **Page Objects**: Centralized page object model in `pages/` directory
+- **Shared utilities**: Common test utilities, hooks, and configuration
+
+**Test Configuration:**
+- `TestConfiguration` - Centralized test configuration with Testcontainers
+- `TestTags` - Standardized test tags for categorization and filtering
+- `ApiTestHooks` / `UiTestHooks` - Test lifecycle management hooks
 
 ```java
 @Test
+@Tag(TestTags.UI)
+@Tag(TestTags.SMOKE)
 void login_should_succeed() {
     Page page = playwrightService.createPage(CHROMIUM);
     LoginPage login = new LoginPage(page);
@@ -434,6 +451,7 @@ Comprehensive documentation is available in the [`docs/`](docs/) directory:
 - **[📖 Documentation Index](docs/README.md)** - Overview of all available documentation
 - **[🔧 API Reference](docs/API_REFERENCE.md)** - Complete REST API documentation with endpoints, parameters, and examples
 - **[🚀 Test Execution Guide](docs/TEST_EXECUTION_GUIDE.md)** - Step-by-step guide for executing and monitoring tests
+- **[🌍 Environment Configuration](docs/ENVIRONMENT_CONFIGURATION.md)** - Complete guide for environment-agnostic configuration
 
 ### Quick API Examples
 
