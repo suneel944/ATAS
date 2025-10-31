@@ -39,6 +39,7 @@ This automatically:
 * 🏗️ Builds the project
 * 🐳 Starts Docker services (PostgreSQL + ATAS Framework)
 * 🧩 Auto-migrates database schema
+* 🌍 Uses environment-agnostic configuration (dev profile by default)
 
 **Services will be available at:**
 * 🧠 **ATAS Framework**: [http://localhost:8080](http://localhost:8080)
@@ -46,6 +47,53 @@ This automatically:
 * 📊 **Health Check**: [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health)
 
 **Need help?** Run `make help` to see all available commands.
+
+---
+
+## 🌍 Environment Configuration
+
+ATAS is fully environment-agnostic and supports multiple deployment environments:
+
+### **Environment Profiles**
+- **`dev`** - Development environment (default)
+- **`stage`** - Staging environment  
+- **`prod`** - Production environment
+
+### **Quick Environment Setup**
+
+**Development (default):**
+```bash
+make dev  # Uses dev profile automatically
+```
+
+**Staging:**
+```bash
+SPRING_PROFILES_ACTIVE=stage make dev
+```
+
+**Production:**
+```bash
+SPRING_PROFILES_ACTIVE=prod make dev
+```
+
+### **Environment Variables**
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `SPRING_PROFILES_ACTIVE` | Active Spring profile | `dev` |
+| `DB_URL` | Database connection URL | `jdbc:postgresql://localhost:5432/atasdb` |
+| `DB_USERNAME` | Database username | `atas` |
+| `DB_PASSWORD` | Database password | `ataspass` |
+| `S3_BUCKET` | S3 bucket for media storage | `atas-videos` |
+| `S3_REGION` | AWS region | `us-east-1` |
+
+### **Configuration Files**
+- `atas-framework/src/main/resources/application-dev.yml` - Development settings
+- `atas-framework/src/main/resources/application-stage.yml` - Staging settings  
+- `atas-framework/src/main/resources/application-prod.yml` - Production settings
+- `atas-tests/src/test/resources/application-dev.yml` - Test development settings
+- `atas-tests/src/test/resources/application-stage.yml` - Test staging settings
+- `atas-tests/src/test/resources/application-prod.yml` - Test production settings
 
 ---
 
@@ -159,14 +207,13 @@ If you prefer to run the framework locally without Docker:
 make run      # Run ATAS framework locally
 ```
 
-**Note:** You'll need to configure PostgreSQL separately. Edit `atas-framework/src/main/resources/application.yml`:
+**Note:** You'll need to configure PostgreSQL separately. Set environment variables:
 
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/atas
-    username: atas_user
-    password: secret
+```bash
+export DB_URL="jdbc:postgresql://localhost:5432/atas"
+export DB_USERNAME="atas_user"
+export DB_PASSWORD="secret"
+export SPRING_PROFILES_ACTIVE="dev"
 ```
 
 ---
