@@ -16,7 +16,9 @@ This starts the ATAS framework and PostgreSQL database. The API will be availabl
 
 ### 1.5. Run Tests Directly (Recommended)
 
-Before using the API, you can run tests directly using the Makefile commands:
+Before using the API, you can run tests directly using the Makefile commands or Maven:
+
+#### Using Makefile Commands
 
 ```bash
 # Quick unit tests (fastest, H2-based, no external dependencies)
@@ -24,7 +26,6 @@ make test-unit
 
 # Integration tests (PostgreSQL with Testcontainers)
 make test-integration
-
 
 # All test types in sequence
 make test-by-type
@@ -34,6 +35,79 @@ make test-ui    # UI tests only
 make test-api   # API tests only
 make test       # All tests
 ```
+
+#### Using Maven with Tags
+
+ATAS supports comprehensive test tagging for selective test execution. Use JUnit 5 tags to control which tests run:
+
+```bash
+# Run tests with specific tags
+cd atas-tests
+mvn test -Dgroups=smoke              # Run only smoke tests
+mvn test -Dgroups=ui                 # Run only UI tests
+mvn test -Dgroups=api                # Run only API tests
+mvn test -Dgroups=auth               # Run only authentication tests
+
+# Combine tags with OR logic (tests matching any tag)
+mvn test -Dgroups="ui|smoke"         # Run UI tests OR smoke tests
+
+# Combine tags with AND logic (tests matching all tags)
+mvn test -Dgroups="ui&smoke"         # Run tests that are BOTH UI AND smoke
+
+# Exclude specific tags
+mvn test -DexcludedGroups=slow       # Run all tests except slow ones
+mvn test -DexcludedGroups="slow|db"  # Exclude multiple tags
+
+# Combine inclusion and exclusion
+mvn test -Dgroups=ui -DexcludedGroups=slow    # Run UI tests excluding slow ones
+mvn test -Dgroups=smoke -DexcludedGroups=p3   # Run smoke tests excluding P3 priority
+
+# Priority-based execution
+mvn test -Dgroups=p0                 # Run only P0 (critical) tests
+mvn test -Dgroups="p0|p1"            # Run P0 or P1 priority tests
+
+# Feature-based execution
+mvn test -Dgroups=products           # Run product-related tests
+mvn test -Dgroups=cart               # Run cart-related tests
+mvn test -Dgroups="checkout|payment" # Run checkout OR payment tests
+
+# Test suite type execution
+mvn test -Dgroups=regression         # Run regression tests
+mvn test -Dgroups="smoke&fast"       # Run tests that are both smoke AND fast
+```
+
+**Available Tags:**
+
+*Test Type Tags:*
+- `ui` - UI tests
+- `api` - API tests
+- `db` - Database tests
+- `integration` - Integration tests
+
+*Test Suite Tags:*
+- `smoke` - Smoke tests
+- `regression` - Regression tests
+- `sanity` - Sanity tests
+
+*Execution Tags:*
+- `fast` - Fast-running tests
+- `slow` - Slow-running tests
+- `critical` - Critical tests
+
+*Feature Area Tags:*
+- `auth` - Authentication tests
+- `products` - Product catalog tests
+- `cart` - Shopping cart tests
+- `checkout` - Checkout tests
+- `payment` - Payment tests
+- `navigation` - Navigation tests
+- `contact` - Contact/support tests
+
+*Priority Tags:*
+- `p0` - Priority 0 (highest priority)
+- `p1` - Priority 1
+- `p2` - Priority 2
+- `p3` - Priority 3 (lowest priority)
 
 **Test Type Comparison:**
 - **Unit Tests**: Fastest execution, H2 database, perfect for development feedback
@@ -108,9 +182,33 @@ curl -s "http://localhost:8080/api/v1/test-execution/results/<executionId>" | jq
 
 ATAS supports two main approaches for test execution:
 
-### 1. Direct Makefile Commands (Recommended for Development)
+### 1. Direct Maven/Makefile Commands (Recommended for Development)
 
-Use Makefile commands for direct, fast test execution:
+Use Maven or Makefile commands for direct, fast test execution:
+
+#### Maven Tag-Based Execution
+
+```bash
+cd atas-tests
+
+# Common scenarios
+mvn test -Dgroups=smoke              # Quick smoke test run
+mvn test -Dgroups=regression         # Full regression suite
+mvn test -Dgroups="ui&fast"          # Fast UI tests only
+mvn test -Dgroups="api&smoke"        # API smoke tests
+mvn test -Dgroups=p0                 # Critical tests only
+
+# Development workflow
+mvn test -Dgroups="smoke&fast"       # Fast smoke tests for quick feedback
+mvn test -DexcludedGroups=slow       # All tests except slow ones
+mvn test -Dgroups=ui -DexcludedGroups=p3  # UI tests excluding low priority
+
+# Feature testing
+mvn test -Dgroups=products           # Test product features
+mvn test -Dgroups="cart|checkout"    # Test cart and checkout flows
+```
+
+#### Makefile Commands
 
 ```bash
 # Development workflow
@@ -128,6 +226,7 @@ make test              # All tests
 - Fastest execution
 - No API overhead
 - Direct Maven integration
+- Tag-based selective execution
 - Perfect for development and CI/CD
 
 ### 2. REST API Execution (Advanced Use Cases)
@@ -168,12 +267,75 @@ curl -s -X POST \
 
 ### 2. Tag-Based Execution
 
-Execute all tests that have specific tags.
+Execute all tests that have specific tags. This can be done via Maven (recommended) or API.
+
+#### Maven Tag-Based Execution (Recommended)
+
+Tag-based execution using Maven is the fastest and most flexible approach:
+
+```bash
+cd atas-tests
+
+# Basic tag execution
+mvn test -Dgroups=smoke              # Run smoke tests
+mvn test -Dgroups=ui                 # Run UI tests
+mvn test -Dgroups=api                # Run API tests
+
+# Multiple tags (OR logic - matches any tag)
+mvn test -Dgroups="ui|api"           # Run UI OR API tests
+mvn test -Dgroups="smoke|regression" # Run smoke OR regression tests
+
+# Multiple tags (AND logic - matches all tags)
+mvn test -Dgroups="ui&smoke"         # Run tests that are BOTH UI AND smoke
+mvn test -Dgroups="api&fast&p0"      # Run API tests that are fast AND P0 priority
+
+# Excluding tags
+mvn test -DexcludedGroups=slow       # Run all except slow tests
+mvn test -DexcludedGroups="slow|db"  # Exclude slow OR db tests
+
+# Combining inclusion and exclusion
+mvn test -Dgroups=ui -DexcludedGroups=slow      # UI tests excluding slow ones
+mvn test -Dgroups=smoke -DexcludedGroups=p3     # Smoke tests excluding P3 priority
+mvn test -Dgroups=regression -DexcludedGroups="slow|p3"  # Regression excluding slow and P3
+
+# Practical examples
+mvn test -Dgroups="p0|p1"            # Run high priority tests
+mvn test -Dgroups="products&fast"    # Fast product tests
+mvn test -Dgroups="auth&smoke"       # Authentication smoke tests
+```
+
+**Tag Combinations Examples:**
+
+```bash
+# Smoke test suite (fast feedback)
+mvn test -Dgroups="smoke&fast"
+
+# Critical regression suite
+mvn test -Dgroups="regression&p0&p1"
+
+# Feature-specific smoke tests
+mvn test -Dgroups="products&smoke"
+mvn test -Dgroups="cart&checkout&smoke"
+
+# Quick UI validation
+mvn test -Dgroups="ui&fast&p0"
+
+# Full test suite excluding slow tests
+mvn test -DexcludedGroups=slow
+
+# Production-ready test suite
+mvn test -Dgroups="smoke&fast&p0&p1"
+```
+
+#### API Tag-Based Execution
+
+Execute tests via REST API using tags:
 
 **Use Cases:**
 - Running smoke tests
 - Running regression tests
 - Running tests for a specific feature area
+- Programmatic test execution
 
 **Example:**
 ```bash
