@@ -1,89 +1,58 @@
 package com.atas.framework.execution.dto;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-/**
- * DTO for test execution response
- */
+/** DTO for test execution response */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class TestExecutionResponse {
 
-    /**
-     * Unique execution ID for tracking
-     */
-    private String executionId;
+  /** Unique execution ID for tracking */
+  private String executionId;
 
-    /**
-     * Status of the execution
-     */
-    private String status;
+  /** Status of the execution */
+  private String status;
 
-    /**
-     * Type of execution that was triggered
-     */
-    private String executionType;
+  /** Type of execution that was triggered */
+  private String executionType;
 
-    /**
-     * Description of what was executed
-     */
-    private String description;
+  /** Description of what was executed */
+  private String description;
 
-    /**
-     * When the execution started
-     */
-    private LocalDateTime startTime;
+  /** When the execution started */
+  private LocalDateTime startTime;
 
-    /**
-     * Estimated duration or timeout
-     */
-    private int timeoutMinutes;
+  /** Estimated duration or timeout */
+  private int timeoutMinutes;
 
-    /**
-     * List of tests that will be executed
-     */
-    private List<String> testsToExecute;
+  /** List of tests that will be executed */
+  private List<String> testsToExecute;
 
-    /**
-     * Environment where tests are running
-     */
-    private String environment;
+  /** Environment where tests are running */
+  private String environment;
 
-    /**
-     * Browser type for UI tests
-     */
-    private String browserType;
+  /** Browser type for UI tests */
+  private String browserType;
 
-    /**
-     * Whether video recording is enabled
-     */
-    private boolean recordVideo;
+  /** Whether video recording is enabled */
+  private boolean recordVideo;
 
-    /**
-     * Whether screenshots are enabled
-     */
-    private boolean captureScreenshots;
+  /** Whether screenshots are enabled */
+  private boolean captureScreenshots;
 
-    /**
-     * URL for monitoring the execution
-     */
-    private String monitoringUrl;
+  /** URL for monitoring the execution */
+  private String monitoringUrl;
 
-    /**
-     * URL for live updates via SSE
-     */
-    private String liveUpdatesUrl;
+  /** URL for live updates via SSE */
+  private String liveUpdatesUrl;
 
-    /**
-     * URL for results
-     */
-    private String resultsUrl;
+  /** URL for results */
+  private String resultsUrl;
 }

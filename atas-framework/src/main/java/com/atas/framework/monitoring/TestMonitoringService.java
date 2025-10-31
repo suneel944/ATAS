@@ -128,12 +128,10 @@ public class TestMonitoringService {
     }
   }
 
-  /**
-   * Get dashboard overview statistics
-   */
+  /** Get dashboard overview statistics */
   public DashboardOverviewDto getDashboardOverview() {
     List<TestExecution> allExecutions = executionRepository.findAll();
-    
+
     long totalExecutions = allExecutions.size();
     long totalTests = 0;
     long passedTests = 0;
@@ -141,15 +139,15 @@ public class TestMonitoringService {
     long skippedTests = 0;
     long runningTests = 0;
     long activeExecutions = 0;
-    
+
     LocalDateTime lastExecutionTime = null;
     Duration totalDuration = Duration.ZERO;
     int completedExecutions = 0;
-    
+
     for (TestExecution execution : allExecutions) {
       List<TestResult> results = execution.getResults();
       totalTests += results.size();
-      
+
       for (TestResult result : results) {
         switch (result.getStatus()) {
           case PASSED -> passedTests++;
@@ -159,120 +157,144 @@ public class TestMonitoringService {
           case ERROR -> failedTests++; // Treat ERROR as FAILED for statistics
         }
       }
-      
+
       if (execution.getStatus() == TestStatus.RUNNING) {
         activeExecutions++;
       }
-      
+
       if (lastExecutionTime == null || execution.getStartTime().isAfter(lastExecutionTime)) {
         lastExecutionTime = execution.getStartTime();
       }
-      
+
       if (execution.getEndTime() != null) {
-        totalDuration = totalDuration.plus(Duration.between(execution.getStartTime(), execution.getEndTime()));
+        totalDuration =
+            totalDuration.plus(Duration.between(execution.getStartTime(), execution.getEndTime()));
         completedExecutions++;
       }
     }
-    
-    double successRate = totalTests > 0 ? (double) passedTests / totalTests * 100.0 : 0.0;
-    String averageExecutionTime = completedExecutions > 0 ?
-        formatDuration(totalDuration.dividedBy(completedExecutions)) : "0s";
 
-    DashboardOverviewDto dto = DashboardOverviewDto.builder()
-        .totalExecutions(totalExecutions)
-        .totalTests(totalTests)
-        .passedTests(passedTests)
-        .failedTests(failedTests)
-        .skippedTests(skippedTests)
-        .runningTests(runningTests)
-        .successRate(successRate)
-        .activeExecutions(activeExecutions)
-        .lastExecutionTime(lastExecutionTime != null ?
-            lastExecutionTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null)
-        .averageExecutionTime(averageExecutionTime)
-        .build();
-    
+    double successRate = totalTests > 0 ? (double) passedTests / totalTests * 100.0 : 0.0;
+    String averageExecutionTime =
+        completedExecutions > 0
+            ? formatDuration(totalDuration.dividedBy(completedExecutions))
+            : "0s";
+
+    DashboardOverviewDto dto =
+        DashboardOverviewDto.builder()
+            .totalExecutions(totalExecutions)
+            .totalTests(totalTests)
+            .passedTests(passedTests)
+            .failedTests(failedTests)
+            .skippedTests(skippedTests)
+            .runningTests(runningTests)
+            .successRate(successRate)
+            .activeExecutions(activeExecutions)
+            .lastExecutionTime(
+                lastExecutionTime != null
+                    ? lastExecutionTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                    : null)
+            .averageExecutionTime(averageExecutionTime)
+            .build();
+
     return dto;
   }
 
-  /**
-   * Get recent test executions for dashboard
-   */
+  /** Get recent test executions for dashboard */
   public List<RecentExecutionDto> getRecentExecutions(int limit) {
-    List<TestExecution> recentExecutions = executionRepository.findAll(
-        PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "startTime"))
-    ).getContent();
-    
-    return recentExecutions.stream().map(execution -> {
-      List<TestResult> results = execution.getResults();
-      int total = results.size();
-      int passed = (int) results.stream().filter(r -> r.getStatus() == TestStatus.PASSED).count();
-      int failed = (int) results.stream().filter(r -> r.getStatus() == TestStatus.FAILED || r.getStatus() == TestStatus.ERROR).count();
-      int skipped = (int) results.stream().filter(r -> r.getStatus() == TestStatus.SKIPPED).count();
-      double progress = TestExecutionStatus.computeProgress(total, passed, failed, skipped);
-      
-      Duration duration;
-      if (execution.getEndTime() != null) {
-        duration = Duration.between(execution.getStartTime(), execution.getEndTime());
-      } else {
-        duration = Duration.between(execution.getStartTime(), LocalDateTime.now());
-      }
-      
-      return RecentExecutionDto.builder()
-          .executionId(execution.getExecutionId())
-          .suiteName(execution.getSuiteName() != null ? execution.getSuiteName() : "Unknown Suite")
-          .environment(execution.getEnvironment() != null ? execution.getEnvironment() : "N/A")
-          .status(execution.getStatus().name())
-          .startTime(execution.getStartTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
-          .endTime(execution.getEndTime() != null ?
-              execution.getEndTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null)
-          .totalTests(total)
-          .passedTests(passed)
-          .failedTests(failed)
-          .skippedTests(skipped)
-          .progress(progress)
-          .duration(formatDuration(duration))
-          .build();
-    }).collect(Collectors.toList());
+    List<TestExecution> recentExecutions =
+        executionRepository
+            .findAll(PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "startTime")))
+            .getContent();
+
+    return recentExecutions.stream()
+        .map(
+            execution -> {
+              List<TestResult> results = execution.getResults();
+              int total = results.size();
+              int passed =
+                  (int) results.stream().filter(r -> r.getStatus() == TestStatus.PASSED).count();
+              int failed =
+                  (int)
+                      results.stream()
+                          .filter(
+                              r ->
+                                  r.getStatus() == TestStatus.FAILED
+                                      || r.getStatus() == TestStatus.ERROR)
+                          .count();
+              int skipped =
+                  (int) results.stream().filter(r -> r.getStatus() == TestStatus.SKIPPED).count();
+              double progress = TestExecutionStatus.computeProgress(total, passed, failed, skipped);
+
+              Duration duration;
+              if (execution.getEndTime() != null) {
+                duration = Duration.between(execution.getStartTime(), execution.getEndTime());
+              } else {
+                duration = Duration.between(execution.getStartTime(), LocalDateTime.now());
+              }
+
+              return RecentExecutionDto.builder()
+                  .executionId(execution.getExecutionId())
+                  .suiteName(
+                      execution.getSuiteName() != null ? execution.getSuiteName() : "Unknown Suite")
+                  .environment(
+                      execution.getEnvironment() != null ? execution.getEnvironment() : "N/A")
+                  .status(execution.getStatus().name())
+                  .startTime(execution.getStartTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+                  .endTime(
+                      execution.getEndTime() != null
+                          ? execution.getEndTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                          : null)
+                  .totalTests(total)
+                  .passedTests(passed)
+                  .failedTests(failed)
+                  .skippedTests(skipped)
+                  .progress(progress)
+                  .duration(formatDuration(duration))
+                  .build();
+            })
+        .collect(Collectors.toList());
   }
 
-  /**
-   * Get execution trends data for dashboard charts
-   */
+  /** Get execution trends data for dashboard charts */
   public ExecutionTrendsDto getExecutionTrends(int days) {
     LocalDateTime endDate = LocalDateTime.now();
     LocalDateTime startDate = endDate.minusDays(days - 1);
-    
+
     // Get all executions within the date range
-    List<TestExecution> executions = executionRepository.findAll().stream()
-        .filter(exec -> exec.getStartTime().isAfter(startDate.minusDays(1)) && 
-                       exec.getStartTime().isBefore(endDate.plusDays(1)))
-        .collect(Collectors.toList());
-    
+    List<TestExecution> executions =
+        executionRepository.findAll().stream()
+            .filter(
+                exec ->
+                    exec.getStartTime().isAfter(startDate.minusDays(1))
+                        && exec.getStartTime().isBefore(endDate.plusDays(1)))
+            .collect(Collectors.toList());
+
     // Group executions by date
-    Map<String, List<TestExecution>> executionsByDate = executions.stream()
-        .collect(Collectors.groupingBy(exec -> 
-            exec.getStartTime().toLocalDate().toString()));
-    
+    Map<String, List<TestExecution>> executionsByDate =
+        executions.stream()
+            .collect(Collectors.groupingBy(exec -> exec.getStartTime().toLocalDate().toString()));
+
     // Generate data for each day
     List<String> labels = new ArrayList<>();
     List<Integer> passedData = new ArrayList<>();
     List<Integer> failedData = new ArrayList<>();
     List<Integer> skippedData = new ArrayList<>();
-    
+
     for (int i = days - 1; i >= 0; i--) {
       LocalDateTime date = endDate.minusDays(i);
       String dateStr = date.toLocalDate().toString();
-      String label = date.toLocalDate().format(java.time.format.DateTimeFormatter.ofPattern("MMM d"));
-      
+      String label =
+          date.toLocalDate().format(java.time.format.DateTimeFormatter.ofPattern("MMM d"));
+
       labels.add(label);
-      
-      List<TestExecution> dayExecutions = executionsByDate.getOrDefault(dateStr, Collections.emptyList());
-      
+
+      List<TestExecution> dayExecutions =
+          executionsByDate.getOrDefault(dateStr, Collections.emptyList());
+
       int passed = 0;
       int failed = 0;
       int skipped = 0;
-      
+
       for (TestExecution execution : dayExecutions) {
         for (TestResult result : execution.getResults()) {
           switch (result.getStatus()) {
@@ -283,12 +305,12 @@ public class TestMonitoringService {
           }
         }
       }
-      
+
       passedData.add(passed);
       failedData.add(failed);
       skippedData.add(skipped);
     }
-    
+
     return ExecutionTrendsDto.builder()
         .labels(labels)
         .passedData(passedData)
@@ -296,7 +318,6 @@ public class TestMonitoringService {
         .skippedData(skippedData)
         .build();
   }
-
 
   private String formatDuration(Duration duration) {
     long seconds = duration.getSeconds();
@@ -309,9 +330,7 @@ public class TestMonitoringService {
     }
   }
 
-  /**
-   * DTO for dashboard overview statistics
-   */
+  /** DTO for dashboard overview statistics */
   @lombok.Data
   @lombok.AllArgsConstructor
   @lombok.NoArgsConstructor
@@ -329,9 +348,7 @@ public class TestMonitoringService {
     private String averageExecutionTime;
   }
 
-  /**
-   * DTO for recent execution summary
-   */
+  /** DTO for recent execution summary */
   @lombok.Data
   @lombok.AllArgsConstructor
   @lombok.NoArgsConstructor
@@ -351,9 +368,7 @@ public class TestMonitoringService {
     private String duration;
   }
 
-  /**
-   * DTO for execution trends data
-   */
+  /** DTO for execution trends data */
   @lombok.Data
   @lombok.AllArgsConstructor
   @lombok.NoArgsConstructor

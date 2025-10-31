@@ -180,6 +180,42 @@
           </execution>
         </executions>
       </plugin>
+
+      <!-- Maven Surefire Plugin for environment-agnostic testing -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.5.1</version>
+        <configuration>
+          <useModulePath>false</useModulePath>
+          <forkCount>1</forkCount>
+          <reuseForks>true</reuseForks>
+          <argLine>-Xmx1024m -XX:+UseG1GC -Djava.awt.headless=true</argLine>
+          <systemPropertyVariables>
+            <!-- Activate profile: default to 'dev', allow overrides like 'stage' or 'prod' -->
+            <spring.profiles.active>${env.SPRING_PROFILES_ACTIVE:dev}</spring.profiles.active>
+            <!-- Environment-agnostic database configuration -->
+            <spring.datasource.url>${DB_URL:jdbc:postgresql://localhost:5432/atasdb}</spring.datasource.url>
+            <spring.datasource.username>${DB_USERNAME:atas}</spring.datasource.username>
+            <spring.datasource.password>${DB_PASSWORD:ataspass}</spring.datasource.password>
+            <!-- Environment-agnostic S3 configuration -->
+            <atas.storage.bucket>${S3_BUCKET:atas-videos}</atas.storage.bucket>
+            <atas.storage.region>${S3_REGION:us-east-1}</atas.storage.region>
+            <atas.storage.video-folder>${S3_VIDEO_FOLDER:videos}</atas.storage.video-folder>
+            <atas.storage.screenshot-folder>${S3_SCREENSHOT_FOLDER:screenshots}</atas.storage.screenshot-folder>
+          </systemPropertyVariables>
+          <!-- Pass environment variables to the test JVM -->
+          <environmentVariables>
+            <DB_URL>${env.DB_URL}</DB_URL>
+            <DB_USERNAME>${env.DB_USERNAME}</DB_USERNAME>
+            <DB_PASSWORD>${env.DB_PASSWORD}</DB_PASSWORD>
+            <S3_BUCKET>${env.S3_BUCKET}</S3_BUCKET>
+            <S3_REGION>${env.S3_REGION}</S3_REGION>
+            <S3_VIDEO_FOLDER>${env.S3_VIDEO_FOLDER}</S3_VIDEO_FOLDER>
+            <S3_SCREENSHOT_FOLDER>${env.S3_SCREENSHOT_FOLDER}</S3_SCREENSHOT_FOLDER>
+          </environmentVariables>
+        </configuration>
+      </plugin>
       <!-- Exec Maven plugin for Playwright CLI -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
