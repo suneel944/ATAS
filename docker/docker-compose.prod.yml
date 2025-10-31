@@ -37,15 +37,17 @@ services:
       atas-db:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://atas-db:5432/atasdb
-      SPRING_DATASOURCE_USERNAME: atas
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-ataspass}
-      ATAS_STORAGE_BUCKET: ${ATAS_STORAGE_BUCKET:-atas-videos}
-      ATAS_STORAGE_REGION: ${ATAS_STORAGE_REGION:-us-east-1}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      DB_URL: jdbc:postgresql://atas-db:5432/atasdb
+      DB_USERNAME: atas
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-ataspass}
+      S3_BUCKET: ${S3_BUCKET:-atas-videos}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_VIDEO_FOLDER: ${S3_VIDEO_FOLDER:-videos}
+      S3_SCREENSHOT_FOLDER: ${S3_SCREENSHOT_FOLDER:-screenshots}
       # JVM optimizations for production containers
       JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -XX:+UseStringDeduplication"
       # Spring Boot optimizations
-      SPRING_PROFILES_ACTIVE: prod
       SERVER_TOMCAT_THREADS_MAX: 200
       SERVER_TOMCAT_THREADS_MIN_SPARE: 10
     ports:
