@@ -5,9 +5,13 @@ services:
     container_name: atas-db-prod
     environment:
       POSTGRES_DB: atasdb
-      POSTGRES_USER: atas
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ataspass}
+      POSTGRES_USER: ${DB_USERNAME:-atas}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ataspass}
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      # Expose database port for local testing with make dev-prod
+      # Note: In actual production deployment, this should be removed for security
+      - "5433:5432"
     volumes:
       - postgres-data:/var/lib/postgresql
     restart: unless-stopped
@@ -39,8 +43,8 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
       DB_URL: jdbc:postgresql://atas-db:5432/atasdb
-      DB_USERNAME: atas
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-ataspass}
+      DB_USERNAME: ${DB_USERNAME:-atas}
+      DB_PASSWORD: ${DB_PASSWORD:-ataspass}
       S3_BUCKET: ${S3_BUCKET:-atas-videos}
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_VIDEO_FOLDER: ${S3_VIDEO_FOLDER:-videos}

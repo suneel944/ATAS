@@ -344,12 +344,8 @@ Currently, there are no rate limits imposed on the API endpoints. However, test 
 
 Currently, the APIs do not require authentication. In a production environment, you should implement proper authentication and authorization mechanisms.
 
-## Mock Data
+## Test Discovery Behavior
 
-When test files are not available in the Docker container, the TestDiscoveryService returns mock data for testing purposes. This includes:
+The TestDiscoveryService discovers tests by scanning the test source files. If test files are not available or the test path is misconfigured, the service will return empty lists rather than mock data. This ensures that configuration issues are immediately visible and not masked by fake data.
 
-- **Test Classes:** LoginUiTest, LoginValidationUiTest, LoginApiTest, TestMonitoringApiTest
-- **Test Suites:** AuthenticationUiTestSuite, AuthenticationApiTestSuite, MonitoringApiTestSuite
-- **Tags:** smoke, regression, ui, api, authentication, monitoring, validation
-
-To use real test files, mount the `atas-tests` directory in the Docker container.
+**Important:** Always mount the `atas-tests` directory in the Docker container and configure the `atas.test.base.path` system property correctly to enable test discovery.

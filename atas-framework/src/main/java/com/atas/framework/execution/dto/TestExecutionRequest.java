@@ -33,8 +33,12 @@ public class TestExecutionRequest {
   /** Test suite name (e.g., "authentication-ui", "monitoring-api") */
   private String suiteName;
 
-  /** Environment where tests should run (dev, staging, prod) */
-  @Builder.Default private String environment = System.getProperty("atas.test.environment", "dev");
+  /**
+   * Environment where tests should run (dev, staging, prod). Defaults to ATAS_TEST_ENVIRONMENT env
+   * var, then atas.test.environment property, then "dev". Also respects SPRING_PROFILES_ACTIVE if
+   * ATAS_TEST_ENVIRONMENT is not set.
+   */
+  @Builder.Default private String environment = getDefaultEnvironment();
 
   /** Additional execution parameters */
   private Map<String, String> parameters;
@@ -48,10 +52,59 @@ public class TestExecutionRequest {
   /** Browser type for UI tests (CHROMIUM, FIREFOX, WEBKIT) */
   private String browserType;
 
-  /** Maximum execution timeout in minutes */
-  @Builder.Default
-  private int timeoutMinutes =
-      Integer.parseInt(System.getProperty("atas.test.timeout.minutes", "30"));
+  /**
+   * Maximum execution timeout in minutes. Defaults to ATAS_TEST_TIMEOUT_MINUTES env var, then
+   * atas.test.timeout.minutes property, then 30.
+   */
+  @Builder.Default private int timeoutMinutes = getDefaultTimeoutMinutes();
+
+  /**
+   * Get default environment from environment variable, system property, or Spring profile.
+   * Priority: ATAS_TEST_ENVIRONMENT > atas.test.environment > SPRING_PROFILES_ACTIVE > "dev"
+   */
+  private static String getDefaultEnvironment() {
+    String env = System.getenv("ATAS_TEST_ENVIRONMENT");
+    if (env != null && !env.isEmpty() && !"null".equalsIgnoreCase(env)) {
+      return env;
+    }
+    env = System.getProperty("atas.test.environment");
+    if (env != null && !env.isEmpty() && !"null".equalsIgnoreCase(env)) {
+      return env;
+    }
+    env = System.getenv("SPRING_PROFILES_ACTIVE");
+    if (env != null && !env.isEmpty() && !"null".equalsIgnoreCase(env)) {
+      return env.split(",")[0].trim(); // Use first profile if multiple
+    }
+    env = System.getProperty("spring.profiles.active");
+    if (env != null && !env.isEmpty() && !"null".equalsIgnoreCase(env)) {
+      return env.split(",")[0].trim(); // Use first profile if multiple
+    }
+    return "dev";
+  }
+
+  /**
+   * Get default timeout from environment variable or system property. Priority:
+   * ATAS_TEST_TIMEOUT_MINUTES > atas.test.timeout.minutes > 30
+   */
+  private static int getDefaultTimeoutMinutes() {
+    String timeoutStr = System.getenv("ATAS_TEST_TIMEOUT_MINUTES");
+    if (timeoutStr != null && !timeoutStr.isEmpty() && !"null".equalsIgnoreCase(timeoutStr)) {
+      try {
+        return Integer.parseInt(timeoutStr);
+      } catch (NumberFormatException e) {
+        // Fall through to next option
+      }
+    }
+    timeoutStr = System.getProperty("atas.test.timeout.minutes");
+    if (timeoutStr != null && !timeoutStr.isEmpty() && !"null".equalsIgnoreCase(timeoutStr)) {
+      try {
+        return Integer.parseInt(timeoutStr);
+      } catch (NumberFormatException e) {
+        // Fall through to default
+      }
+    }
+    return 30;
+  }
 
   /** Execution types supported by the API */
   public enum ExecutionType {

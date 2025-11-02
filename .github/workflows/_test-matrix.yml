@@ -71,7 +71,7 @@ jobs:
       - name: Build and install framework first
         run: |
           make build
-          ./mvnw install -pl atas-framework -am
+          ./mvnw install -pl atas-framework -am -DskipTests
 
       - name: Run unit tests
         run: |

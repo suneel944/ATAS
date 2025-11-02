@@ -2,8 +2,14 @@
 
 # ATAS Docker Build Script
 # This script builds optimized Docker images for different environments
+# Note: Docker Compose will automatically read .env file from project root
 
 set -e
+
+# Ensure we're in the project root
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+cd "$PROJECT_ROOT"
 
 # Colors for output
 RED='\033[0;31m'
@@ -108,6 +114,9 @@ else
     COMPOSE_FILE="docker/docker-compose-local-db.yml"
 fi
 
+# Note: Docker Compose will automatically read .env file from project root
+# If .env doesn't exist, Docker Compose will use defaults defined in the compose files
+
 # Build the image
 print_status "Building image using $DOCKERFILE..."
 IMAGE_NAME="atas-service:$TAG"
@@ -151,4 +160,5 @@ echo "  Compose file: $COMPOSE_FILE"
 
 print_success "Build completed successfully!"
 print_status "To run the application:"
-echo "  docker-compose -f $COMPOSE_FILE up -d"
+echo "  docker compose -f $COMPOSE_FILE up -d"
+echo "  # Or use: make docker-up"

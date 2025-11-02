@@ -180,8 +180,9 @@ class TestExecutionServiceTest {
 
     // Then
     assertThat(response).isNotNull();
-    assertThat(response.getTestsToExecute())
-        .containsExactly("Tests will be discovered during execution");
+    // When discovery fails, we return an empty list instead of a placeholder message
+    // This avoids masking actual discovery failures with mock data
+    assertThat(response.getTestsToExecute()).isEmpty();
     verify(testExecutionRepository).save(any(TestExecution.class));
   }
 }

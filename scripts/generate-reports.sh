@@ -5,11 +5,16 @@
 #   scripts/generate-reports.sh --serve     # run tests if needed, serve report via allure:serve
 #   scripts/generate-reports.sh --static    # force static only (no serve)
 #   scripts/generate-reports.sh --no-test   # don't run tests; use existing results
+# Note: Spring Boot will automatically load .env file via EnvFileLoader
 
 set -euo pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+MAVEN_WRAPPER="$PROJECT_ROOT/mvnw"
+
+# Ensure we're in the project root
+cd "$PROJECT_ROOT"
 MODULE="atas-tests"
 RESULTS_DIR="$PROJECT_ROOT/$MODULE/target/allure-results"
 SITE_DIR="$PROJECT_ROOT/$MODULE/target/site/allure-maven-plugin"
@@ -29,10 +34,11 @@ for arg in "${@:-}"; do
   esac
 done
 
+# Already in PROJECT_ROOT from above, but keep pushd for consistency
 pushd "$PROJECT_ROOT" >/dev/null
 
 # 0) Ensure module compiles (fast fail if broken POMs)
-mvn -q -pl "$MODULE" -am -DskipTests verify -DskipITs=true >/dev/null
+"$MAVEN_WRAPPER" -q -pl "$MODULE" -am -DskipTests verify -DskipITs=true >/dev/null
 
 # 1) If previous report exists, copy history so trends persist
 if [[ -d "$HISTORY_SRC" ]]; then
@@ -43,7 +49,7 @@ fi
 # 2) Run tests if requested or if no results yet
 if $RUN_TESTS || [[ ! -d "$RESULTS_DIR" ]] || [[ -z "$(ls -A "$RESULTS_DIR" 2>/dev/null || true)" ]]; then
   echo "Running tests to produce Allure results..."
-  mvn -q -pl "$MODULE" -am clean test
+  "$MAVEN_WRAPPER" -q -pl "$MODULE" -am clean test
 fi
 
 # 3) Sanity: ensure results exist now
@@ -55,14 +61,14 @@ fi
 
 # 4) Generate static HTML
 echo "Generating Allure static report..."
-mvn -q -pl "$MODULE" allure:report
+"$MAVEN_WRAPPER" -q -pl "$MODULE" allure:report
 echo "Static report: $SITE_DIR/index.html"
 
 # 5) Serve if requested (best experience)
 if $SERVE && ! $STATIC_ONLY; then
   echo "Serving Allure report (Ctrl+C to stop)..."
-  # This runs Allure’s embedded HTTP server
-  mvn -pl "$MODULE" allure:serve
+  # This runs Allure's embedded HTTP server
+  "$MAVEN_WRAPPER" -pl "$MODULE" allure:serve
 else
   # Or advise how to serve static files to avoid file:// CORS issues
   echo "Tip: to view the static report without CORS issues:"

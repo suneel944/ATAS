@@ -146,6 +146,8 @@
             margin-bottom: 32px;
             display: flex;
             gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
         .refresh-button {
@@ -189,6 +191,106 @@
         .refresh-button span {
             position: relative;
             z-index: 1;
+        }
+
+        /* Auto-refresh dropdown (Grafana-style) */
+        .auto-refresh-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 10px 16px;
+        }
+
+        .auto-refresh-label {
+            font-size: 13px;
+            color: #94a3b8;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .auto-refresh-select {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.05));
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            padding: 10px 40px 10px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='14' height='9' viewBox='0 0 14 9' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L7 7.5L13 1.5' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 14px;
+            min-width: 140px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .auto-refresh-select:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.08));
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .auto-refresh-select:focus {
+            outline: none;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.1));
+            border-color: rgba(59, 130, 246, 0.6);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15), 0 4px 16px rgba(59, 130, 246, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .auto-refresh-select:active {
+            transform: translateY(0);
+        }
+
+        .auto-refresh-select option {
+            background: #0a0a0a !important;
+            color: #ffffff !important;
+            padding: 12px 16px;
+            font-weight: 500;
+        }
+
+        .auto-refresh-select option:hover {
+            background: rgba(59, 130, 246, 0.25) !important;
+            color: #ffffff !important;
+        }
+
+        .auto-refresh-select option:checked,
+        .auto-refresh-select option:focus,
+        .auto-refresh-select option[selected] {
+            background: rgba(59, 130, 246, 0.3) !important;
+            color: #ffffff !important;
+            font-weight: 700;
+        }
+
+        .auto-refresh-status {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 600;
+            padding: 4px 8px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .auto-refresh-status.active::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse-dot 2s infinite;
         }
 
         /* Grid Layout */
@@ -357,12 +459,18 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 48px;
+            font-size: 34px;
             font-weight: 800;
             background: linear-gradient(135deg, #22c55e, #10b981);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            padding: 20px;
+            box-sizing: border-box;
+            line-height: 1.1;
+            max-width: 140px;
+            text-align: center;
+            white-space: nowrap;
         }
 
         .success-rate-label {
@@ -422,6 +530,136 @@
         .chart-container {
             position: relative;
             height: 300px;
+        }
+
+        /* Filter controls */
+        .filter-section {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-input {
+            flex: 1;
+            min-width: 200px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.05));
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .filter-input::placeholder {
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .filter-input:hover {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.08));
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .filter-input:focus {
+            outline: none;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.08));
+            border-color: rgba(59, 130, 246, 0.6);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15), 0 4px 16px rgba(59, 130, 246, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .filter-input:active {
+            transform: translateY(0);
+        }
+
+        .filter-select {
+            appearance: none;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.05));
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            padding: 10px 40px 10px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background-image: url("data:image/svg+xml,%3Csvg width='14' height='9' viewBox='0 0 14 9' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L7 7.5L13 1.5' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            min-width: 150px;
+        }
+
+        .filter-select:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.08));
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .filter-select:focus {
+            outline: none;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.1));
+            border-color: rgba(59, 130, 246, 0.6);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15), 0 4px 16px rgba(59, 130, 246, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .filter-select:active {
+            transform: translateY(0);
+        }
+
+        .filter-select option {
+            background: #0a0a0a !important;
+            color: #ffffff !important;
+            padding: 12px 16px;
+            font-weight: 500;
+        }
+
+        .filter-select option:hover {
+            background: rgba(59, 130, 246, 0.25) !important;
+            color: #ffffff !important;
+        }
+
+        .filter-select option:checked,
+        .filter-select option:focus,
+        .filter-select option[selected] {
+            background: rgba(59, 130, 246, 0.3) !important;
+            color: #ffffff !important;
+            font-weight: 700;
+        }
+
+        .filter-label {
+            font-size: 12px;
+            color: #94a3b8;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .clear-filters {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .clear-filters:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.5);
         }
 
         /* Elegant table */
@@ -789,7 +1027,9 @@
             }
 
             .success-rate {
-                font-size: 40px;
+                font-size: 22px;
+                padding: 16px;
+                max-width: 100px;
             }
 
             .active-count {
@@ -824,9 +1064,24 @@
 
         <!-- Controls -->
         <div class="controls">
-            <button class="refresh-button" onclick="refreshDashboard()">
-                <span>⟳ Refresh Dashboard</span>
-            </button>
+            <div class="auto-refresh-container">
+                <div class="auto-refresh-label">
+                    <span>⏱️</span>
+                    <span>Auto-refresh</span>
+                </div>
+                <select id="auto-refresh-select" class="auto-refresh-select" onchange="updateAutoRefresh()">
+                    <option value="0">Off</option>
+                    <option value="5000">5 seconds</option>
+                    <option value="10000" selected>10 seconds</option>
+                    <option value="30000">30 seconds</option>
+                    <option value="60000">1 minute</option>
+                    <option value="300000">5 minutes</option>
+                    <option value="600000">10 minutes</option>
+                </select>
+                <div id="auto-refresh-status" class="auto-refresh-status active">
+                    Next refresh in <span id="refresh-countdown">10</span>s
+                </div>
+            </div>
             <button class="refresh-button" onclick="window.open('/monitoring/database', '_blank')" style="background: linear-gradient(135deg, #8b5cf6, #ec4899);">
                 <span>🗄️ Database Management</span>
             </button>
@@ -942,6 +1197,24 @@
                     <div class="card-title">Recent Test Executions</div>
                     <div class="card-icon">🕐</div>
                 </div>
+                <div class="filter-section">
+                    <input type="text" id="filter-suite" class="filter-input" placeholder="Search by suite name..." oninput="applyFilters()">
+                    <select id="filter-status" class="filter-select" onchange="applyFilters()">
+                        <option value="">All Statuses</option>
+                        <option value="PASSED">Passed</option>
+                        <option value="FAILED">Failed</option>
+                        <option value="RUNNING">Running</option>
+                        <option value="COMPLETED">Completed</option>
+                        <option value="SKIPPED">Skipped</option>
+                    </select>
+                    <select id="filter-environment" class="filter-select" onchange="applyFilters()">
+                        <option value="">All Environments</option>
+                        <option value="dev">Dev</option>
+                        <option value="stage">Stage</option>
+                        <option value="prod">Prod</option>
+                    </select>
+                    <button class="clear-filters" onclick="clearFilters()">Clear Filters</button>
+                </div>
                 <div class="table-container">
                     <table class="data-table" id="recent-executions">
                         <thead>
@@ -975,40 +1248,130 @@
         let testDistributionChart = null;
         let executionTrendsChart = null;
         let refreshInterval = null;
+        let countdownInterval = null;
+        let currentRefreshInterval = 10000; // Default 10 seconds
+        let allExecutions = []; // Store all executions for filtering
+        let activeExecutionsEventSource = null; // SSE connection for active executions
+        let activeExecutionsPollInterval = null; // Polling fallback for active executions
 
         document.addEventListener('DOMContentLoaded', function() {
             refreshDashboard();
-            refreshInterval = setInterval(refreshDashboard, 30000);
+            updateAutoRefresh(); // Initialize auto-refresh
+            
+            // Start with both SSE and polling for reliability
+            connectActiveExecutionsSSE(); // Connect to real-time active executions stream
+            // Also start polling as backup (runs independently)
+            setTimeout(() => {
+                startActiveExecutionsPolling();
+            }, 1000);
         });
+
+        function updateAutoRefresh() {
+            const select = document.getElementById('auto-refresh-select');
+            const statusEl = document.getElementById('auto-refresh-status');
+            const interval = parseInt(select.value);
+
+            // Clear existing intervals
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+
+            currentRefreshInterval = interval;
+
+            if (interval > 0) {
+                // Start auto-refresh
+                statusEl.classList.add('active');
+                refreshInterval = setInterval(refreshDashboard, interval);
+                startCountdown(interval);
+            } else {
+                // Disable auto-refresh
+                statusEl.classList.remove('active');
+                statusEl.innerHTML = 'Auto-refresh disabled';
+            }
+        }
+
+        function startCountdown(intervalMs) {
+            const statusEl = document.getElementById('auto-refresh-status');
+            const countdownEl = document.getElementById('refresh-countdown');
+            let seconds = Math.floor(intervalMs / 1000);
+
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+
+            countdownInterval = setInterval(() => {
+                seconds--;
+                if (seconds <= 0) {
+                    seconds = Math.floor(intervalMs / 1000);
+                }
+                countdownEl.textContent = seconds;
+            }, 1000);
+        }
 
         async function refreshDashboard() {
             try {
-                await Promise.all([
+                // Use Promise.allSettled to prevent one failing request from blocking others
+                // Note: loadActiveExecutions is handled separately via SSE/polling
+                const results = await Promise.allSettled([
                     loadOverviewMetrics(),
                     loadRecentExecutions(),
                     loadDatabaseHealth(),
                     loadDatabaseOperations(),
                     updateCharts()
                 ]);
-                updateSystemStatus(true);
+                
+                // Check if any critical requests failed
+                const hasFailures = results.some(result => result.status === 'rejected');
+                if (hasFailures) {
+                    const failed = results.filter(r => r.status === 'rejected');
+                    console.warn('Some requests failed:', failed.map(r => r.reason));
+                }
+                
+                updateSystemStatus(!hasFailures);
             } catch (error) {
                 console.error('Error refreshing dashboard:', error);
                 updateSystemStatus(false);
-                showError('Failed to load dashboard data. Please check your connection.');
+                // Don't show error on every refresh to avoid spam
             }
         }
 
         async function loadOverviewMetrics() {
             try {
-                const response = await fetch('/api/v1/test-execution/dashboard/overview');
-                if (!response.ok) throw new Error('Failed to fetch overview data');
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                
+                const response = await fetch('/api/v1/test-execution/dashboard/overview?' + new URLSearchParams({
+                    _t: Date.now()
+                }), {
+                    signal: controller.signal,
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
                 const data = await response.json();
                 updateOverviewMetrics(data);
             } catch (error) {
-                console.error('Error loading overview metrics:', error);
-                document.getElementById('overview-metrics').innerHTML =
-                    '<div class="error-message">Failed to load overview metrics</div>';
+                if (error.name === 'AbortError') {
+                    console.error('Overview metrics request timed out');
+                } else {
+                    console.error('Error loading overview metrics:', error);
+                }
+                const metricsContainer = document.getElementById('overview-metrics');
+                if (metricsContainer) {
+                    metricsContainer.innerHTML =
+                        '<div class="error-message">Failed to load overview metrics</div>';
+                }
             }
         }
 
@@ -1051,21 +1414,228 @@
             const offset = circumference - (rate / 100 * circumference);
             circle.style.strokeDashoffset = offset;
 
-            document.getElementById('active-executions').textContent = data.activeExecutions.toLocaleString();
+        }
+
+        function connectActiveExecutionsSSE() {
+            const activeExecEl = document.getElementById('active-executions');
+            if (!activeExecEl) {
+                return;
+            }
+
+            // Close existing connection if any
+            if (activeExecutionsEventSource) {
+                activeExecutionsEventSource.close();
+                activeExecutionsEventSource = null;
+            }
+
+            try {
+                // Connect to SSE endpoint for real-time updates
+                const sseUrl = '/api/v1/test-execution/dashboard/active/live';
+                activeExecutionsEventSource = new EventSource(sseUrl);
+
+                let connectionTimeout = setTimeout(() => {
+                    if (activeExecutionsEventSource && activeExecutionsEventSource.readyState === EventSource.CONNECTING) {
+                        activeExecutionsEventSource.close();
+                        activeExecutionsEventSource = null;
+                        startActiveExecutionsPolling();
+                    }
+                }, 10000); // 10 second timeout
+
+                activeExecutionsEventSource.onmessage = function(event) {
+                    clearTimeout(connectionTimeout);
+                    try {
+                        // Parse JSON data
+                        let data;
+                        try {
+                            data = JSON.parse(event.data);
+                        } catch (e) {
+                            return; // Ignore invalid JSON
+                        }
+                        
+                        // The backend sends an array of RecentExecutionDto objects
+                        let activeCount = 0;
+                        if (Array.isArray(data)) {
+                            activeCount = data.length;
+                        } else if (data && typeof data === 'object') {
+                            // Handle object responses
+                            if (data.activeExecutions !== undefined) {
+                                activeCount = data.activeExecutions;
+                            } else if (Array.isArray(data.executions)) {
+                                activeCount = data.executions.length;
+                            } else if (typeof data.length === 'number') {
+                                activeCount = data.length;
+                            }
+                        } else if (typeof data === 'number') {
+                            activeCount = data;
+                        } else if (typeof data === 'string') {
+                            const parsed = parseInt(data, 10);
+                            if (!isNaN(parsed)) {
+                                activeCount = parsed;
+                            }
+                        }
+                        
+                        if (activeExecEl) {
+                            activeExecEl.textContent = activeCount.toLocaleString();
+                        }
+                    } catch (parseError) {
+                        console.error('Error processing active executions SSE data:', parseError);
+                    }
+                };
+
+                activeExecutionsEventSource.onerror = function(error) {
+                    clearTimeout(connectionTimeout);
+                    const readyState = activeExecutionsEventSource?.readyState;
+                    
+                    // EventSource.CONNECTING = 0, OPEN = 1, CLOSED = 2
+                    if (readyState === EventSource.CLOSED) {
+                        activeExecutionsEventSource = null;
+                        startActiveExecutionsPolling();
+                    }
+                };
+
+                activeExecutionsEventSource.onopen = function() {
+                    clearTimeout(connectionTimeout);
+                    // Fetch initial data immediately
+                    loadActiveExecutionsFallback();
+                };
+
+            } catch (error) {
+                clearTimeout(connectionTimeout);
+                console.error('Failed to establish SSE connection for active executions:', error);
+                // Fallback to polling if SSE fails
+                startActiveExecutionsPolling();
+            }
+        }
+
+        function startActiveExecutionsPolling() {
+            // Stop existing polling if any
+            if (activeExecutionsPollInterval) {
+                clearInterval(activeExecutionsPollInterval);
+                activeExecutionsPollInterval = null;
+            }
+
+            // Poll every 3 seconds
+            loadActiveExecutionsFallback(); // Load immediately
+            activeExecutionsPollInterval = setInterval(() => {
+                loadActiveExecutionsFallback();
+            }, 3000);
+        }
+
+        async function loadActiveExecutionsFallback() {
+            const activeExecEl = document.getElementById('active-executions');
+            if (!activeExecEl) {
+                return;
+            }
+            
+            try {
+                const url = '/api/v1/test-execution/dashboard/active?' + new URLSearchParams({
+                    _t: Date.now()
+                });
+                
+                // Fallback polling method (used if SSE fails)
+                const response = await fetch(url, {
+                    method: 'GET',
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                // The backend returns an array of RecentExecutionDto objects
+                let activeCount = 0;
+                if (Array.isArray(data)) {
+                    activeCount = data.length;
+                } else if (data && typeof data === 'object') {
+                    if (data.activeExecutions !== undefined) {
+                        activeCount = data.activeExecutions;
+                    } else if (Array.isArray(data.executions)) {
+                        activeCount = data.executions.length;
+                    } else if (typeof data.length === 'number') {
+                        activeCount = data.length;
+                    }
+                } else if (typeof data === 'number') {
+                    activeCount = data;
+                }
+                
+                if (activeExecEl) {
+                    activeExecEl.textContent = activeCount.toLocaleString();
+                }
+            } catch (error) {
+                // Don't update the UI on error, keep previous value
+                // Only log actual errors (not network issues)
+                if (error.name !== 'AbortError' && !error.message.includes('fetch')) {
+                    console.error('Error polling active executions:', error);
+                }
+            }
+        }
+
+        // Keep this for compatibility but it's mainly used as fallback
+        async function loadActiveExecutions() {
+            // SSE handles real-time updates, this is just a one-time fetch if needed
+            await loadActiveExecutionsFallback();
         }
 
         async function loadRecentExecutions() {
             try {
-                const response = await fetch('/api/v1/test-execution/dashboard/recent?limit=10');
-                if (!response.ok) throw new Error('Failed to fetch recent executions');
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                
+                const response = await fetch('/api/v1/test-execution/dashboard/recent?limit=100&' + new URLSearchParams({
+                    _t: Date.now()
+                }), {
+                    signal: controller.signal,
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
                 const data = await response.json();
-                updateRecentExecutions(data);
+                allExecutions = Array.isArray(data) ? data : []; // Store all executions
+                applyFilters(); // Apply filters to display
             } catch (error) {
-                console.error('Error loading recent executions:', error);
+                if (error.name === 'AbortError') {
+                    console.error('Recent executions request timed out');
+                } else {
+                    console.error('Error loading recent executions:', error);
+                }
                 const tbody = document.querySelector('#recent-executions tbody');
-                tbody.innerHTML = '<tr><td colspan="7"><div class="error-message">Failed to load recent executions</div></td></tr>';
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="7"><div class="error-message">Failed to load recent executions</div></td></tr>';
+                }
             }
+        }
+
+        function applyFilters() {
+            const suiteFilter = document.getElementById('filter-suite').value.toLowerCase();
+            const statusFilter = document.getElementById('filter-status').value;
+            const envFilter = document.getElementById('filter-environment').value;
+
+            let filtered = allExecutions.filter(exec => {
+                const suiteMatch = !suiteFilter || (exec.suiteName || '').toLowerCase().includes(suiteFilter);
+                const statusMatch = !statusFilter || exec.status === statusFilter;
+                const envMatch = !envFilter || (exec.environment || '').toLowerCase() === envFilter.toLowerCase();
+                return suiteMatch && statusMatch && envMatch;
+            });
+
+            updateRecentExecutions(filtered);
+        }
+
+        function clearFilters() {
+            document.getElementById('filter-suite').value = '';
+            document.getElementById('filter-status').value = '';
+            document.getElementById('filter-environment').value = '';
+            applyFilters();
         }
 
         function updateRecentExecutions(executions) {
@@ -1082,7 +1652,10 @@
                 return;
             }
 
-            tbody.innerHTML = executions.map(exec => `
+            // Show only first 10 filtered results for display
+            const displayExecutions = executions.slice(0, 10);
+
+            tbody.innerHTML = displayExecutions.map(exec => `
                 <tr>
                     <td class="suite-name">${exec.suiteName || 'Unknown'}</td>
                     <td>${exec.environment || 'N/A'}</td>
@@ -1108,19 +1681,51 @@
                     <td>${formatDateTime(exec.startTime)}</td>
                 </tr>
             `).join('');
+
+            // Show count if filtered
+            if (executions.length > 10) {
+                tbody.innerHTML += `
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: #94a3b8; padding: 16px; font-size: 12px;">
+                            Showing 10 of ${executions.length} results
+                        </td>
+                    </tr>
+                `;
+            }
         }
 
         async function loadDatabaseHealth() {
             try {
-                const response = await fetch('/api/v1/test-execution/dashboard/database-health');
-                if (!response.ok) throw new Error('Failed to fetch database health data');
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                
+                const response = await fetch('/api/v1/test-execution/dashboard/database-health?' + new URLSearchParams({
+                    _t: Date.now()
+                }), {
+                    signal: controller.signal,
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
                 const data = await response.json();
                 updateDatabaseHealth(data);
             } catch (error) {
-                console.error('Error loading database health:', error);
-                document.getElementById('database-health').innerHTML =
-                    '<div class="error-message">Failed to load database health</div>';
+                if (error.name === 'AbortError') {
+                    console.error('Database health request timed out');
+                } else {
+                    console.error('Error loading database health:', error);
+                }
+                const container = document.getElementById('database-health');
+                if (container) {
+                    container.innerHTML =
+                        '<div class="error-message">Failed to load database health</div>';
+                }
             }
         }
 
@@ -1164,15 +1769,36 @@
 
         async function loadDatabaseOperations() {
             try {
-                const response = await fetch('/api/v1/test-execution/dashboard/database-operations');
-                if (!response.ok) throw new Error('Failed to fetch database operations data');
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                
+                const response = await fetch('/api/v1/test-execution/dashboard/database-operations?' + new URLSearchParams({
+                    _t: Date.now()
+                }), {
+                    signal: controller.signal,
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
                 const data = await response.json();
                 updateDatabaseOperations(data);
             } catch (error) {
-                console.error('Error loading database operations:', error);
-                document.getElementById('database-operations').innerHTML =
-                    '<div class="error-message">Failed to load database operations</div>';
+                if (error.name === 'AbortError') {
+                    console.error('Database operations request timed out');
+                } else {
+                    console.error('Error loading database operations:', error);
+                }
+                const container = document.getElementById('database-operations');
+                if (container) {
+                    container.innerHTML =
+                        '<div class="error-message">Failed to load database operations</div>';
+                }
             }
         }
 
@@ -1205,21 +1831,49 @@
 
         async function updateCharts() {
             try {
-                const [overviewResponse, trendsResponse] = await Promise.all([
-                    fetch('/api/v1/test-execution/dashboard/overview'),
-                    fetch('/api/v1/test-execution/dashboard/execution-trends?days=7')
+                const controller1 = new AbortController();
+                const controller2 = new AbortController();
+                const timeout1 = setTimeout(() => controller1.abort(), 8000);
+                const timeout2 = setTimeout(() => controller2.abort(), 8000);
+                
+                const [overviewResponse, trendsResponse] = await Promise.allSettled([
+                    fetch('/api/v1/test-execution/dashboard/overview?' + new URLSearchParams({
+                        _t: Date.now()
+                    }), {
+                        signal: controller1.signal,
+                        headers: {
+                            'Cache-Control': 'no-cache',
+                            'Pragma': 'no-cache'
+                        }
+                    }),
+                    fetch('/api/v1/test-execution/dashboard/execution-trends?days=7&' + new URLSearchParams({
+                        _t: Date.now()
+                    }), {
+                        signal: controller2.signal,
+                        headers: {
+                            'Cache-Control': 'no-cache',
+                            'Pragma': 'no-cache'
+                        }
+                    })
                 ]);
                 
-                if (!overviewResponse.ok) throw new Error('Failed to fetch overview data');
+                clearTimeout(timeout1);
+                clearTimeout(timeout2);
                 
-                const overviewData = await overviewResponse.json();
-                updateTestDistributionChart(overviewData);
+                // Handle overview response
+                if (overviewResponse.status === 'fulfilled' && overviewResponse.value.ok) {
+                    const overviewData = await overviewResponse.value.json();
+                    updateTestDistributionChart(overviewData);
+                } else {
+                    console.warn('Failed to fetch overview for charts');
+                }
                 
-                // Use trends data from dedicated endpoint
-                if (trendsResponse.ok) {
-                    const trendsData = await trendsResponse.json();
+                // Handle trends response
+                if (trendsResponse.status === 'fulfilled' && trendsResponse.value.ok) {
+                    const trendsData = await trendsResponse.value.json();
                     updateExecutionTrendsChart(trendsData);
                 } else {
+                    console.warn('Failed to fetch trends, showing empty chart');
                     updateExecutionTrendsChart({ labels: [], passedData: [], failedData: [], skippedData: [] });
                 }
             } catch (error) {
@@ -1457,6 +2111,39 @@
             if (refreshInterval) {
                 clearInterval(refreshInterval);
             }
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+            if (activeExecutionsEventSource) {
+                activeExecutionsEventSource.close();
+                activeExecutionsEventSource = null;
+            }
+            if (activeExecutionsPollInterval) {
+                clearInterval(activeExecutionsPollInterval);
+                activeExecutionsPollInterval = null;
+            }
+        });
+
+        // Handle visibility change to reconnect SSE when tab becomes visible
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                // Check connection state and reconnect if needed
+                if (!activeExecutionsEventSource || activeExecutionsEventSource.readyState === EventSource.CLOSED) {
+                    connectActiveExecutionsSSE();
+                }
+            }
+        });
+
+        // Handle online/offline events to reconnect when network is restored
+        window.addEventListener('online', function() {
+            console.log('Network connection restored, reconnecting SSE...');
+            if (!activeExecutionsEventSource || activeExecutionsEventSource.readyState === EventSource.CLOSED) {
+                connectActiveExecutionsSSE();
+            }
+        });
+
+        window.addEventListener('offline', function() {
+            console.warn('Network connection lost');
         });
     </script>
 </body>

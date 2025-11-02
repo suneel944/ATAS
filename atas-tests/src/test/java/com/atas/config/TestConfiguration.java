@@ -40,8 +40,10 @@ public class TestConfiguration {
           .withReuse(true);
 
   /**
-   * Bean to provide the database URL from the Testcontainer. Falls back to environment variables if
-   * Testcontainer is not used.
+   * Bean to provide the database URL from the Testcontainer. Falls back to environment variables or
+   * system properties if Testcontainer is not used.
+   *
+   * <p>Priority: Testcontainer > Environment Variable > System Property > Default
    */
   @Bean
   @Primary
@@ -49,12 +51,22 @@ public class TestConfiguration {
     if (postgresContainer.isRunning()) {
       return postgresContainer.getJdbcUrl();
     }
-    return System.getenv().getOrDefault("DB_URL", "jdbc:postgresql://localhost:5432/atas_test");
+    String value = System.getenv("DB_URL");
+    if (value != null && !value.isEmpty()) {
+      return value;
+    }
+    value = System.getProperty("DB_URL");
+    if (value != null && !value.isEmpty()) {
+      return value;
+    }
+    return "jdbc:postgresql://localhost:5432/atas_test";
   }
 
   /**
-   * Bean to provide the database username. Falls back to environment variables if Testcontainer is
-   * not used.
+   * Bean to provide the database username. Falls back to environment variables or system properties
+   * if Testcontainer is not used.
+   *
+   * <p>Priority: Testcontainer > Environment Variable > System Property > Default
    */
   @Bean
   @Primary
@@ -62,12 +74,22 @@ public class TestConfiguration {
     if (postgresContainer.isRunning()) {
       return postgresContainer.getUsername();
     }
-    return System.getenv().getOrDefault("DB_USERNAME", "atas");
+    String value = System.getenv("DB_USERNAME");
+    if (value != null && !value.isEmpty()) {
+      return value;
+    }
+    value = System.getProperty("DB_USERNAME");
+    if (value != null && !value.isEmpty()) {
+      return value;
+    }
+    return "atas";
   }
 
   /**
-   * Bean to provide the database password. Falls back to environment variables if Testcontainer is
-   * not used.
+   * Bean to provide the database password. Falls back to environment variables or system properties
+   * if Testcontainer is not used.
+   *
+   * <p>Priority: Testcontainer > Environment Variable > System Property > Default
    */
   @Bean
   @Primary
@@ -75,34 +97,86 @@ public class TestConfiguration {
     if (postgresContainer.isRunning()) {
       return postgresContainer.getPassword();
     }
-    return System.getenv().getOrDefault("DB_PASSWORD", "ataspass");
+    String value = System.getenv("DB_PASSWORD");
+    if (value != null && !value.isEmpty()) {
+      return value;
+    }
+    value = System.getProperty("DB_PASSWORD");
+    if (value != null && !value.isEmpty()) {
+      return value;
+    }
+    return "ataspass";
   }
 
-  /** Bean to provide the S3 bucket name from environment variables. */
+  /**
+   * Bean to provide the S3 bucket name from environment variables or system properties. Priority:
+   * Environment Variable > System Property > Default
+   */
   @Bean
   @Primary
   public String s3Bucket() {
-    return System.getenv().getOrDefault("S3_BUCKET", "test-bucket");
+    String value = System.getenv("S3_BUCKET");
+    if (value != null && !value.isEmpty()) {
+      return value;
+    }
+    value = System.getProperty("S3_BUCKET");
+    if (value != null && !value.isEmpty()) {
+      return value;
+    }
+    return "test-bucket";
   }
 
-  /** Bean to provide the S3 region from environment variables. */
+  /**
+   * Bean to provide the S3 region from environment variables or system properties. Priority:
+   * Environment Variable > System Property > Default
+   */
   @Bean
   @Primary
   public String s3Region() {
-    return System.getenv().getOrDefault("S3_REGION", "us-east-1");
+    String value = System.getenv("S3_REGION");
+    if (value != null && !value.isEmpty()) {
+      return value;
+    }
+    value = System.getProperty("S3_REGION");
+    if (value != null && !value.isEmpty()) {
+      return value;
+    }
+    return "us-east-1";
   }
 
-  /** Bean to provide the S3 video folder from environment variables. */
+  /**
+   * Bean to provide the S3 video folder from environment variables or system properties. Priority:
+   * Environment Variable > System Property > Default
+   */
   @Bean
   @Primary
   public String s3VideoFolder() {
-    return System.getenv().getOrDefault("S3_VIDEO_FOLDER", "test-videos");
+    String value = System.getenv("S3_VIDEO_FOLDER");
+    if (value != null && !value.isEmpty()) {
+      return value;
+    }
+    value = System.getProperty("S3_VIDEO_FOLDER");
+    if (value != null && !value.isEmpty()) {
+      return value;
+    }
+    return "test-videos";
   }
 
-  /** Bean to provide the S3 screenshot folder from environment variables. */
+  /**
+   * Bean to provide the S3 screenshot folder from environment variables or system properties.
+   * Priority: Environment Variable > System Property > Default
+   */
   @Bean
   @Primary
   public String s3ScreenshotFolder() {
-    return System.getenv().getOrDefault("S3_SCREENSHOT_FOLDER", "test-screenshots");
+    String value = System.getenv("S3_SCREENSHOT_FOLDER");
+    if (value != null && !value.isEmpty()) {
+      return value;
+    }
+    value = System.getProperty("S3_SCREENSHOT_FOLDER");
+    if (value != null && !value.isEmpty()) {
+      return value;
+    }
+    return "test-screenshots";
   }
 }
