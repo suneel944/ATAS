@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /** Service for executing tests with various filtering options */
@@ -25,6 +26,9 @@ public class TestExecutionService {
   private final TestDiscoveryService testDiscoveryService;
   private final ExecutorService executorService = Executors.newCachedThreadPool();
 
+  @Value("${atas.mvnw.path:/app/mvnw}")
+  private String mvnwPath;
+
   /** Execute tests based on the provided request */
   public TestExecutionResponse executeTests(TestExecutionRequest request) {
     log.info("Starting test execution with type: {}", request.getType());
@@ -32,7 +36,6 @@ public class TestExecutionService {
     String executionId = UUID.randomUUID().toString();
     LocalDateTime startTime = LocalDateTime.now();
 
-    // Create test execution record
     TestExecution execution =
         TestExecution.builder()
             .executionId(executionId)
@@ -108,8 +111,11 @@ public class TestExecutionService {
 
       // Execute Maven command
       ProcessBuilder processBuilder = new ProcessBuilder(mavenArgs);
-      processBuilder.directory(new java.io.File("atas-tests"));
+      processBuilder.directory(new java.io.File("/app/atas-tests"));
       processBuilder.environment().put("ATAS_EXECUTION_ID", executionId);
+      // Set environment for Maven execution
+      processBuilder.environment().put("MAVEN_HOME", "/usr/share/maven");
+      processBuilder.environment().put("PATH", "/usr/share/maven/bin:" + System.getenv("PATH"));
 
       Process process = processBuilder.start();
 
@@ -133,8 +139,11 @@ public class TestExecutionService {
   /** Build Maven command based on request type */
   private List<String> buildMavenCommand(TestExecutionRequest request) {
     List<String> args = new ArrayList<>();
-    args.add("../mvnw");
+    // Use configured Maven wrapper path (from Spring properties or environment variable)
+    args.add(mvnwPath);
     args.add("test");
+    args.add("-pl");
+    args.add("atas-tests");
 
     switch (request.getType()) {
       case INDIVIDUAL_TEST:
@@ -181,8 +190,8 @@ public class TestExecutionService {
     try {
       return testDiscoveryService.discoverTestsToExecute(request);
     } catch (Exception e) {
-      log.warn("Could not discover tests for request: {}", request, e);
-      return Collections.singletonList("Tests will be discovered during execution");
+      log.error("Could not discover tests for request: {}", request, e);
+      return Collections.emptyList();
     }
   }
 

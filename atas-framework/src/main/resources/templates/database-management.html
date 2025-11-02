@@ -147,6 +147,7 @@
             display: flex;
             gap: 16px;
             flex-wrap: wrap;
+            align-items: center;
         }
 
         .refresh-button {
@@ -198,6 +199,377 @@
 
         .refresh-button.danger {
             background: linear-gradient(135deg, #ef4444, #f59e0b);
+        }
+
+        /* Action buttons in tables - even sized capsule */
+        .action-button {
+            min-width: 70px;
+            width: 70px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            margin: 0 4px;
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .action-button.view {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: #ffffff;
+        }
+
+        .action-button.view:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .action-button.delete {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: #ffffff;
+        }
+
+        .action-button.delete:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        /* Auto-refresh dropdown (Grafana-style) */
+        .auto-refresh-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 10px 16px;
+        }
+
+        .auto-refresh-label {
+            font-size: 13px;
+            color: #94a3b8;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .auto-refresh-select {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.05));
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            padding: 10px 40px 10px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='14' height='9' viewBox='0 0 14 9' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L7 7.5L13 1.5' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 14px;
+            min-width: 140px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .auto-refresh-select:hover {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(139, 92, 246, 0.08));
+            border-color: rgba(139, 92, 246, 0.4);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .auto-refresh-select:focus {
+            outline: none;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1));
+            border-color: rgba(139, 92, 246, 0.6);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15), 0 4px 16px rgba(139, 92, 246, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .auto-refresh-select:active {
+            transform: translateY(0);
+        }
+
+        .auto-refresh-select option {
+            background: #0a0a0a !important;
+            color: #ffffff !important;
+            padding: 12px 16px;
+            font-weight: 500;
+        }
+
+        .auto-refresh-select option:hover {
+            background: rgba(139, 92, 246, 0.25) !important;
+            color: #ffffff !important;
+        }
+
+        .auto-refresh-select option:checked,
+        .auto-refresh-select option:focus,
+        .auto-refresh-select option[selected] {
+            background: rgba(139, 92, 246, 0.3) !important;
+            color: #ffffff !important;
+            font-weight: 700;
+        }
+
+        .auto-refresh-status {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 600;
+            padding: 4px 8px;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .auto-refresh-status.active::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse-dot 2s infinite;
+        }
+
+        /* Filter controls */
+        .filter-section {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-input {
+            flex: 1;
+            min-width: 200px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.05));
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .filter-input::placeholder {
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .filter-input:hover {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.08));
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .filter-input:focus {
+            outline: none;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(139, 92, 246, 0.08));
+            border-color: rgba(139, 92, 246, 0.6);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15), 0 4px 16px rgba(139, 92, 246, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .filter-input:active {
+            transform: translateY(0);
+        }
+
+        .filter-select {
+            appearance: none;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.05));
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            padding: 10px 40px 10px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background-image: url("data:image/svg+xml,%3Csvg width='14' height='9' viewBox='0 0 14 9' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L7 7.5L13 1.5' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            min-width: 150px;
+        }
+
+        .filter-select:hover {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(139, 92, 246, 0.08));
+            border-color: rgba(139, 92, 246, 0.4);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .filter-select:focus {
+            outline: none;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1));
+            border-color: rgba(139, 92, 246, 0.6);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15), 0 4px 16px rgba(139, 92, 246, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .filter-select:active {
+            transform: translateY(0);
+        }
+
+        .filter-select option {
+            background: #0a0a0a !important;
+            color: #ffffff !important;
+            padding: 12px 16px;
+            font-weight: 500;
+        }
+
+        .filter-select option:hover {
+            background: rgba(139, 92, 246, 0.25) !important;
+            color: #ffffff !important;
+        }
+
+        .filter-select option:checked,
+        .filter-select option:focus,
+        .filter-select option[selected] {
+            background: rgba(139, 92, 246, 0.3) !important;
+            color: #ffffff !important;
+            font-weight: 700;
+        }
+
+        .filter-label {
+            font-size: 12px;
+            color: #94a3b8;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .clear-filters {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .clear-filters:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+
+        /* Status badges */
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .status-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .status-badge.passed {
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+            border-color: rgba(34, 197, 94, 0.3);
+            box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
+        }
+
+        .status-badge.failed {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.3);
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+        }
+
+        .status-badge.running {
+            background: rgba(59, 130, 246, 0.15);
+            color: #3b82f6;
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+            animation: pulse-badge 2s ease-in-out infinite;
+        }
+
+        .status-badge.completed {
+            background: rgba(139, 92, 246, 0.15);
+            color: #8b5cf6;
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2);
+        }
+
+        .status-badge.skipped {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+            border-color: rgba(245, 158, 11, 0.3);
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+        }
+
+        .status-badge.error {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.3);
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+        }
+
+        .status-badge.unknown {
+            background: rgba(148, 163, 184, 0.15);
+            color: #94a3b8;
+            border-color: rgba(148, 163, 184, 0.3);
+            box-shadow: 0 2px 8px rgba(148, 163, 184, 0.2);
+        }
+
+        .status-badge.pending {
+            background: rgba(168, 85, 247, 0.15);
+            color: #a855f7;
+            border-color: rgba(168, 85, 247, 0.3);
+            box-shadow: 0 2px 8px rgba(168, 85, 247, 0.2);
+        }
+
+        @keyframes pulse-badge {
+            0%, 100% { box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2); }
+            50% { box-shadow: 0 2px 16px rgba(59, 130, 246, 0.4); }
+        }
+
+        .suite-name {
+            font-weight: 700;
+            color: #f1f5f9;
+            font-size: 14px;
+        }
+
+        /* Charts with better styling */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 8px;
         }
 
         /* Grid Layout */
@@ -567,9 +939,24 @@
 
         <!-- Controls -->
         <div class="controls">
-            <button class="refresh-button" onclick="refreshDatabaseData()">
-                <span>⟳ Refresh Data</span>
-            </button>
+            <div class="auto-refresh-container">
+                <div class="auto-refresh-label">
+                    <span>⏱️</span>
+                    <span>Auto-refresh</span>
+                </div>
+                <select id="auto-refresh-select" class="auto-refresh-select" onchange="updateAutoRefresh()">
+                    <option value="0">Off</option>
+                    <option value="5000">5 seconds</option>
+                    <option value="10000" selected>10 seconds</option>
+                    <option value="30000">30 seconds</option>
+                    <option value="60000">1 minute</option>
+                    <option value="300000">5 minutes</option>
+                    <option value="600000">10 minutes</option>
+                </select>
+                <div id="auto-refresh-status" class="auto-refresh-status active">
+                    Next refresh in <span id="refresh-countdown">10</span>s
+                </div>
+            </div>
             <button class="refresh-button secondary" onclick="window.open('/monitoring/dashboard', '_blank')">
                 <span>📊 Test Dashboard</span>
             </button>
@@ -622,11 +1009,41 @@
                 </div>
             </div>
 
+            <!-- Table Visualization -->
+            <div class="card span-12">
+                <div class="card-header">
+                    <div class="card-title">Table Statistics Visualization</div>
+                    <div class="card-icon">📊</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="tableStatisticsChart"></canvas>
+                </div>
+            </div>
+
             <!-- Test Executions Browser -->
             <div class="card span-12">
                 <div class="card-header">
                     <div class="card-title">Test Executions Browser</div>
                     <div class="card-icon">🔍</div>
+                </div>
+                <div class="filter-section">
+                    <input type="text" id="filter-execution-id" class="filter-input" placeholder="Search by Execution ID..." oninput="applyExecutionFilters()">
+                    <input type="text" id="filter-suite-name" class="filter-input" placeholder="Search by Suite Name..." oninput="applyExecutionFilters()">
+                    <select id="filter-execution-status" class="filter-select" onchange="applyExecutionFilters()">
+                        <option value="">All Statuses</option>
+                        <option value="PASSED">Passed</option>
+                        <option value="FAILED">Failed</option>
+                        <option value="RUNNING">Running</option>
+                        <option value="COMPLETED">Completed</option>
+                        <option value="SKIPPED">Skipped</option>
+                    </select>
+                    <select id="filter-execution-env" class="filter-select" onchange="applyExecutionFilters()">
+                        <option value="">All Environments</option>
+                        <option value="dev">Dev</option>
+                        <option value="stage">Stage</option>
+                        <option value="prod">Prod</option>
+                    </select>
+                    <button class="clear-filters" onclick="clearExecutionFilters()">Clear Filters</button>
                 </div>
                 <div class="table-container">
                     <table class="data-table" id="executions-table">
@@ -659,46 +1076,182 @@
                     <!-- Pagination will be generated here -->
                 </div>
             </div>
+
+            <!-- Test Results Browser -->
+            <div class="card span-12">
+                <div class="card-header">
+                    <div class="card-title">Test Results Browser (Granular View)</div>
+                    <div class="card-icon">📋</div>
+                </div>
+                <div class="filter-section">
+                    <input type="text" id="filter-test-name" class="filter-input" placeholder="Search by Test Name..." oninput="applyResultFilters()">
+                    <input type="text" id="filter-test-id" class="filter-input" placeholder="Search by Test ID..." oninput="applyResultFilters()">
+                    <select id="filter-result-status" class="filter-select" onchange="applyResultFilters()">
+                        <option value="">All Statuses</option>
+                        <option value="PASSED">Passed</option>
+                        <option value="FAILED">Failed</option>
+                        <option value="SKIPPED">Skipped</option>
+                    </select>
+                    <input type="text" id="filter-execution-id-results" class="filter-input" placeholder="Filter by Execution ID..." oninput="applyResultFilters()">
+                    <button class="clear-filters" onclick="clearResultFilters()">Clear Filters</button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table" id="results-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Test Name</th>
+                                <th>Test ID</th>
+                                <th>Execution ID</th>
+                                <th>Status</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Duration</th>
+                                <th>Steps</th>
+                                <th>Attachments</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="11">
+                                    <div class="loading">
+                                        <div class="spinner"></div>
+                                        Loading test results...
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="results-pagination">
+                    <!-- Pagination will be generated here -->
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         let currentPage = 0;
+        let currentResultsPage = 0;
         let pageSize = 10;
+        let resultsPageSize = 20;
         let totalPages = 0;
+        let totalResultsPages = 0;
+        let refreshInterval = null;
+        let countdownInterval = null;
+        let tableStatisticsChart = null;
+        let allExecutionsData = [];
+        let allResultsData = [];
 
         document.addEventListener('DOMContentLoaded', function() {
             refreshDatabaseData();
-            setInterval(refreshDatabaseData, 10000); // Refresh every 10 seconds
+            updateAutoRefresh(); // Initialize auto-refresh
         });
+
+        function updateAutoRefresh() {
+            const select = document.getElementById('auto-refresh-select');
+            const statusEl = document.getElementById('auto-refresh-status');
+            const interval = parseInt(select.value);
+
+            // Clear existing intervals
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+
+            if (interval > 0) {
+                // Start auto-refresh
+                statusEl.classList.add('active');
+                refreshInterval = setInterval(refreshDatabaseData, interval);
+                startCountdown(interval);
+            } else {
+                // Disable auto-refresh
+                statusEl.classList.remove('active');
+                statusEl.innerHTML = 'Auto-refresh disabled';
+            }
+        }
+
+        function startCountdown(intervalMs) {
+            const statusEl = document.getElementById('auto-refresh-status');
+            const countdownEl = document.getElementById('refresh-countdown');
+            let seconds = Math.floor(intervalMs / 1000);
+
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+
+            countdownInterval = setInterval(() => {
+                seconds--;
+                if (seconds <= 0) {
+                    seconds = Math.floor(intervalMs / 1000);
+                }
+                countdownEl.textContent = seconds;
+            }, 1000);
+        }
 
         async function refreshDatabaseData() {
             try {
-                await Promise.all([
+                // Use Promise.allSettled to prevent one failing request from blocking others
+                const results = await Promise.allSettled([
                     loadDatabaseHealth(),
                     loadDatabaseOperations(),
                     loadDatabaseStatistics(),
-                    loadExecutions()
+                    loadExecutions(),
+                    loadResults()
                 ]);
-                updateSystemStatus(true);
+                
+                // Check if any critical requests failed
+                const hasFailures = results.some(result => result.status === 'rejected');
+                if (hasFailures) {
+                    const failed = results.filter(r => r.status === 'rejected');
+                    console.warn('Some requests failed:', failed.map(r => r.reason));
+                }
+                
+                updateSystemStatus(!hasFailures);
             } catch (error) {
                 console.error('Error refreshing database data:', error);
                 updateSystemStatus(false);
-                showError('Failed to load database data. Please check your connection.');
+                // Don't show error on every refresh to avoid spam
             }
         }
 
         async function loadDatabaseHealth() {
             try {
-                const response = await fetch('/api/v1/database/health');
-                if (!response.ok) throw new Error('Failed to fetch database health');
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                
+                const response = await fetch('/api/v1/database/health?' + new URLSearchParams({
+                    _t: Date.now()
+                }), {
+                    signal: controller.signal,
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
                 const data = await response.json();
                 updateDatabaseHealth(data);
             } catch (error) {
-                console.error('Error loading database health:', error);
-                document.getElementById('database-health-overview').innerHTML =
-                    '<div class="error-message">Failed to load database health</div>';
+                if (error.name === 'AbortError') {
+                    console.error('Database health request timed out');
+                } else {
+                    console.error('Error loading database health:', error);
+                }
+                const container = document.getElementById('database-health-overview');
+                if (container) {
+                    container.innerHTML =
+                        '<div class="error-message">Failed to load database health</div>';
+                }
             }
         }
 
@@ -754,19 +1307,137 @@
                     <div class="db-health-label">Threads Awaiting</div>
                 </div>
             `;
+
+            // Update table statistics chart
+            updateTableStatisticsChart(tableStats);
+        }
+
+        function updateTableStatisticsChart(tableStats) {
+            const ctx = document.getElementById('tableStatisticsChart');
+            if (!ctx) return;
+
+            if (tableStatisticsChart) {
+                tableStatisticsChart.destroy();
+            }
+
+            const tableNames = tableStats.map(t => t.tableName.replace('test_', '').replace(/_/g, ' '));
+            const recordCounts = tableStats.map(t => t.recordCount || 0);
+
+            tableStatisticsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: tableNames,
+                    datasets: [{
+                        label: 'Record Count',
+                        data: recordCounts,
+                        backgroundColor: [
+                            'rgba(139, 92, 246, 0.7)',
+                            'rgba(236, 72, 153, 0.7)',
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(245, 158, 11, 0.7)',
+                            'rgba(34, 197, 94, 0.7)'
+                        ],
+                        borderColor: [
+                            '#8b5cf6',
+                            '#ec4899',
+                            '#3b82f6',
+                            '#f59e0b',
+                            '#22c55e'
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 15, 35, 0.95)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#e4e4e7',
+                            borderColor: 'rgba(139, 92, 246, 0.5)',
+                            borderWidth: 1,
+                            padding: 12,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.parsed.y.toLocaleString()} records`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                font: {
+                                    size: 12,
+                                    weight: '600'
+                                },
+                                callback: function(value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                font: {
+                                    size: 11,
+                                    weight: '600'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
 
         async function loadDatabaseOperations() {
             try {
-                const response = await fetch('/api/v1/database/operations');
-                if (!response.ok) throw new Error('Failed to fetch database operations');
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                
+                const response = await fetch('/api/v1/database/operations?' + new URLSearchParams({
+                    _t: Date.now()
+                }), {
+                    signal: controller.signal,
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
                 const data = await response.json();
                 updateDatabaseOperations(data);
             } catch (error) {
-                console.error('Error loading database operations:', error);
-                document.getElementById('real-time-operations').innerHTML =
-                    '<div class="error-message">Failed to load database operations</div>';
+                if (error.name === 'AbortError') {
+                    console.error('Database operations request timed out');
+                } else {
+                    console.error('Error loading database operations:', error);
+                }
+                const container = document.getElementById('real-time-operations');
+                if (container) {
+                    container.innerHTML =
+                        '<div class="error-message">Failed to load database operations</div>';
+                }
             }
         }
 
@@ -799,15 +1470,36 @@
 
         async function loadDatabaseStatistics() {
             try {
-                const response = await fetch('/api/v1/database/statistics');
-                if (!response.ok) throw new Error('Failed to fetch database statistics');
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                
+                const response = await fetch('/api/v1/database/statistics?' + new URLSearchParams({
+                    _t: Date.now()
+                }), {
+                    signal: controller.signal,
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
                 const data = await response.json();
                 updateDatabaseStatistics(data);
             } catch (error) {
-                console.error('Error loading database statistics:', error);
-                document.getElementById('database-statistics').innerHTML =
-                    '<div class="error-message">Failed to load database statistics</div>';
+                if (error.name === 'AbortError') {
+                    console.error('Database statistics request timed out');
+                } else {
+                    console.error('Error loading database statistics:', error);
+                }
+                const container = document.getElementById('database-statistics');
+                if (container) {
+                    container.innerHTML =
+                        '<div class="error-message">Failed to load database statistics</div>';
+                }
             }
         }
 
@@ -840,16 +1532,73 @@
 
         async function loadExecutions() {
             try {
-                const response = await fetch(`/api/v1/database/browse/executions?page=${currentPage}&size=${pageSize}&sortBy=startTime&sortDir=desc`);
-                if (!response.ok) throw new Error('Failed to fetch executions');
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                
+                const response = await fetch(`/api/v1/database/browse/executions?page=0&size=1000&sortBy=startTime&sortDir=desc&` + new URLSearchParams({
+                    _t: Date.now()
+                }), {
+                    signal: controller.signal,
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
                 const data = await response.json();
-                updateExecutionsTable(data);
+                // Store all executions for filtering
+                allExecutionsData = (data.content && Array.isArray(data.content)) ? data.content : [];
+                applyExecutionFilters();
             } catch (error) {
-                console.error('Error loading executions:', error);
+                if (error.name === 'AbortError') {
+                    console.error('Executions request timed out');
+                } else {
+                    console.error('Error loading executions:', error);
+                }
                 const tbody = document.querySelector('#executions-table tbody');
-                tbody.innerHTML = '<tr><td colspan="9"><div class="error-message">Failed to load executions</div></td></tr>';
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="9"><div class="error-message">Failed to load executions</div></td></tr>';
+                }
             }
+        }
+
+        function applyExecutionFilters() {
+            const executionIdFilter = document.getElementById('filter-execution-id').value.toLowerCase();
+            const suiteNameFilter = document.getElementById('filter-suite-name').value.toLowerCase();
+            const statusFilter = document.getElementById('filter-execution-status').value;
+            const envFilter = document.getElementById('filter-execution-env').value;
+
+            let filtered = allExecutionsData.filter(exec => {
+                const execIdMatch = !executionIdFilter || (exec.executionId || '').toLowerCase().includes(executionIdFilter);
+                const suiteMatch = !suiteNameFilter || (exec.suiteName || '').toLowerCase().includes(suiteNameFilter);
+                const statusMatch = !statusFilter || exec.status === statusFilter;
+                const envMatch = !envFilter || (exec.environment || '').toLowerCase() === envFilter.toLowerCase();
+                return execIdMatch && suiteMatch && statusMatch && envMatch;
+            });
+
+            // Paginate filtered results
+            const startIndex = currentPage * pageSize;
+            const endIndex = startIndex + pageSize;
+            const paginatedData = {
+                content: filtered.slice(startIndex, endIndex),
+                totalPages: Math.ceil(filtered.length / pageSize),
+                totalElements: filtered.length
+            };
+
+            updateExecutionsTable(paginatedData);
+        }
+
+        function clearExecutionFilters() {
+            document.getElementById('filter-execution-id').value = '';
+            document.getElementById('filter-suite-name').value = '';
+            document.getElementById('filter-execution-status').value = '';
+            document.getElementById('filter-execution-env').value = '';
+            currentPage = 0;
+            applyExecutionFilters();
         }
 
         function updateExecutionsTable(data) {
@@ -872,7 +1621,7 @@
                     <td>${exec.id}</td>
                     <td class="suite-name">${exec.executionId}</td>
                     <td>${exec.suiteName || 'Unknown'}</td>
-                    <td><span class="status-badge ${exec.status.toLowerCase()}">${exec.status}</span></td>
+                    <td><span class="status-badge ${getStatusClass(exec.status)}">${exec.status}</span></td>
                     <td>${exec.environment || 'N/A'}</td>
                     <td>${formatDateTime(exec.startTime)}</td>
                     <td>${formatDateTime(exec.endTime)}</td>
@@ -919,9 +1668,208 @@
         }
 
         function changePage(page) {
-            if (page >= 0 && page < totalPages) {
+            if (page >= 0) {
                 currentPage = page;
-                loadExecutions();
+                applyExecutionFilters();
+            }
+        }
+
+        async function loadResults() {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                
+                const response = await fetch(`/api/v1/database/browse/results?page=0&size=1000&sortBy=startTime&sortDir=desc&` + new URLSearchParams({
+                    _t: Date.now()
+                }), {
+                    signal: controller.signal,
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
+                const data = await response.json();
+                // Store all results for filtering
+                allResultsData = (data.content && Array.isArray(data.content)) ? data.content : [];
+                applyResultFilters();
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.error('Results request timed out');
+                } else {
+                    console.error('Error loading results:', error);
+                }
+                const tbody = document.querySelector('#results-table tbody');
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="11"><div class="error-message">Failed to load test results</div></td></tr>';
+                }
+            }
+        }
+
+        function applyResultFilters() {
+            const testNameFilter = document.getElementById('filter-test-name').value.toLowerCase();
+            const testIdFilter = document.getElementById('filter-test-id').value.toLowerCase();
+            const statusFilter = document.getElementById('filter-result-status').value;
+            const execIdFilter = document.getElementById('filter-execution-id-results').value.toLowerCase();
+
+            let filtered = allResultsData.filter(result => {
+                const testNameMatch = !testNameFilter || (result.testName || '').toLowerCase().includes(testNameFilter);
+                const testIdMatch = !testIdFilter || (result.testId || '').toLowerCase().includes(testIdFilter);
+                const statusMatch = !statusFilter || result.status === statusFilter;
+                const execIdMatch = !execIdFilter || (result.executionId || '').toLowerCase().includes(execIdFilter);
+                return testNameMatch && testIdMatch && statusMatch && execIdMatch;
+            });
+
+            // Paginate filtered results
+            const startIndex = currentResultsPage * resultsPageSize;
+            const endIndex = startIndex + resultsPageSize;
+            const paginatedData = {
+                content: filtered.slice(startIndex, endIndex),
+                totalPages: Math.ceil(filtered.length / resultsPageSize),
+                totalElements: filtered.length
+            };
+
+            updateResultsTable(paginatedData);
+        }
+
+        function clearResultFilters() {
+            document.getElementById('filter-test-name').value = '';
+            document.getElementById('filter-test-id').value = '';
+            document.getElementById('filter-result-status').value = '';
+            document.getElementById('filter-execution-id-results').value = '';
+            currentResultsPage = 0;
+            applyResultFilters();
+        }
+
+        function updateResultsTable(data) {
+            const tbody = document.querySelector('#results-table tbody');
+            totalResultsPages = data.totalPages;
+
+            if (data.content.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="11" style="text-align: center; color: #64748b; padding: 48px;">
+                            No test results found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = data.content.map(result => {
+                const duration = result.startTime && result.endTime 
+                    ? calculateDuration(result.startTime, result.endTime)
+                    : 'N/A';
+                const executionIdShort = result.executionId && result.executionId.length > 8
+                    ? result.executionId.substring(0, 8) + '...'
+                    : (result.executionId || 'N/A');
+                
+                return `
+                <tr>
+                    <td>${result.id}</td>
+                    <td class="suite-name">${result.testName || 'N/A'}</td>
+                    <td><code style="font-size: 11px; color: #94a3b8;">${result.testId || 'N/A'}</code></td>
+                    <td><code style="font-size: 10px; color: #64748b;" title="${result.executionId || ''}">${executionIdShort}</code></td>
+                    <td><span class="status-badge ${getStatusClass(result.status)}">${result.status || 'UNKNOWN'}</span></td>
+                    <td>${formatDateTime(result.startTime)}</td>
+                    <td>${formatDateTime(result.endTime)}</td>
+                    <td>${duration}</td>
+                    <td>${result.stepCount || 0}</td>
+                    <td>${result.attachmentCount || 0}</td>
+                    <td>
+                        <button class="action-button view" onclick="viewResultDetail(${result.id})">
+                            View
+                        </button>
+                        <button class="action-button delete" onclick="deleteResult(${result.id})">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            `;
+            }).join('');
+
+            updateResultsPagination();
+        }
+
+        function updateResultsPagination() {
+            const pagination = document.getElementById('results-pagination');
+            let paginationHTML = '';
+
+            paginationHTML += `
+                <button ${currentResultsPage === 0 ? 'disabled' : ''} onclick="changeResultsPage(${currentResultsPage - 1})">
+                    Previous
+                </button>
+            `;
+
+            for (let i = Math.max(0, currentResultsPage - 2); i <= Math.min(totalResultsPages - 1, currentResultsPage + 2); i++) {
+                paginationHTML += `
+                    <button class="${i === currentResultsPage ? 'active' : ''}" onclick="changeResultsPage(${i})">
+                        ${i + 1}
+                    </button>
+                `;
+            }
+
+            paginationHTML += `
+                <button ${currentResultsPage >= totalResultsPages - 1 ? 'disabled' : ''} onclick="changeResultsPage(${currentResultsPage + 1})">
+                    Next
+                </button>
+            `;
+
+            pagination.innerHTML = paginationHTML;
+        }
+
+        function changeResultsPage(page) {
+            if (page >= 0) {
+                currentResultsPage = page;
+                applyResultFilters();
+            }
+        }
+
+        function viewResultDetail(id) {
+            window.open(`/api/v1/database/results/${id}`, '_blank');
+        }
+
+        async function deleteResult(id) {
+            if (!confirm('Are you sure you want to delete this test result? This action cannot be undone.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/v1/database/results/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showSuccess('Test result deleted successfully');
+                    // Remove from local data and reapply filters
+                    allResultsData = allResultsData.filter(r => r.id !== id);
+                    applyResultFilters();
+                } else {
+                    showError('Failed to delete test result');
+                }
+            } catch (error) {
+                console.error('Error deleting result:', error);
+                showError('Failed to delete test result');
+            }
+        }
+
+        function calculateDuration(startTime, endTime) {
+            if (!startTime || !endTime) return 'N/A';
+            try {
+                const start = new Date(startTime);
+                const end = new Date(endTime);
+                const diffMs = end - start;
+                const diffSec = Math.floor(diffMs / 1000);
+                if (diffSec < 60) return `${diffSec}s`;
+                const diffMin = Math.floor(diffSec / 60);
+                const sec = diffSec % 60;
+                return `${diffMin}m ${sec}s`;
+            } catch (e) {
+                return 'N/A';
             }
         }
 
@@ -937,7 +1885,9 @@
 
                 if (response.ok) {
                     showSuccess('Execution deleted successfully');
-                    loadExecutions(); // Refresh the table
+                    // Remove from local data and reapply filters
+                    allExecutionsData = allExecutionsData.filter(e => e.id !== id);
+                    applyExecutionFilters();
                 } else {
                     showError('Failed to delete execution');
                 }
@@ -999,6 +1949,20 @@
             }, 3000);
         }
 
+        function getStatusClass(status) {
+            if (!status) return 'unknown';
+            const statusLower = status.toString().toLowerCase();
+            if (statusLower === 'passed' || statusLower === 'pass') return 'passed';
+            if (statusLower === 'failed' || statusLower === 'fail') return 'failed';
+            if (statusLower === 'error' || statusLower === 'errored') return 'error';
+            if (statusLower === 'skipped' || statusLower === 'skip') return 'skipped';
+            if (statusLower === 'running' || statusLower === 'run') return 'running';
+            if (statusLower === 'completed' || statusLower === 'complete') return 'completed';
+            if (statusLower === 'pending') return 'pending';
+            if (statusLower === 'unknown') return 'unknown';
+            return 'unknown';
+        }
+
         function formatDateTime(dateString) {
             if (!dateString) return 'N/A';
             const date = new Date(dateString);
@@ -1010,6 +1974,15 @@
                 minute: '2-digit'
             });
         }
+
+        window.addEventListener('beforeunload', function() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+        });
     </script>
 </body>
 </html>

@@ -17,7 +17,11 @@ This guide provides detailed instructions for setting up and working with the AT
 # Clone and setup
 git clone https://github.com/YOUR_USERNAME/ATAS.git
 cd ATAS
-./mvnw clean compile
+make setup    # Complete setup (prerequisites, dependencies, build)
+# Or for quick compilation only:
+make compile  # Compiles the project
+# Or to install to local Maven repository:
+make install  # Installs all modules to local Maven repo
 ```
 
 ## 🔧 Development Environment

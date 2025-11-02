@@ -34,9 +34,119 @@ ATAS supports three main environment profiles:
 
 | Variable | Description | Default | Example |
 |----------|-------------|---------|---------|
-| `DB_URL` | Database connection URL | `jdbc:postgresql://localhost:5432/atasdb` | `jdbc:postgresql://prod-db:5432/atas` |
+| `DB_URL` | Database connection URL | Auto-detected (see Database Connection Detection below) | `jdbc:postgresql://prod-db:5432/atas` |
 | `DB_USERNAME` | Database username | `atas` | `atas_prod` |
 | `DB_PASSWORD` | Database password | `ataspass` | `secure_password` |
+
+### 🔍 Database Connection Detection
+
+ATAS features **environment-aware database connection detection** that automatically selects the correct database based on your active environment. This ensures seamless integration with different Docker Compose setups (`make dev`, `make dev-stage`, `make dev-prod`).
+
+#### Detection Priority
+
+The system uses the following priority order to determine the database connection:
+
+1. **Explicit Configuration** (Highest Priority)
+   - `DB_URL` environment variable
+   - `spring.datasource.url` system property
+   - Spring `@Value` injection from configuration files
+
+2. **Environment-Aware Smart Detection** (Automatic Fallback)
+   - Checks `SPRING_PROFILES_ACTIVE` environment variable/property
+   - Detects running Docker containers by name:
+     - `atas-db` → Development/Staging environment (port 5433)
+     - `atas-db-prod` → Production environment (no port exposed)
+   - Verifies port availability:
+     - Port 5433 → Local Docker Compose database
+     - Port 5432 → Standard PostgreSQL installation
+
+#### How Detection Works
+
+**Development Environment (`make dev`):**
+```bash
+make dev
+# System detects:
+# - SPRING_PROFILES_ACTIVE=dev (default)
+# - atas-db container running
+# - Port 5433 accessible
+# → Connects to: localhost:5433/atasdb
+```
+
+**Staging Environment (`make dev-stage`):**
+```bash
+make dev-stage
+SPRING_PROFILES_ACTIVE=stage ATAS_RECORD_LOCAL=true mvn test
+# System detects:
+# - SPRING_PROFILES_ACTIVE=stage
+# - atas-db container running (same as dev, different profile)
+# - Port 5433 accessible
+# → Connects to: localhost:5433/atasdb (staging data via Spring profile)
+```
+
+**Production Environment (`make dev-prod`):**
+```bash
+make dev-prod
+SPRING_PROFILES_ACTIVE=prod ATAS_RECORD_LOCAL=true mvn test
+# System detects:
+# - SPRING_PROFILES_ACTIVE=prod
+# - atas-db-prod container running
+# - Port NOT exposed (security)
+# → Behavior:
+#   - If dev DB available: Falls back to dev database with warning
+#   - If no dev DB: Throws error with solutions
+```
+
+#### Docker Container Port Mapping
+
+| Environment | Container Name | Port Mapping | Host Access |
+|-------------|---------------|--------------|-------------|
+| Development | `atas-db` | `5433:5432` | ✅ Accessible on `localhost:5433` |
+| Staging | `atas-db` | `5433:5432` | ✅ Accessible on `localhost:5433` |
+| Production | `atas-db-prod` | Not exposed | ❌ Not accessible from host (security) |
+
+**Important:** Production Docker containers intentionally don't expose the database port to the host machine for security reasons. Tests running from the host cannot connect to the production database directly.
+
+#### Overriding Auto-Detection
+
+If you need to override the automatic detection, set `DB_URL` explicitly:
+
+```bash
+# Connect to a specific database
+export DB_URL="jdbc:postgresql://my-custom-host:5432/mydb"
+export DB_USERNAME="myuser"
+export DB_PASSWORD="mypassword"
+ATAS_RECORD_LOCAL=true mvn test
+```
+
+#### Troubleshooting Database Connection
+
+**Check what the system detected:**
+```bash
+# Look for log messages like:
+# "Environment detection - Spring profile: dev"
+# "Docker container status - atas-db (dev/stage): true"
+# "✅ Matched dev environment: Connecting to local Docker Compose database..."
+```
+
+**Common Issues:**
+
+1. **Wrong database being used:**
+   ```bash
+   # Set DB_URL explicitly to override
+   DB_URL="jdbc:postgresql://localhost:5433/atasdb" ATAS_RECORD_LOCAL=true mvn test
+   ```
+
+2. **Production DB not accessible:**
+   ```bash
+   # Production containers don't expose port - use dev environment instead
+   make dev  # Start development environment
+   ATAS_RECORD_LOCAL=true mvn test
+   ```
+
+3. **Multiple environments running:**
+   - System prioritizes based on `SPRING_PROFILES_ACTIVE`
+   - Check running containers: `docker ps --format "{{.Names}}" | grep atas-db`
+   - Stop unused environments: `make stop` or `docker compose -f docker/docker-compose-prod.yml down`
 
 ### AWS S3 Storage Configuration
 
@@ -273,9 +383,22 @@ export SPRING_PROFILES_ACTIVE=dev
 echo $DB_URL
 echo $DB_USERNAME
 echo $DB_PASSWORD
+echo $SPRING_PROFILES_ACTIVE
 
-# Test connection
+# Check which Docker containers are running
+docker ps --format "{{.Names}}" | grep atas-db
+
+# Check port availability
+nc -zv localhost 5433  # Local Docker Compose
+nc -zv localhost 5432  # Standard PostgreSQL
+
+# Test connection (adjust URL based on your setup)
+psql -h localhost -p 5433 -U atas -d atasdb
+# or
 psql $DB_URL -U $DB_USERNAME
+
+# View detailed connection logs
+# Look for: "Environment detection", "Docker container status", "✅ Matched"
 ```
 
 **3. S3 access denied:**

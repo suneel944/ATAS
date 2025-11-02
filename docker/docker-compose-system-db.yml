@@ -8,10 +8,9 @@ services:
     container_name: atas-service
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
-      # Talk to the HOST Postgres
-      DB_URL: jdbc:postgresql://host.docker.internal:5432/atasdb
-      DB_USERNAME: atas
-      DB_PASSWORD: ataspass
+      DB_URL: ${DB_URL:-jdbc:postgresql://host.docker.internal:5432/atasdb}
+      DB_USERNAME: ${DB_USERNAME:-atas}
+      DB_PASSWORD: ${DB_PASSWORD:-ataspass}
       S3_BUCKET: ${S3_BUCKET:-atas-videos}
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_VIDEO_FOLDER: ${S3_VIDEO_FOLDER:-videos}

@@ -34,14 +34,12 @@ public class DatabaseManagementController {
   private final TestAttachmentRepository attachmentRepository;
   private final TestMetricRepository metricRepository;
 
-  /** Get comprehensive database health information */
   @GetMapping("/health")
   public ResponseEntity<DatabaseHealthService.DatabaseHealthDto> getDatabaseHealth() {
     DatabaseHealthService.DatabaseHealthDto health = databaseHealthService.getDatabaseHealth();
     return ResponseEntity.ok(health);
   }
 
-  /** Get real-time database operations summary */
   @GetMapping("/operations")
   public ResponseEntity<DatabaseHealthService.DatabaseOperationsDto> getDatabaseOperations() {
     DatabaseHealthService.DatabaseOperationsDto operations =
@@ -49,13 +47,11 @@ public class DatabaseManagementController {
     return ResponseEntity.ok(operations);
   }
 
-  /** Stream real-time database updates via Server-Sent Events */
   @GetMapping("/live")
   public SseEmitter streamDatabaseUpdates(@RequestParam(defaultValue = "default") String clientId) {
     return databaseHealthService.registerDatabaseEmitter(clientId);
   }
 
-  /** Browse test executions with pagination */
   @GetMapping("/browse/executions")
   public ResponseEntity<Page<ExecutionBrowseDto>> browseExecutions(
       @RequestParam(defaultValue = "0") int page,
@@ -69,13 +65,12 @@ public class DatabaseManagementController {
             : Sort.by(Sort.Direction.ASC, sortBy);
 
     Pageable pageable = PageRequest.of(page, size, sort);
-    Page<TestExecution> executions = executionRepository.findAll(pageable);
+    Page<TestExecution> executions = executionRepository.findAllWithResults(pageable);
 
     Page<ExecutionBrowseDto> dtoPage = executions.map(this::mapToExecutionBrowseDto);
     return ResponseEntity.ok(dtoPage);
   }
 
-  /** Browse test results with pagination */
   @GetMapping("/browse/results")
   public ResponseEntity<Page<ResultBrowseDto>> browseResults(
       @RequestParam(defaultValue = "0") int page,
@@ -89,16 +84,19 @@ public class DatabaseManagementController {
             : Sort.by(Sort.Direction.ASC, sortBy);
 
     Pageable pageable = PageRequest.of(page, size, sort);
-    Page<TestResult> results = resultRepository.findAll(pageable);
+    Page<TestResult> results = resultRepository.findAllWithExecution(pageable);
 
-    Page<ResultBrowseDto> dtoPage = results.map(this::mapToResultBrowseDto);
+    List<ResultBrowseDto> dtos =
+        results.getContent().stream().map(this::mapToResultBrowseDto).collect(Collectors.toList());
+
+    Page<ResultBrowseDto> dtoPage =
+        new org.springframework.data.domain.PageImpl<>(dtos, pageable, results.getTotalElements());
     return ResponseEntity.ok(dtoPage);
   }
 
-  /** Get detailed execution information */
   @GetMapping("/executions/{id}")
   public ResponseEntity<ExecutionDetailDto> getExecutionDetail(@PathVariable Long id) {
-    Optional<TestExecution> execution = executionRepository.findById(id);
+    Optional<TestExecution> execution = executionRepository.findByIdWithResults(id);
     if (execution.isEmpty()) {
       return ResponseEntity.notFound().build();
     }
@@ -107,7 +105,6 @@ public class DatabaseManagementController {
     return ResponseEntity.ok(detail);
   }
 
-  /** Get detailed result information */
   @GetMapping("/results/{id}")
   public ResponseEntity<ResultDetailDto> getResultDetail(@PathVariable Long id) {
     Optional<TestResult> result = resultRepository.findById(id);
@@ -119,7 +116,6 @@ public class DatabaseManagementController {
     return ResponseEntity.ok(detail);
   }
 
-  /** Delete test execution and all related data */
   @DeleteMapping("/executions/{id}")
   public ResponseEntity<OperationResultDto> deleteExecution(@PathVariable Long id) {
     try {
@@ -148,7 +144,6 @@ public class DatabaseManagementController {
     }
   }
 
-  /** Delete test result and all related data */
   @DeleteMapping("/results/{id}")
   public ResponseEntity<OperationResultDto> deleteResult(@PathVariable Long id) {
     try {
@@ -177,7 +172,6 @@ public class DatabaseManagementController {
     }
   }
 
-  /** Get database statistics summary */
   @GetMapping("/statistics")
   public ResponseEntity<DatabaseStatisticsDto> getDatabaseStatistics() {
     DatabaseStatisticsDto stats =
@@ -193,7 +187,6 @@ public class DatabaseManagementController {
     return ResponseEntity.ok(stats);
   }
 
-  // Mapping methods
   private ExecutionBrowseDto mapToExecutionBrowseDto(TestExecution execution) {
     return ExecutionBrowseDto.builder()
         .id(execution.getId())
@@ -214,11 +207,13 @@ public class DatabaseManagementController {
   }
 
   private ResultBrowseDto mapToResultBrowseDto(TestResult result) {
+    TestExecution execution = result.getExecution();
     return ResultBrowseDto.builder()
         .id(result.getId())
         .testId(result.getTestId())
         .testName(result.getTestName())
         .status(result.getStatus().name())
+        .executionId(execution != null ? execution.getExecutionId() : null)
         .startTime(
             result.getStartTime() != null
                 ? result.getStartTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
@@ -321,7 +316,6 @@ public class DatabaseManagementController {
         .build();
   }
 
-  // DTOs for database management
   @lombok.Data
   @lombok.Builder
   @lombok.AllArgsConstructor
@@ -346,6 +340,7 @@ public class DatabaseManagementController {
     private String testId;
     private String testName;
     private String status;
+    private String executionId;
     private String startTime;
     private String endTime;
     private int stepCount;

@@ -38,47 +38,33 @@ public class DatabaseHealthService {
   private final TestAttachmentRepository attachmentRepository;
   private final TestMetricRepository metricRepository;
 
-  // Real-time operation counters
   private final AtomicLong insertCount = new AtomicLong(0);
   private final AtomicLong updateCount = new AtomicLong(0);
   private final AtomicLong deleteCount = new AtomicLong(0);
   private final AtomicLong selectCount = new AtomicLong(0);
 
-  // Performance tracking
   private final List<QueryPerformance> recentQueries =
       Collections.synchronizedList(new ArrayList<>());
   private final AtomicLong totalQueryTime = new AtomicLong(0);
   private final AtomicLong totalQueryCount = new AtomicLong(0);
 
-  // SSE emitters for real-time updates
   private final Map<String, List<SseEmitter>> dbEmitterMap = new ConcurrentHashMap<>();
 
-  // Database health cache (for future use)
   @SuppressWarnings("unused")
   private volatile DatabaseHealthDto cachedHealth;
 
   @SuppressWarnings("unused")
   private volatile LocalDateTime lastHealthCheck = LocalDateTime.now();
 
-  /** Get comprehensive database health information */
   public DatabaseHealthDto getDatabaseHealth() {
     try {
       DatabaseHealthDto health = new DatabaseHealthDto();
 
-      // Connection health
       health.setConnectionStatus(checkConnectionHealth());
       health.setConnectionPoolStatus(getConnectionPoolStatus());
-
-      // Database metadata
       health.setDatabaseInfo(getDatabaseInfo());
-
-      // Table statistics
       health.setTableStatistics(getTableStatistics());
-
-      // Performance metrics
       health.setPerformanceMetrics(getPerformanceMetrics());
-
-      // Recent operations
       health.setRecentOperations(getRecentOperations());
 
       health.setLastChecked(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
@@ -93,7 +79,6 @@ public class DatabaseHealthService {
     }
   }
 
-  /** Get real-time database operations summary */
   public DatabaseOperationsDto getDatabaseOperations() {
     return DatabaseOperationsDto.builder()
         .totalInserts(insertCount.get())
@@ -106,7 +91,6 @@ public class DatabaseHealthService {
         .build();
   }
 
-  /** Register SSE emitter for real-time database updates */
   public SseEmitter registerDatabaseEmitter(String clientId) {
     SseEmitter emitter = new SseEmitter(0L);
     emitter.onCompletion(() -> removeDatabaseEmitter(clientId, emitter));
@@ -115,7 +99,6 @@ public class DatabaseHealthService {
     return emitter;
   }
 
-  /** Track database operation (called by interceptors or manually) */
   public void trackOperation(String operation) {
     switch (operation.toUpperCase()) {
       case "INSERT" -> insertCount.incrementAndGet();
@@ -125,7 +108,6 @@ public class DatabaseHealthService {
     }
   }
 
-  /** Track query performance */
   public void trackQueryPerformance(String query, long durationMs) {
     totalQueryTime.addAndGet(durationMs);
     totalQueryCount.incrementAndGet();
@@ -133,14 +115,12 @@ public class DatabaseHealthService {
     QueryPerformance perf = new QueryPerformance(query, durationMs, LocalDateTime.now());
     recentQueries.add(perf);
 
-    // Keep only last 100 queries
     if (recentQueries.size() > 100) {
       recentQueries.remove(0);
     }
   }
 
-  /** Scheduled task to broadcast database health updates */
-  @Scheduled(fixedDelay = 5000) // Every 5 seconds
+  @Scheduled(fixedDelay = 5000)
   public void broadcastDatabaseUpdates() {
     if (dbEmitterMap.isEmpty()) {
       return;
@@ -203,7 +183,6 @@ public class DatabaseHealthService {
             .status("ACTIVE")
             .build();
       } else {
-        // Fallback for non-HikariCP data sources
         try (Connection connection = dataSource.getConnection()) {
           return ConnectionPoolStatusDto.builder()
               .activeConnections(1)
@@ -242,7 +221,6 @@ public class DatabaseHealthService {
   private List<TableStatisticsDto> getTableStatistics() {
     List<TableStatisticsDto> stats = new ArrayList<>();
 
-    // Get statistics for each entity table
     stats.add(getTableStats("test_executions", executionRepository));
     stats.add(getTableStats("test_results", resultRepository));
     stats.add(getTableStats("test_steps", stepRepository));
@@ -272,19 +250,16 @@ public class DatabaseHealthService {
 
   private PerformanceMetricsDto getPerformanceMetrics() {
     try {
-      // Calculate real average query time
       long totalTime = totalQueryTime.get();
       long totalQueries = totalQueryCount.get();
       double avgQueryTime = totalQueries > 0 ? (double) totalTime / totalQueries : 0.0;
 
-      // Count slow queries (> 100ms)
       long slowQueries =
           recentQueries.stream()
               .mapToLong(q -> q.durationMs)
               .filter(duration -> duration > 100)
               .count();
 
-      // Calculate connection pool utilization
       double poolUtilization = 0.0;
       try {
         if (dataSource instanceof HikariDataSource hikariDataSource) {
@@ -297,7 +272,6 @@ public class DatabaseHealthService {
         log.warn("Could not get connection pool utilization", e);
       }
 
-      // Get cache hit ratio from database (PostgreSQL specific)
       double cacheHitRatio = getCacheHitRatio();
 
       return PerformanceMetricsDto.builder()
@@ -322,7 +296,6 @@ public class DatabaseHealthService {
   private List<RecentOperationDto> getRecentOperations() {
     List<RecentOperationDto> operations = new ArrayList<>();
 
-    // Get recent query performance data
     synchronized (recentQueries) {
       recentQueries.stream()
           .sorted((a, b) -> b.timestamp.compareTo(a.timestamp))
@@ -356,7 +329,6 @@ public class DatabaseHealthService {
 
   private double getCacheHitRatio() {
     try (Connection connection = dataSource.getConnection()) {
-      // PostgreSQL specific query for cache hit ratio
       String query =
           "SELECT "
               + "round(100.0 * sum(blks_hit) / (sum(blks_hit) + sum(blks_read)), 2) as cache_hit_ratio "
@@ -389,7 +361,6 @@ public class DatabaseHealthService {
     if (query == null) return "unknown";
     String upperQuery = query.trim().toUpperCase();
 
-    // Simple table name extraction
     if (upperQuery.contains("FROM ")) {
       String[] parts = upperQuery.split("FROM ");
       if (parts.length > 1) {
@@ -414,7 +385,6 @@ public class DatabaseHealthService {
     return "unknown";
   }
 
-  // DTOs for database health monitoring
   @lombok.Data
   @lombok.Builder
   @lombok.AllArgsConstructor
@@ -507,7 +477,6 @@ public class DatabaseHealthService {
     private String lastUpdated;
   }
 
-  // Internal class for tracking query performance
   private static class QueryPerformance {
     final String query;
     final long durationMs;

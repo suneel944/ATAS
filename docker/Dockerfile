@@ -10,12 +10,19 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
 COPY pom.xml ./
 COPY atas-framework/pom.xml ./atas-framework/
 COPY atas-tests/pom.xml ./atas-tests/
+COPY mvnw ./
+COPY .mvn ./.mvn
 
-# Download dependencies (this layer will be cached if pom.xml doesn't change)
-RUN mvn dependency:go-offline -B -q
+# Pre-download external dependencies for faster builds (much faster than go-offline)
+# Only resolve dependencies for framework module (which has no local SNAPSHOT dependencies)
+# atas-tests depends on atas-framework SNAPSHOT, so we skip it here to avoid resolution errors
+# Using 'dependency:resolve' is 3-5x faster than 'go-offline' since it skips plugin dependencies
+# The Maven local repo (~/.m2/repository) will be cached in this layer, speeding up subsequent builds
+RUN cd atas-framework && mvn -B -q dependency:resolve || echo "Note: Some dependencies will be downloaded during build"
 
 # Copy source code
 COPY atas-framework/src ./atas-framework/src
+COPY atas-tests/src ./atas-tests/src
 
 # Build the framework module (fat jar via spring-boot-maven-plugin)
 RUN mvn -q -pl atas-framework -am -DskipTests clean package
@@ -26,7 +33,7 @@ RUN mvn -q -pl atas-framework exec:java \
   -Dexec.args="install chromium"
 
 # ---------- runtime stage ----------
-FROM eclipse-temurin:21-jre-alpine AS runtime
+FROM maven:3.9.5-eclipse-temurin-21-alpine AS runtime
 WORKDIR /app
 
 # Install minimal dependencies for Playwright
@@ -38,10 +45,21 @@ RUN apk add --no-cache \
     harfbuzz \
     ca-certificates \
     ttf-freefont \
+    bash \
     && rm -rf /var/cache/apk/*
 
 # Copy the Spring Boot fat jar
 COPY --from=build /build/atas-framework/target/atas-framework-exec.jar /app/app.jar
+
+# Copy Maven wrapper from build stage
+COPY --from=build /build/mvnw /app/mvnw
+RUN chmod +x /app/mvnw
+
+# Copy project structure for test execution
+COPY --from=build /build/pom.xml /app/pom.xml
+COPY --from=build /build/atas-tests /app/atas-tests
+COPY --from=build /build/atas-framework/pom.xml /app/atas-framework/pom.xml
+COPY --from=build /build/.mvn /app/.mvn
 
 # Copy only Chromium browser from build stage
 COPY --from=build /root/.cache/ms-playwright/chromium-* /ms-playwright/chromium-*/
@@ -51,7 +69,8 @@ ENV PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S atas && \
-    adduser -u 1001 -S atas -G atas
+    adduser -u 1001 -S atas -G atas && \
+    chown -R atas:atas /app
 USER atas
 
 EXPOSE 8080

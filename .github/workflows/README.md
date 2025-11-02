@@ -175,7 +175,10 @@ The workflows generate and upload the following artifacts:
 
 ```bash
 # Clean and rebuild
-mvn clean install -DskipTests
+make clean
+make install  # Installs to local Maven repository
+# Or for quick compilation:
+make compile  # Compiles only
 
 # Run with debug logging
 mvn test -Dlogging.level.com.atas=DEBUG

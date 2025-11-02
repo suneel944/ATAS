@@ -1,7 +1,9 @@
 spring:
   datasource:
-    url: ${DB_URL:jdbc:postgresql://stage-db:5432/atas}
-    username: ${DB_USERNAME:atas_stage}
+    # Support DB_URL (preferred, set by Docker Compose) - if not set, use default for stage
+    # Docker Compose sets: DB_URL=jdbc:postgresql://atas-db:5432/atasdb
+    url: ${DB_URL:jdbc:postgresql://atas-db:5432/atasdb}
+    username: ${DB_USERNAME:atas}
     password: ${DB_PASSWORD:changeMe}
     driver-class-name: org.postgresql.Driver
   jpa:

@@ -5,6 +5,7 @@
 | Document | Description | Audience |
 |----------|-------------|----------|
 | [README.md](README.md) | Documentation overview and quick start | All users |
+| [GETTING_STARTED.md](GETTING_STARTED.md) | Step-by-step onboarding guide for new contributors | New contributors |
 | [API_REFERENCE.md](API_REFERENCE.md) | Complete REST API documentation | Developers, API users |
 | [TEST_EXECUTION_GUIDE.md](TEST_EXECUTION_GUIDE.md) | Step-by-step test execution guide | QA Engineers, DevOps |
 | [ENVIRONMENT_CONFIGURATION.md](ENVIRONMENT_CONFIGURATION.md) | Environment-agnostic configuration guide | DevOps, Developers |
@@ -26,10 +27,11 @@
 
 ## 📖 Getting Started
 
-1. **New to ATAS?** Start with the main [README.md](../README.md)
-2. **Need API details?** Check [API_REFERENCE.md](API_REFERENCE.md)
-3. **Want to execute tests?** Follow [TEST_EXECUTION_GUIDE.md](TEST_EXECUTION_GUIDE.md)
-4. **Setting up environments?** See [ENVIRONMENT_CONFIGURATION.md](ENVIRONMENT_CONFIGURATION.md)
+1. **New to ATAS?** Start with [GETTING_STARTED.md](GETTING_STARTED.md) for step-by-step onboarding
+2. **Project overview?** Check the main [README.md](../README.md)
+3. **Need API details?** Check [API_REFERENCE.md](API_REFERENCE.md)
+4. **Want to execute tests?** Follow [TEST_EXECUTION_GUIDE.md](TEST_EXECUTION_GUIDE.md)
+5. **Setting up environments?** See [ENVIRONMENT_CONFIGURATION.md](ENVIRONMENT_CONFIGURATION.md)
 
 ## 🔄 Documentation Updates
 

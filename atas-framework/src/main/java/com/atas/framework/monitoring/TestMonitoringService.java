@@ -13,8 +13,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -33,8 +31,10 @@ public class TestMonitoringService {
 
   private final TestExecutionRepository executionRepository;
 
-  /** Map of execution ID to list of SSE emitters subscribed to updates */
   private final Map<String, List<SseEmitter>> emitterMap = new ConcurrentHashMap<>();
+
+  private final List<SseEmitter> activeExecutionsEmitters =
+      Collections.synchronizedList(new ArrayList<>());
 
   /**
    * Get the current status of the specified execution. This method queries the database for the
@@ -45,16 +45,33 @@ public class TestMonitoringService {
    * @return a DTO with aggregated status information
    */
   public TestExecutionStatus getStatus(String executionId) {
-    TestExecution execution = executionRepository.findByExecutionId(executionId).orElse(null);
+    TestExecution execution =
+        executionRepository.findByExecutionIdWithResults(executionId).orElse(null);
     if (execution == null) {
       return null;
     }
     List<TestResult> results = execution.getResults();
     int total = results.size();
     int passed = (int) results.stream().filter(r -> r.getStatus() == TestStatus.PASSED).count();
-    int failed = (int) results.stream().filter(r -> r.getStatus() == TestStatus.FAILED).count();
+    int failed =
+        (int)
+            results.stream()
+                .filter(
+                    r -> r.getStatus() == TestStatus.FAILED || r.getStatus() == TestStatus.ERROR)
+                .count();
     int skipped = (int) results.stream().filter(r -> r.getStatus() == TestStatus.SKIPPED).count();
     int running = (int) results.stream().filter(r -> r.getStatus() == TestStatus.RUNNING).count();
+
+    if (total == 0 && execution.getStatus() != null) {
+      total = 1;
+      switch (execution.getStatus()) {
+        case PASSED -> passed = 1;
+        case FAILED, ERROR -> failed = 1;
+        case SKIPPED -> skipped = 1;
+        case RUNNING -> running = 1;
+      }
+    }
+
     double progress = TestExecutionStatus.computeProgress(total, passed, failed, skipped);
     LocalDateTime endTime = execution.getEndTime();
     Duration duration;
@@ -79,15 +96,8 @@ public class TestMonitoringService {
         .build();
   }
 
-  /**
-   * Register an SSE emitter for the given execution. The emitter will receive periodic updates
-   * until it times out or completes.
-   *
-   * @param executionId the execution to subscribe to
-   * @return a new {@link SseEmitter}
-   */
   public SseEmitter registerEmitter(String executionId) {
-    SseEmitter emitter = new SseEmitter(0L); // no timeout
+    SseEmitter emitter = new SseEmitter(0L);
     emitter.onCompletion(() -> removeEmitter(executionId, emitter));
     emitter.onTimeout(() -> removeEmitter(executionId, emitter));
     emitterMap.computeIfAbsent(executionId, id -> new ArrayList<>()).add(emitter);
@@ -101,10 +111,6 @@ public class TestMonitoringService {
     }
   }
 
-  /**
-   * Scheduled task that broadcasts execution status updates to registered SSE emitters. Executions
-   * with no active emitters are skipped. This method runs every second by default.
-   */
   @Scheduled(fixedDelay = 1000)
   public void broadcastUpdates() {
     if (emitterMap.isEmpty()) {
@@ -128,9 +134,28 @@ public class TestMonitoringService {
     }
   }
 
-  /** Get dashboard overview statistics */
+  @Scheduled(fixedDelay = 2000)
+  public void broadcastActiveExecutionsUpdates() {
+    if (activeExecutionsEmitters.isEmpty()) {
+      return;
+    }
+
+    List<RecentExecutionDto> activeExecutions = getActiveExecutions();
+
+    for (Iterator<SseEmitter> iterator = activeExecutionsEmitters.iterator();
+        iterator.hasNext(); ) {
+      SseEmitter emitter = iterator.next();
+      try {
+        emitter.send(activeExecutions, MediaType.APPLICATION_JSON);
+      } catch (IOException e) {
+        log.warn("Removing dead active executions SSE emitter: {}", e.getMessage());
+        iterator.remove();
+      }
+    }
+  }
+
   public DashboardOverviewDto getDashboardOverview() {
-    List<TestExecution> allExecutions = executionRepository.findAll();
+    List<TestExecution> allExecutions = executionRepository.findAllWithResults();
 
     long totalExecutions = allExecutions.size();
     long totalTests = 0;
@@ -146,7 +171,7 @@ public class TestMonitoringService {
 
     for (TestExecution execution : allExecutions) {
       List<TestResult> results = execution.getResults();
-      totalTests += results.size();
+      int executionResultCount = results.size();
 
       for (TestResult result : results) {
         switch (result.getStatus()) {
@@ -154,8 +179,20 @@ public class TestMonitoringService {
           case FAILED -> failedTests++;
           case SKIPPED -> skippedTests++;
           case RUNNING -> runningTests++;
-          case ERROR -> failedTests++; // Treat ERROR as FAILED for statistics
+          case ERROR -> failedTests++;
         }
+      }
+
+      if (executionResultCount == 0 && execution.getStatus() != null) {
+        totalTests += 1;
+        switch (execution.getStatus()) {
+          case PASSED -> passedTests++;
+          case FAILED, ERROR -> failedTests++;
+          case SKIPPED -> skippedTests++;
+          case RUNNING -> runningTests++;
+        }
+      } else {
+        totalTests += executionResultCount;
       }
 
       if (execution.getStatus() == TestStatus.RUNNING) {
@@ -199,12 +236,12 @@ public class TestMonitoringService {
     return dto;
   }
 
-  /** Get recent test executions for dashboard */
   public List<RecentExecutionDto> getRecentExecutions(int limit) {
     List<TestExecution> recentExecutions =
-        executionRepository
-            .findAll(PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "startTime")))
-            .getContent();
+        executionRepository.findAllWithResults().stream()
+            .sorted((a, b) -> b.getStartTime().compareTo(a.getStartTime()))
+            .limit(limit)
+            .collect(Collectors.toList());
 
     return recentExecutions.stream()
         .map(
@@ -223,6 +260,17 @@ public class TestMonitoringService {
                           .count();
               int skipped =
                   (int) results.stream().filter(r -> r.getStatus() == TestStatus.SKIPPED).count();
+
+              if (total == 0 && execution.getStatus() != null) {
+                total = 1;
+                switch (execution.getStatus()) {
+                  case PASSED -> passed = 1;
+                  case FAILED, ERROR -> failed = 1;
+                  case SKIPPED -> skipped = 1;
+                  case RUNNING -> {}
+                }
+              }
+
               double progress = TestExecutionStatus.computeProgress(total, passed, failed, skipped);
 
               Duration duration;
@@ -255,26 +303,100 @@ public class TestMonitoringService {
         .collect(Collectors.toList());
   }
 
-  /** Get execution trends data for dashboard charts */
+  public List<RecentExecutionDto> getActiveExecutions() {
+    List<TestExecution> activeExecutions =
+        executionRepository.findAllWithResults().stream()
+            .filter(exec -> exec.getStatus() == TestStatus.RUNNING)
+            .sorted((a, b) -> b.getStartTime().compareTo(a.getStartTime()))
+            .collect(Collectors.toList());
+
+    return activeExecutions.stream()
+        .map(
+            execution -> {
+              List<TestResult> results = execution.getResults();
+              int total = results.size();
+              int passed =
+                  (int) results.stream().filter(r -> r.getStatus() == TestStatus.PASSED).count();
+              int failed =
+                  (int)
+                      results.stream()
+                          .filter(
+                              r ->
+                                  r.getStatus() == TestStatus.FAILED
+                                      || r.getStatus() == TestStatus.ERROR)
+                          .count();
+              int skipped =
+                  (int) results.stream().filter(r -> r.getStatus() == TestStatus.SKIPPED).count();
+
+              double progress = TestExecutionStatus.computeProgress(total, passed, failed, skipped);
+
+              Duration duration = Duration.between(execution.getStartTime(), LocalDateTime.now());
+
+              return RecentExecutionDto.builder()
+                  .executionId(execution.getExecutionId())
+                  .suiteName(
+                      execution.getSuiteName() != null ? execution.getSuiteName() : "Unknown Suite")
+                  .environment(
+                      execution.getEnvironment() != null ? execution.getEnvironment() : "N/A")
+                  .status(execution.getStatus().name())
+                  .startTime(execution.getStartTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+                  .endTime(null)
+                  .totalTests(total)
+                  .passedTests(passed)
+                  .failedTests(failed)
+                  .skippedTests(skipped)
+                  .progress(progress)
+                  .duration(formatDuration(duration))
+                  .build();
+            })
+        .collect(Collectors.toList());
+  }
+
+  public SseEmitter registerActiveExecutionsEmitter() {
+    SseEmitter emitter = new SseEmitter(0L);
+    emitter.onCompletion(() -> activeExecutionsEmitters.remove(emitter));
+    emitter.onTimeout(() -> activeExecutionsEmitters.remove(emitter));
+    emitter.onError(
+        (ex) -> {
+          activeExecutionsEmitters.remove(emitter);
+          log.warn("Active executions emitter error, removing emitter", ex);
+        });
+
+    activeExecutionsEmitters.add(emitter);
+
+    // Send initial data immediately when client connects
+    try {
+      List<RecentExecutionDto> activeExecutions = getActiveExecutions();
+      emitter.send(activeExecutions, MediaType.APPLICATION_JSON);
+    } catch (IOException e) {
+      log.error("Failed to send initial active executions data", e);
+      activeExecutionsEmitters.remove(emitter);
+      try {
+        emitter.completeWithError(e);
+      } catch (Exception ignored) {
+        // Ignore if already completed
+      }
+    }
+
+    return emitter;
+  }
+
   public ExecutionTrendsDto getExecutionTrends(int days) {
     LocalDateTime endDate = LocalDateTime.now();
     LocalDateTime startDate = endDate.minusDays(days - 1);
 
-    // Get all executions within the date range
     List<TestExecution> executions =
-        executionRepository.findAll().stream()
+        executionRepository.findAllWithResults().stream()
             .filter(
                 exec ->
                     exec.getStartTime().isAfter(startDate.minusDays(1))
                         && exec.getStartTime().isBefore(endDate.plusDays(1)))
             .collect(Collectors.toList());
 
-    // Group executions by date
     Map<String, List<TestExecution>> executionsByDate =
         executions.stream()
             .collect(Collectors.groupingBy(exec -> exec.getStartTime().toLocalDate().toString()));
 
-    // Generate data for each day
     List<String> labels = new ArrayList<>();
     List<Integer> passedData = new ArrayList<>();
     List<Integer> failedData = new ArrayList<>();
@@ -296,12 +418,22 @@ public class TestMonitoringService {
       int skipped = 0;
 
       for (TestExecution execution : dayExecutions) {
-        for (TestResult result : execution.getResults()) {
-          switch (result.getStatus()) {
+        List<TestResult> results = execution.getResults();
+        if (results.isEmpty() && execution.getStatus() != null) {
+          switch (execution.getStatus()) {
             case PASSED -> passed++;
             case FAILED, ERROR -> failed++;
             case SKIPPED -> skipped++;
-            case RUNNING -> {} // Running tests are not counted in trends
+            case RUNNING -> {}
+          }
+        } else {
+          for (TestResult result : results) {
+            switch (result.getStatus()) {
+              case PASSED -> passed++;
+              case FAILED, ERROR -> failed++;
+              case SKIPPED -> skipped++;
+              case RUNNING -> {}
+            }
           }
         }
       }
@@ -330,7 +462,6 @@ public class TestMonitoringService {
     }
   }
 
-  /** DTO for dashboard overview statistics */
   @lombok.Data
   @lombok.AllArgsConstructor
   @lombok.NoArgsConstructor
@@ -348,7 +479,6 @@ public class TestMonitoringService {
     private String averageExecutionTime;
   }
 
-  /** DTO for recent execution summary */
   @lombok.Data
   @lombok.AllArgsConstructor
   @lombok.NoArgsConstructor
@@ -368,7 +498,6 @@ public class TestMonitoringService {
     private String duration;
   }
 
-  /** DTO for execution trends data */
   @lombok.Data
   @lombok.AllArgsConstructor
   @lombok.NoArgsConstructor
