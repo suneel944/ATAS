@@ -1,5 +1,6 @@
 package com.atas.framework;
 
+import com.atas.framework.config.EnvFileLoader;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -9,11 +10,16 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * schedules asynchronous tasks (such as video uploads).
  */
 @SpringBootApplication
-@org.springframework.boot.context.properties.EnableConfigurationProperties(
-    com.atas.framework.config.StorageProperties.class)
+@org.springframework.boot.context.properties.EnableConfigurationProperties({
+  com.atas.framework.config.StorageProperties.class,
+  com.atas.framework.config.DatabaseProperties.class
+})
 public class AtasFrameworkApplication {
 
   public static void main(String[] args) {
-    SpringApplication.run(AtasFrameworkApplication.class, args);
+    SpringApplication application = new SpringApplication(AtasFrameworkApplication.class);
+    // Register EnvFileLoader to load .env file BEFORE property resolution
+    application.addListeners(new EnvFileLoader());
+    application.run(args);
   }
 }

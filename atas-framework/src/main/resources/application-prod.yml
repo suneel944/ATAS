@@ -1,0 +1,45 @@
+spring:
+  datasource:
+    # Support DB_URL (preferred, set by Docker Compose) - if not set, use default for prod
+    # Docker Compose sets: DB_URL=jdbc:postgresql://atas-db:5432/atasdb
+    url: ${DB_URL:jdbc:postgresql://atas-db:5432/atasdb}
+    username: ${DB_USERNAME:atas}
+    password: ${DB_PASSWORD:changeMe}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+# Management/Actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info"
+  endpoint:
+    health:
+      show-details: never
+
+# Custom ATAS configuration
+atas:
+  storage:
+    bucket: ${S3_BUCKET:atas-prod-videos}
+    region: ${S3_REGION:us-east-1}
+    video-folder: ${S3_VIDEO_FOLDER:prod-videos}
+    screenshot-folder: ${S3_SCREENSHOT_FOLDER:prod-screenshots}
+
+# Logging for production
+logging:
+  level:
+    com.atas: INFO
+    org.springframework.web: WARN
+    org.hibernate.SQL: ERROR
+    org.hibernate.type.descriptor.sql.BasicBinder: ERROR

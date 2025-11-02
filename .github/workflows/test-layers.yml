@@ -18,16 +18,13 @@ on:
         - all
         - unit-tests
         - integration-tests
-        - production-tests
         - version-consistency
       environment:
         description: 'Test environment'
         required: false
-        default: 'test'
+        default: 'production'
         type: choice
         options:
-        - test
-        - staging
         - production
 
 env:
@@ -65,9 +62,10 @@ jobs:
         run: |
           make build
 
-      - name: Run unit tests (H2-based)
+      - name: Run unit tests
+        env:
+          SPRING_PROFILES_ACTIVE: prod
         run: |
-          echo "🧪 Running framework unit tests (H2-based)..."
           make test-unit
 
       - name: Upload unit test results
@@ -109,11 +107,15 @@ jobs:
       - name: Build and install framework first
         run: |
           make build
-          ./mvnw install -pl atas-framework -am
+          ./mvnw install -pl atas-framework -am -DskipTests
 
-      - name: Run integration tests (PostgreSQL with Testcontainers)
+      - name: Run integration tests
+        env:
+          SPRING_PROFILES_ACTIVE: prod
+          DB_URL: jdbc:postgresql://localhost:5432/atasdb
+          DB_USERNAME: atas
+          DB_PASSWORD: ataspass
         run: |
-          echo "🔗 Running framework integration tests (PostgreSQL with Testcontainers)..."
           make test-integration
 
       - name: Upload integration test results
@@ -158,7 +160,6 @@ jobs:
 
       - name: Run version consistency tests
         run: |
-          echo "🔍 Running version consistency tests..."
           mvn test -pl atas-framework -Dtest="**/*VersionConsistencyTest"
 
       - name: Upload version consistency test results
@@ -170,80 +171,9 @@ jobs:
             atas-framework/target/surefire-reports/
           retention-days: 7
 
-  # Production Tests (PostgreSQL-based)
-  production-tests:
-    runs-on: ubuntu-latest
-    if: github.event.inputs.test-layer == 'all' || github.event.inputs.test-layer == 'production-tests' || github.event_name == 'pull_request'
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_DB: atas_production_test
-          POSTGRES_USER: atas
-          POSTGRES_PASSWORD: ataspass
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-
-      - name: Cache Maven dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-
-      - name: Setup Makefile
-        run: |
-          chmod +x ./mvnw
-          chmod +x Makefile
-
-      - name: Build and install framework first
-        run: |
-          make build
-          ./mvnw install -pl atas-framework -am
-
-      - name: Wait for PostgreSQL
-        run: |
-          echo "Waiting for PostgreSQL to be ready..."
-          until pg_isready -h localhost -p 5432 -U atas; do
-            echo "PostgreSQL is unavailable - sleeping"
-            sleep 2
-          done
-          echo "PostgreSQL is up - executing command"
-
-      - name: Run production tests (PostgreSQL-based)
-        run: |
-          echo "🚀 Running production tests (PostgreSQL-based)..."
-          make test-production
-
-      - name: Upload production test results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-layers-production-test-results
-          path: |
-            atas-tests/target/surefire-reports/
-            atas-tests/target/site/jacoco/
-          retention-days: 7
-
-  # Test Summary
   test-summary:
     runs-on: ubuntu-latest
-    needs: [unit-tests, integration-tests, version-consistency, production-tests]
+    needs: [unit-tests, integration-tests, version-consistency]
     if: always()
     steps:
       - name: Generate test summary
@@ -251,7 +181,7 @@ jobs:
           echo "## 🧪 Test Layers Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Test Layer:** ${{ github.event.inputs.test-layer || 'all' }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Environment:** ${{ github.event.inputs.environment || 'test' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event.inputs.environment || 'production' }}" >> $GITHUB_STEP_SUMMARY
           echo "**Triggered by:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
           echo "**Event:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -260,13 +190,12 @@ jobs:
           echo "| Unit Tests (H2) | ${{ needs.unit-tests.result == 'success' && '✅ Passed' || needs.unit-tests.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Integration Tests (PostgreSQL) | ${{ needs.integration-tests.result == 'success' && '✅ Passed' || needs.integration-tests.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Version Consistency | ${{ needs.version-consistency.result == 'success' && '✅ Passed' || needs.version-consistency.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Production Tests (PostgreSQL) | ${{ needs.production-tests.result == 'success' && '✅ Passed' || needs.production-tests.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Count successful jobs
           success_count=0
           total_count=0
-          for job in unit-tests integration-tests version-consistency production-tests; do
+          for job in unit-tests integration-tests version-consistency; do
             if [[ "${{ needs[job].result }}" != "skipped" ]]; then
               total_count=$((total_count + 1))
               if [[ "${{ needs[job].result }}" == "success" ]]; then

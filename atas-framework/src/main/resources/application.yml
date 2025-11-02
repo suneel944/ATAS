@@ -1,38 +1,56 @@
 spring:
+  application:
+    name: atas-framework
+  
+  # Profile activation can be set via SPRING_PROFILES_ACTIVE environment variable
+  # or via -Dspring.profiles.active=profile-name
+  # Default is 'dev' if not specified
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  
+  # Default datasource configuration (profile-specific files override these)
   datasource:
-    # These resolve from environment variables if set (Docker),
-    # otherwise fall back to local defaults.
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/atasdb}
-    username: ${SPRING_DATASOURCE_USERNAME:atas}
-    password: ${SPRING_DATASOURCE_PASSWORD:ataspass}
     driver-class-name: org.postgresql.Driver
 
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: false
-    properties:
-      hibernate:
-        format_sql: true
+# Custom ATAS configuration with environment variable support
+atas:
+  # Test discovery configuration
+  test:
+    base-path: ${ATAS_TEST_BASE_PATH:atas-tests/src/test/java/com/atas}
+    environment: ${ATAS_TEST_ENVIRONMENT:${SPRING_PROFILES_ACTIVE:dev}}
+    timeout:
+      minutes: ${ATAS_TEST_TIMEOUT_MINUTES:30}
+  # Maven wrapper configuration
+  mvnw:
+    path: ${ATAS_MVNW_PATH:/app/mvnw}
+  # Playwright video configuration
+  playwright:
+    video:
+      dir: ${PLAYWRIGHT_VIDEO_DIR:videos}
+  # Storage configuration (profile-specific files provide defaults)
+  storage:
+    bucket: ${S3_BUCKET:atas-videos}
+    region: ${S3_REGION:us-east-1}
+    video-folder: ${S3_VIDEO_FOLDER:videos}
+    screenshot-folder: ${S3_SCREENSHOT_FOLDER:screenshots}
 
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
+# Server configuration
+server:
+  port: ${SERVER_PORT:8080}
 
-# Management/Actuator endpoints (so /actuator/health is available)
+# Management/Actuator endpoints
 management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: "health,info"
   endpoint:
     health:
-      show-details: never
+      show-details: when-authorized
 
-# Custom ATAS configuration
-atas:
-  storage:
-    bucket: ${ATAS_STORAGE_BUCKET:atas-videos}
-    region: ${ATAS_STORAGE_REGION:us-east-1}
-    video-folder: videos
-    screenshot-folder: screenshots
+# Default logging configuration
+logging:
+  level:
+    root: INFO
+    com.atas: INFO
+
