@@ -1,10 +1,16 @@
 package com.atas.framework.execution;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import com.atas.framework.execution.dto.TestExecutionRequest;
 import com.atas.framework.execution.dto.TestExecutionResponse;
 import com.atas.framework.model.TestExecution;
 import com.atas.framework.model.TestStatus;
 import com.atas.framework.repository.TestExecutionRepository;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,173 +18,171 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
-import java.util.Arrays;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class TestExecutionServiceTest {
 
-    @Mock
-    private TestExecutionRepository testExecutionRepository;
+  @Mock private TestExecutionRepository testExecutionRepository;
 
-    @Mock
-    private TestDiscoveryService testDiscoveryService;
+  @Mock private TestDiscoveryService testDiscoveryService;
 
-    @InjectMocks
-    private TestExecutionService testExecutionService;
+  @InjectMocks private TestExecutionService testExecutionService;
 
-    private TestExecution testExecution;
-    private TestExecutionRequest testExecutionRequest;
+  private TestExecution testExecution;
+  private TestExecutionRequest testExecutionRequest;
 
-    @BeforeEach
-    void setUp() {
-        testExecution = TestExecution.builder()
-                .executionId("test-execution-123")
-                .suiteName("Sample Test Suite")
-                .status(TestStatus.PASSED)
-                .startTime(LocalDateTime.now().minusMinutes(5))
-                .endTime(LocalDateTime.now())
-                .environment("test")
-                .build();
+  @BeforeEach
+  void setUp() {
+    testExecution =
+        TestExecution.builder()
+            .executionId("test-execution-123")
+            .suiteName("Sample Test Suite")
+            .status(TestStatus.PASSED)
+            .startTime(LocalDateTime.now().minusMinutes(5))
+            .endTime(LocalDateTime.now())
+            .environment("test")
+            .build();
 
-        testExecutionRequest = TestExecutionRequest.builder()
-                .type(TestExecutionRequest.ExecutionType.INDIVIDUAL_TEST)
-                .testClass("com.example.TestClass")
-                .environment("test")
-                .browserType("Chrome")
-                .recordVideo(true)
-                .captureScreenshots(true)
-                .timeoutMinutes(30)
-                .build();
-    }
+    testExecutionRequest =
+        TestExecutionRequest.builder()
+            .type(TestExecutionRequest.ExecutionType.INDIVIDUAL_TEST)
+            .testClass("com.example.TestClass")
+            .environment("test")
+            .browserType("Chrome")
+            .recordVideo(true)
+            .captureScreenshots(true)
+            .timeoutMinutes(30)
+            .build();
+  }
 
-    @Test
-    void shouldExecuteTestsSuccessfully() {
-        // Given
-        when(testExecutionRepository.save(any(TestExecution.class))).thenReturn(testExecution);
-        when(testDiscoveryService.discoverTestsToExecute(any(TestExecutionRequest.class)))
-                .thenReturn(Arrays.asList("com.example.TestClass.testMethod"));
+  @Test
+  void shouldExecuteTestsSuccessfully() {
+    // Given
+    when(testExecutionRepository.save(any(TestExecution.class))).thenReturn(testExecution);
+    when(testDiscoveryService.discoverTestsToExecute(any(TestExecutionRequest.class)))
+        .thenReturn(Arrays.asList("com.example.TestClass.testMethod"));
 
-        // When
-        TestExecutionResponse response = testExecutionService.executeTests(testExecutionRequest);
+    // When
+    TestExecutionResponse response = testExecutionService.executeTests(testExecutionRequest);
 
-        // Then
-        assertThat(response).isNotNull();
-        assertThat(response.getExecutionId()).isNotNull();
-        assertThat(response.getStatus()).isEqualTo("RUNNING");
-        assertThat(response.getExecutionType()).isEqualTo("INDIVIDUAL_TEST");
-        assertThat(response.getEnvironment()).isEqualTo("test");
-        assertThat(response.getBrowserType()).isEqualTo("Chrome");
-        assertThat(response.isRecordVideo()).isTrue();
-        assertThat(response.isCaptureScreenshots()).isTrue();
-        assertThat(response.getTimeoutMinutes()).isEqualTo(30);
-        assertThat(response.getMonitoringUrl()).contains("executionId=");
-        assertThat(response.getLiveUpdatesUrl()).contains("executionId=");
-        assertThat(response.getResultsUrl()).contains("/api/v1/test-execution/results/");
-        
-        verify(testExecutionRepository).save(any(TestExecution.class));
-        verify(testDiscoveryService).discoverTestsToExecute(testExecutionRequest);
-    }
+    // Then
+    assertThat(response).isNotNull();
+    assertThat(response.getExecutionId()).isNotNull();
+    assertThat(response.getStatus()).isEqualTo("RUNNING");
+    assertThat(response.getExecutionType()).isEqualTo("INDIVIDUAL_TEST");
+    assertThat(response.getEnvironment()).isEqualTo("test");
+    assertThat(response.getBrowserType()).isEqualTo("Chrome");
+    assertThat(response.isRecordVideo()).isTrue();
+    assertThat(response.isCaptureScreenshots()).isTrue();
+    assertThat(response.getTimeoutMinutes()).isEqualTo(30);
+    assertThat(response.getMonitoringUrl()).contains("executionId=");
+    assertThat(response.getLiveUpdatesUrl()).contains("executionId=");
+    assertThat(response.getResultsUrl()).contains("/api/v1/test-execution/results/");
 
-    @Test
-    void shouldGenerateCorrectSuiteNameForIndividualTest() {
-        // Given
-        when(testExecutionRepository.save(any(TestExecution.class))).thenReturn(testExecution);
-        when(testDiscoveryService.discoverTestsToExecute(any(TestExecutionRequest.class)))
-                .thenReturn(Arrays.asList("com.example.TestClass.testMethod"));
+    verify(testExecutionRepository).save(any(TestExecution.class));
+    verify(testDiscoveryService).discoverTestsToExecute(testExecutionRequest);
+  }
 
-        // When
-        TestExecutionResponse response = testExecutionService.executeTests(testExecutionRequest);
+  @Test
+  void shouldGenerateCorrectSuiteNameForIndividualTest() {
+    // Given
+    when(testExecutionRepository.save(any(TestExecution.class))).thenReturn(testExecution);
+    when(testDiscoveryService.discoverTestsToExecute(any(TestExecutionRequest.class)))
+        .thenReturn(Arrays.asList("com.example.TestClass.testMethod"));
 
-        // Then
-        assertThat(response.getDescription()).contains("Individual test: com.example.TestClass");
-        verify(testExecutionRepository).save(argThat(execution -> 
-            execution.getSuiteName().equals("com.example.TestClass")));
-    }
+    // When
+    TestExecutionResponse response = testExecutionService.executeTests(testExecutionRequest);
 
-    @Test
-    void shouldGenerateCorrectSuiteNameForTaggedTests() {
-        // Given
-        TestExecutionRequest taggedRequest = TestExecutionRequest.builder()
-                .type(TestExecutionRequest.ExecutionType.TAGS)
-                .tags(Arrays.asList("smoke", "regression"))
-                .environment("test")
-                .build();
+    // Then
+    assertThat(response.getDescription()).contains("Individual test: com.example.TestClass");
+    verify(testExecutionRepository)
+        .save(argThat(execution -> execution.getSuiteName().equals("com.example.TestClass")));
+  }
 
-        when(testExecutionRepository.save(any(TestExecution.class))).thenReturn(testExecution);
-        when(testDiscoveryService.discoverTestsToExecute(any(TestExecutionRequest.class)))
-                .thenReturn(Arrays.asList("com.example.SmokeTest", "com.example.RegressionTest"));
+  @Test
+  void shouldGenerateCorrectSuiteNameForTaggedTests() {
+    // Given
+    TestExecutionRequest taggedRequest =
+        TestExecutionRequest.builder()
+            .type(TestExecutionRequest.ExecutionType.TAGS)
+            .tags(Arrays.asList("smoke", "regression"))
+            .environment("test")
+            .build();
 
-        // When
-        TestExecutionResponse response = testExecutionService.executeTests(taggedRequest);
+    when(testExecutionRepository.save(any(TestExecution.class))).thenReturn(testExecution);
+    when(testDiscoveryService.discoverTestsToExecute(any(TestExecutionRequest.class)))
+        .thenReturn(Arrays.asList("com.example.SmokeTest", "com.example.RegressionTest"));
 
-        // Then
-        assertThat(response.getDescription()).contains("Tests with tags: smoke, regression");
-        verify(testExecutionRepository).save(argThat(execution -> 
-            execution.getSuiteName().equals("tagged-tests-smoke-regression")));
-    }
+    // When
+    TestExecutionResponse response = testExecutionService.executeTests(taggedRequest);
 
-    @Test
-    void shouldGenerateCorrectSuiteNameForGrepPattern() {
-        // Given
-        TestExecutionRequest grepRequest = TestExecutionRequest.builder()
-                .type(TestExecutionRequest.ExecutionType.GREP)
-                .grepPattern("LoginTest")
-                .environment("test")
-                .build();
+    // Then
+    assertThat(response.getDescription()).contains("Tests with tags: smoke, regression");
+    verify(testExecutionRepository)
+        .save(
+            argThat(execution -> execution.getSuiteName().equals("tagged-tests-smoke-regression")));
+  }
 
-        when(testExecutionRepository.save(any(TestExecution.class))).thenReturn(testExecution);
-        when(testDiscoveryService.discoverTestsToExecute(any(TestExecutionRequest.class)))
-                .thenReturn(Arrays.asList("com.example.LoginTest"));
+  @Test
+  void shouldGenerateCorrectSuiteNameForGrepPattern() {
+    // Given
+    TestExecutionRequest grepRequest =
+        TestExecutionRequest.builder()
+            .type(TestExecutionRequest.ExecutionType.GREP)
+            .grepPattern("LoginTest")
+            .environment("test")
+            .build();
 
-        // When
-        TestExecutionResponse response = testExecutionService.executeTests(grepRequest);
+    when(testExecutionRepository.save(any(TestExecution.class))).thenReturn(testExecution);
+    when(testDiscoveryService.discoverTestsToExecute(any(TestExecutionRequest.class)))
+        .thenReturn(Arrays.asList("com.example.LoginTest"));
 
-        // Then
-        assertThat(response.getDescription()).contains("Tests matching pattern: LoginTest");
-        verify(testExecutionRepository).save(argThat(execution -> 
-            execution.getSuiteName().equals("grep-LoginTest")));
-    }
+    // When
+    TestExecutionResponse response = testExecutionService.executeTests(grepRequest);
 
-    @Test
-    void shouldGenerateCorrectSuiteNameForTestSuite() {
-        // Given
-        TestExecutionRequest suiteRequest = TestExecutionRequest.builder()
-                .type(TestExecutionRequest.ExecutionType.SUITE)
-                .suiteName("AuthenticationSuite")
-                .environment("test")
-                .build();
+    // Then
+    assertThat(response.getDescription()).contains("Tests matching pattern: LoginTest");
+    verify(testExecutionRepository)
+        .save(argThat(execution -> execution.getSuiteName().equals("grep-LoginTest")));
+  }
 
-        when(testExecutionRepository.save(any(TestExecution.class))).thenReturn(testExecution);
-        when(testDiscoveryService.discoverTestsToExecute(any(TestExecutionRequest.class)))
-                .thenReturn(Arrays.asList("com.example.AuthenticationSuiteTest"));
+  @Test
+  void shouldGenerateCorrectSuiteNameForTestSuite() {
+    // Given
+    TestExecutionRequest suiteRequest =
+        TestExecutionRequest.builder()
+            .type(TestExecutionRequest.ExecutionType.SUITE)
+            .suiteName("AuthenticationSuite")
+            .environment("test")
+            .build();
 
-        // When
-        TestExecutionResponse response = testExecutionService.executeTests(suiteRequest);
+    when(testExecutionRepository.save(any(TestExecution.class))).thenReturn(testExecution);
+    when(testDiscoveryService.discoverTestsToExecute(any(TestExecutionRequest.class)))
+        .thenReturn(Arrays.asList("com.example.AuthenticationSuiteTest"));
 
-        // Then
-        assertThat(response.getDescription()).contains("Test suite: AuthenticationSuite");
-        verify(testExecutionRepository).save(argThat(execution -> 
-            execution.getSuiteName().equals("AuthenticationSuite")));
-    }
+    // When
+    TestExecutionResponse response = testExecutionService.executeTests(suiteRequest);
 
-    @Test
-    void shouldHandleTestDiscoveryFailure() {
-        // Given
-        when(testExecutionRepository.save(any(TestExecution.class))).thenReturn(testExecution);
-        when(testDiscoveryService.discoverTestsToExecute(any(TestExecutionRequest.class)))
-                .thenThrow(new RuntimeException("Discovery failed"));
+    // Then
+    assertThat(response.getDescription()).contains("Test suite: AuthenticationSuite");
+    verify(testExecutionRepository)
+        .save(argThat(execution -> execution.getSuiteName().equals("AuthenticationSuite")));
+  }
 
-        // When
-        TestExecutionResponse response = testExecutionService.executeTests(testExecutionRequest);
+  @Test
+  void shouldHandleTestDiscoveryFailure() {
+    // Given
+    when(testExecutionRepository.save(any(TestExecution.class))).thenReturn(testExecution);
+    when(testDiscoveryService.discoverTestsToExecute(any(TestExecutionRequest.class)))
+        .thenThrow(new RuntimeException("Discovery failed"));
 
-        // Then
-        assertThat(response).isNotNull();
-        assertThat(response.getTestsToExecute()).containsExactly("Tests will be discovered during execution");
-        verify(testExecutionRepository).save(any(TestExecution.class));
-    }
+    // When
+    TestExecutionResponse response = testExecutionService.executeTests(testExecutionRequest);
+
+    // Then
+    assertThat(response).isNotNull();
+    // When discovery fails, we return an empty list instead of a placeholder message
+    // This avoids masking actual discovery failures with mock data
+    assertThat(response.getTestsToExecute()).isEmpty();
+    verify(testExecutionRepository).save(any(TestExecution.class));
+  }
 }

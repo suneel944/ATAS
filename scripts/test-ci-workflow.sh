@@ -2,8 +2,14 @@
 
 # Test CI/CD Workflow Script
 # This script tests the CI/CD workflow components locally
+# Note: For full integration testing with database, use docker-compose instead
 
 set -e
+
+# Ensure we're in the project root
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+cd "$PROJECT_ROOT"
 
 # Colors for output
 RED='\033[0;31m'
@@ -86,6 +92,8 @@ print_status "Image ID: $IMAGE_ID"
 print_status "Image Size: $IMAGE_SIZE"
 
 # Test 5: Test container startup
+# Note: This test runs without database connection. For full integration testing,
+# use docker-compose which will automatically load .env variables
 print_status "Testing container startup..."
 docker run --rm -d --name atas-ci-test-container -p 8080:8080 atas-ci-test:latest
 

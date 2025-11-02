@@ -16,35 +16,13 @@ on:
         type: choice
         options:
         - all
-        - authentication-ui
-        - authentication-api
-        - monitoring-ui
-        - monitoring-api
       environment:
         description: 'Test environment'
         required: true
-        default: 'test'
+        default: 'production'
         type: choice
         options:
-        - test
-        - staging
         - production
-      browser-matrix:
-        description: 'Browser matrix for UI tests'
-        required: false
-        default: 'chromium,firefox,webkit'
-        type: string
-      parallel-jobs:
-        description: 'Number of parallel jobs'
-        required: false
-        default: '3'
-        type: choice
-        options:
-        - '1'
-        - '2'
-        - '3'
-        - '4'
-        - '5'
   pull_request:
     branches: [ main, master ]
     paths:
@@ -57,8 +35,7 @@ jobs:
     uses: ./.github/workflows/_test-matrix.yml
     with:
       test-suite: ${{ github.event.inputs.test-suite || 'all' }}
-      environment: ${{ github.event.inputs.environment || 'test' }}
-      browser-matrix: ${{ github.event.inputs.browser-matrix || 'chromium,firefox,webkit' }}
+      environment: ${{ github.event.inputs.environment || 'production' }}
     secrets: inherit
 
   # Enhanced test reporting and notifications
@@ -77,8 +54,7 @@ jobs:
           echo "## 🧪 Comprehensive Test Suite Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Test Suite:** ${{ github.event.inputs.test-suite || 'all' }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Environment:** ${{ github.event.inputs.environment || 'test' }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Browser Matrix:** ${{ github.event.inputs.browser-matrix || 'chromium,firefox,webkit' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event.inputs.environment || 'production' }}" >> $GITHUB_STEP_SUMMARY
           echo "**Triggered by:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
           echo "**Event:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -107,8 +83,7 @@ jobs:
             try {
               const summary = `## 🧪 Test Suite Results: ${{ github.event.inputs.test-suite || 'all' }}
               
-              **Environment:** ${{ github.event.inputs.environment || 'test' }}
-              **Browser Matrix:** ${{ github.event.inputs.browser-matrix || 'chromium,firefox,webkit' }}
+              **Environment:** ${{ github.event.inputs.environment || 'production' }}
               **Status:** ${{ needs.run-test-suite.result == 'success' && '✅ Passed' || '❌ Failed' }}
               **Triggered by:** @${{ github.actor }}
               **Event:** ${{ github.event_name }}

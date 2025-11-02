@@ -2,8 +2,14 @@
 
 # Test Docker Build Script
 # This script tests the Docker build process locally to ensure it works
+# Note: For full integration testing with database, use docker-compose instead
 
 set -e
+
+# Ensure we're in the project root
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+cd "$PROJECT_ROOT"
 
 # Colors for output
 RED='\033[0;31m'
@@ -47,6 +53,8 @@ IMAGE_SIZE=$(docker images --format "table {{.Size}}" atas-test:latest | tail -n
 print_status "Image size: $IMAGE_SIZE"
 
 # Test 3: Test image runs
+# Note: This test runs without database connection. For full integration testing,
+# use docker-compose which will automatically load .env variables
 print_status "Testing image startup..."
 docker run --rm -d --name atas-test-container -p 8080:8080 atas-test:latest
 

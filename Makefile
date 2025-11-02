@@ -1,7 +1,7 @@
 # ATAS Project Makefile
 # Advanced Testing As A Service - Easy command shortcuts
 
-.PHONY: help build test clean install docker-up docker-down docker-logs lint format check-all setup dev test-ui test-api test-unit test-integration test-production test-by-type test-all report release
+.PHONY: help build test clean compile docker-up docker-down docker-logs lint format check-all setup dev test-ui test-api test-unit test-integration test-by-type test-all report release
 
 # Default target
 .DEFAULT_GOAL := help
@@ -13,10 +13,29 @@ YELLOW := \033[1;33m
 RED := \033[0;31m
 NC := \033[0m # No Color
 
+# Load .env file and export variables to shell commands
+# Docker Compose automatically loads .env from the current working directory (project root)
+# This ensures Makefile variables and Docker Compose both respect .env settings
+ifneq (,$(wildcard .env))
+    # Extract SPRING_PROFILES_ACTIVE from .env if present (before setting default)
+    ENV_PROFILE := $(shell grep '^SPRING_PROFILES_ACTIVE=' .env 2>/dev/null | cut -d'=' -f2 | tr -d ' "' || echo '')
+endif
+
 # Project variables
 PROJECT_NAME := ATAS
 MAVEN_WRAPPER := ./mvnw
-DOCKER_COMPOSE := docker compose -f docker/docker-compose-local-db.yml
+# Docker Compose automatically reads .env from project root (where command is executed)
+# Docker Compose commands are run from project root, so .env is automatically found
+DOCKER_COMPOSE_LOCAL := docker compose -f docker/docker-compose-local-db.yml
+DOCKER_COMPOSE_PROD := docker compose -f docker/docker-compose.prod.yml
+DOCKER_COMPOSE := $(DOCKER_COMPOSE_LOCAL)
+# Use SPRING_PROFILES_ACTIVE from .env if set, otherwise default to dev
+# Command-line override still works: make dev SPRING_PROFILES_ACTIVE=stage
+SPRING_PROFILES_ACTIVE ?= $(or $(ENV_PROFILE),dev)
+
+# Export all variables to subprocesses (so Docker Compose and shell commands can use them)
+# Docker Compose will automatically read .env file from project root for variable substitution
+export
 
 # Common warning messages
 POSTGRES_WARNING := "⚠️  Note: This test requires PostgreSQL container to be running"
@@ -44,12 +63,9 @@ setup: ## Initial project setup
 	@echo "$(GREEN)✅ Project configuration complete$(NC)"
 	@echo ""
 	@echo "$(YELLOW)📦 Installing dependencies...$(NC)"
-	@$(MAVEN_WRAPPER) dependency:resolve -q
+	@$(MAVEN_WRAPPER) -q -DskipTests install
 	@echo "$(GREEN)✅ Dependencies installed$(NC)"
 	@echo ""
-	@echo "$(YELLOW)🏗️  Building project...$(NC)"
-	@$(MAVEN_WRAPPER) clean compile -q
-	@echo "$(GREEN)✅ Project built successfully$(NC)"
 	@echo ""
 	@echo "$(GREEN)🎉 $(PROJECT_NAME) setup complete!$(NC)"
 	@echo ""
@@ -66,8 +82,13 @@ setup: ## Initial project setup
 	@echo ""
 	@echo "$(BLUE)💡 Tip: Run 'make dev' to start the development environment$(NC)"
 
-install: build ## Install dependencies and build project
-	@echo "$(GREEN)✅ Installation complete!$(NC)"
+compile: build ## Compile the project (alias for build)
+	@echo "$(GREEN)✅ Compilation complete!$(NC)"
+
+install: ## Install project artifacts to local Maven repository
+	@echo "$(BLUE)Installing $(PROJECT_NAME) to local Maven repository...$(NC)"
+	$(MAVEN_WRAPPER) install -DskipTests
+	@echo "$(GREEN)✅ Installation to local repository complete!$(NC)"
 
 ##@ Building
 build: ## Build the project
@@ -87,25 +108,25 @@ package: ## Package the project (create JARs)
 
 ##@ Testing
 test: ## Run all tests
-	@echo "$(BLUE)Running all tests...$(NC)"
+	@echo "$(BLUE)Running all tests with profile: $(SPRING_PROFILES_ACTIVE)...$(NC)"
 	@echo "$(YELLOW)⚠️  Note: Some UI tests require the ATAS framework service to be running$(NC)"
 	@echo "$(YELLOW)   If tests fail with connection errors, run: make test-with-service$(NC)"
-	$(MAVEN_WRAPPER) test
+	SPRING_PROFILES_ACTIVE=$(SPRING_PROFILES_ACTIVE) $(MAVEN_WRAPPER) test
 	@echo "$(GREEN)✅ Tests completed!$(NC)"
 
 test-ui: ## Run UI tests only
 	@echo "$(BLUE)Running UI tests...$(NC)"
-	$(MAVEN_WRAPPER) test -Dtest="**/*UiTest"
+	$(MAVEN_WRAPPER) test -Dtest="**/ui/**/*Test" -pl atas-tests
 	@echo "$(GREEN)✅ UI tests completed!$(NC)"
 
 test-api: ## Run API tests only
 	@echo "$(BLUE)Running API tests...$(NC)"
-	$(MAVEN_WRAPPER) test -Dtest="**/*ApiTest"
+	$(MAVEN_WRAPPER) test -Dtest="**/api/**/*Test" -pl atas-tests
 	@echo "$(GREEN)✅ API tests completed!$(NC)"
 
 test-unit: ## Run unit tests only
 	@echo "$(BLUE)Running unit tests...$(NC)"
-	$(MAVEN_WRAPPER) test -Dtest="**/*Test,!**/*IntegrationTest,!**/*ProductionTest" -pl atas-framework
+	$(MAVEN_WRAPPER) test -Dtest="**/*Test,!**/*IntegrationTest" -pl atas-framework
 	@echo "$(GREEN)✅ Unit tests completed!$(NC)"
 
 test-integration: ## Run integration tests only
@@ -114,11 +135,6 @@ test-integration: ## Run integration tests only
 	$(MAVEN_WRAPPER) test -Dtest="**/*IntegrationTest" -pl atas-framework
 	@echo "$(GREEN)✅ Integration tests completed!$(NC)"
 
-test-production: ## Run production tests only
-	@echo "$(BLUE)Running production tests...$(NC)"
-	@echo "$(YELLOW)$(POSTGRES_WARNING)$(NC)"
-	$(MAVEN_WRAPPER) test -Dtest="**/*ProductionTest" -pl atas-tests
-	@echo "$(GREEN)✅ Production tests completed!$(NC)"
 
 test-suite: ## Run specific test suite (usage: make test-suite SUITE=authentication-ui)
 	@echo "$(BLUE)Running test suite: $(SUITE)...$(NC)"
@@ -127,11 +143,10 @@ test-suite: ## Run specific test suite (usage: make test-suite SUITE=authenticat
 
 test-all: test ## Alias for test (for backward compatibility)
 
-test-by-type: ## Run all test types in sequence (unit, integration, production)
+test-by-type: ## Run all test types in sequence (unit, integration)
 	@echo "$(BLUE)Running all test types in sequence...$(NC)"
 	@$(MAKE) test-unit
 	@$(MAKE) test-integration
-	@$(MAKE) test-production
 	@echo "$(GREEN)✅ All test types completed!$(NC)"
 
 test-with-service: ## Run all tests with framework service running
@@ -168,9 +183,15 @@ check-all: ## Run all checks (build, test, lint, security)
 	@echo "$(GREEN)✅ All checks completed!$(NC)"
 
 ##@ Docker & Services
-docker-up: ## Start Docker services
+docker-up: ## Start Docker services (respects environment variables from .env file)
 	@echo "$(BLUE)Starting Docker services...$(NC)"
-	$(DOCKER_COMPOSE) up -d
+	@echo "$(YELLOW)Profile: $(SPRING_PROFILES_ACTIVE)$(NC)"
+	@if [ -f .env ]; then \
+		export $$(grep -v '^#' .env | grep -v '^$$' | xargs) && \
+		$(DOCKER_COMPOSE) up -d; \
+	else \
+		$(DOCKER_COMPOSE) up -d; \
+	fi
 	@echo "$(GREEN)✅ Docker services started!$(NC)"
 	@echo "$(YELLOW)Services:$(NC)"
 	@echo "  - ATAS Framework: http://localhost:8080"
@@ -179,26 +200,41 @@ docker-up: ## Start Docker services
 
 docker-down: ## Stop Docker services
 	@echo "$(BLUE)Stopping Docker services...$(NC)"
-	$(DOCKER_COMPOSE) down
+	@if [ -f .env ]; then \
+		export $$(grep -v '^#' .env | grep -v '^$$' | xargs) && \
+		$(DOCKER_COMPOSE) down; \
+	else \
+		$(DOCKER_COMPOSE) down; \
+	fi
 	@echo "$(GREEN)✅ Docker services stopped!$(NC)"
 
 docker-logs: ## Show Docker service logs
 	@echo "$(BLUE)Showing Docker service logs...$(NC)"
-	$(DOCKER_COMPOSE) logs -f
+	@if [ -f .env ]; then \
+		export $$(grep -v '^#' .env | grep -v '^$$' | xargs) && \
+		$(DOCKER_COMPOSE) logs -f; \
+	else \
+		$(DOCKER_COMPOSE) logs -f; \
+	fi
 
 docker-restart: ## Restart Docker services
 	@echo "$(BLUE)Restarting Docker services...$(NC)"
 	@$(MAKE) docker-down
 	@$(MAKE) docker-up
 
-docker-build: ## Build Docker images
+docker-build: ## Build Docker images (respects environment variables from .env file)
 	@echo "$(BLUE)Building Docker images...$(NC)"
-	$(DOCKER_COMPOSE) build
+	@if [ -f .env ]; then \
+		export $$(grep -v '^#' .env | grep -v '^$$' | xargs) && \
+		$(DOCKER_COMPOSE) build; \
+	else \
+		$(DOCKER_COMPOSE) build; \
+	fi
 	@echo "$(GREEN)✅ Docker images built!$(NC)"
 
 ##@ Development
 dev: ## Start development environment
-	@echo "$(BLUE)Starting development environment...$(NC)"
+	@echo "$(BLUE)Starting development environment with profile: $(SPRING_PROFILES_ACTIVE)...$(NC)"
 	@$(MAKE) docker-up
 	@echo "$(GREEN)✅ Development environment ready!$(NC)"
 	@echo "$(YELLOW)Available commands:$(NC)"
@@ -206,9 +242,29 @@ dev: ## Start development environment
 	@echo "  make logs     - View logs"
 	@echo "  make stop     - Stop services"
 
+dev-stage: ## Start staging environment
+	@echo "$(BLUE)Starting staging environment...$(NC)"
+	SPRING_PROFILES_ACTIVE=stage $(MAKE) docker-up
+	@echo "$(GREEN)✅ Staging environment ready!$(NC)"
+
+dev-prod: ## Start production environment (for local testing - database port exposed)
+	@echo "$(BLUE)Starting production environment...$(NC)"
+	@if [ -f .env ]; then \
+		export $$(grep -v '^#' .env | grep -v '^$$' | xargs) && \
+		$(DOCKER_COMPOSE_PROD) up -d; \
+	else \
+		$(DOCKER_COMPOSE_PROD) up -d; \
+	fi
+	@echo "$(GREEN)✅ Production environment ready!$(NC)"
+	@echo "$(YELLOW)Services:$(NC)"
+	@echo "  - ATAS Framework: http://localhost:8080"
+	@echo "  - PostgreSQL: localhost:5433 (exposed for local testing)"
+	@echo "  - Health Check: http://localhost:8080/actuator/health"
+	@echo "$(YELLOW)Note:$(NC) Database port is exposed for local testing. Tests can record results."
+
 run: ## Run the framework locally (without Docker)
-	@echo "$(BLUE)Running ATAS framework locally...$(NC)"
-	cd atas-framework && $(MAVEN_WRAPPER) spring-boot:run
+	@echo "$(BLUE)Running ATAS framework locally with profile: $(SPRING_PROFILES_ACTIVE)...$(NC)"
+	cd atas-framework && SPRING_PROFILES_ACTIVE=$(SPRING_PROFILES_ACTIVE) $(MAVEN_WRAPPER) spring-boot:run
 
 logs: ## Show application logs
 	@echo "$(BLUE)Showing application logs...$(NC)"
@@ -288,11 +344,18 @@ clean: ## Clean build artifacts
 	$(MAVEN_WRAPPER) clean
 	@echo "$(GREEN)✅ Clean completed!$(NC)"
 
-clean-all: ## Clean everything (build, Docker, logs)
+clean-all: ## Clean everything (build, Docker, logs, volumes)
 	@echo "$(BLUE)Cleaning everything...$(NC)"
 	@$(MAKE) clean
-	@$(MAKE) docker-down
+	@echo "$(YELLOW)Stopping Docker services and removing volumes...$(NC)"
+	@$(DOCKER_COMPOSE_LOCAL) down -v 2>/dev/null || true
+	@$(DOCKER_COMPOSE_PROD) down -v 2>/dev/null || true
 	docker system prune -f
+	docker volume prune -f
+	@echo "$(YELLOW)Removing additional build artifacts...$(NC)"
+	@rm -rf atas-tests/.allure
+	@rm -rf atas-tests/target
+	@rm -rf atas-framework/target
 	@echo "$(GREEN)✅ Complete cleanup done!$(NC)"
 
 ##@ Utilities

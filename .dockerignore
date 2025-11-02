@@ -42,11 +42,6 @@ logs/
 .tmp/
 .temp/
 
-# Maven
-.mvn/
-mvnw
-mvnw.cmd
-
 # Docker
 docker/
 Dockerfile*

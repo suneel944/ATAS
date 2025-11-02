@@ -11,17 +11,12 @@ on:
         description: 'Test environment'
         required: false
         type: string
-        default: 'test'
+        default: 'production'
       java-version:
         description: 'Java version to use'
         required: false
         type: string
         default: '21'
-      browser-matrix:
-        description: 'Browser matrix for UI tests'
-        required: false
-        type: string
-        default: 'chromium,firefox,webkit'
     outputs:
       test-results:
         description: 'Test results summary'
@@ -32,14 +27,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - browser: chromium
-            browser-name: Chromium
-          - browser: firefox
-            browser-name: Firefox
-          - browser: webkit
-            browser-name: WebKit
     services:
       postgres:
         image: postgres:18
@@ -84,73 +71,28 @@ jobs:
       - name: Build and install framework first
         run: |
           make build
-          ./mvnw install -pl atas-framework -am
+          ./mvnw install -pl atas-framework -am -DskipTests
 
-      - name: Install Playwright browsers
+      - name: Run unit tests
         run: |
-          cd atas-framework
-          mvn -q exec:java -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install ${{ matrix.browser }}"
-
-      - name: Run framework unit tests
-        run: |
-          echo "Running framework unit tests (H2-based)..."
           make test-unit
 
-      - name: Run framework integration tests
+      - name: Run integration tests
         run: |
-          echo "Running framework integration tests (PostgreSQL with Testcontainers)..."
           make test-integration
 
       - name: Run version consistency tests
         run: |
-          echo "Running version consistency tests..."
           mvn test -pl atas-framework -Dtest="**/*VersionConsistencyTest"
-
-      - name: Run production tests
-        run: |
-          echo "Running production tests (PostgreSQL-based)..."
-          make test-production
-
-      - name: Run test suite with ${{ matrix.browser-name }}
-        run: |
-          case "${{ inputs.test-suite }}" in
-            "all")
-              echo "Running all test suites..."
-              # Note: The old test suites were removed, so we'll run the new structure
-              echo "All tests completed via framework and production test layers"
-              ;;
-            "authentication-ui")
-              echo "Authentication UI tests not available in new structure"
-              echo "Use framework unit tests and production tests instead"
-              ;;
-            "authentication-api")
-              echo "Authentication API tests not available in new structure"
-              echo "Use framework unit tests and production tests instead"
-              ;;
-            "monitoring-ui")
-              echo "Monitoring UI tests not available in new structure"
-              echo "Use framework unit tests and production tests instead"
-              ;;
-            "monitoring-api")
-              echo "Monitoring API tests not available in new structure"
-              echo "Use framework unit tests and production tests instead"
-              ;;
-          esac
-
-      - name: Generate Allure Report
-        if: always()
-        run: |
-          mvn allure:report -pl atas-tests
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results-${{ inputs.test-suite }}-${{ matrix.browser }}-${{ inputs.environment }}
+          name: test-results-${{ inputs.test-suite }}-${{ inputs.environment }}
           path: |
-            **/target/surefire-reports/
-            **/target/allure-results/
-            **/target/site/allure-maven-plugin/
+            atas-framework/target/surefire-reports/
+            atas-framework/target/site/jacoco/
           retention-days: 30
 
     outputs:

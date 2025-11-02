@@ -60,7 +60,9 @@ The project includes a comprehensive Makefile with easy-to-remember commands:
 ```bash
 make help       # Show all available commands
 make setup      # Initial project setup
-make build      # Build the project
+make build      # Build the project (compile)
+make compile    # Compile the project (alias for build)
+make install    # Install artifacts to local Maven repository
 make test       # Run all tests
 make dev        # Start development environment
 make clean      # Clean build artifacts

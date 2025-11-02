@@ -39,13 +39,88 @@ This automatically:
 * 🏗️ Builds the project
 * 🐳 Starts Docker services (PostgreSQL + ATAS Framework)
 * 🧩 Auto-migrates database schema
+* 🌍 Uses environment-agnostic configuration (dev profile by default)
 
 **Services will be available at:**
 * 🧠 **ATAS Framework**: [http://localhost:8080](http://localhost:8080)
 * 🗄️ **PostgreSQL**: localhost:5433
 * 📊 **Health Check**: [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health)
 
+**New to ATAS?** For detailed step-by-step onboarding, see the [Getting Started Guide](docs/GETTING_STARTED.md).
+
 **Need help?** Run `make help` to see all available commands.
+
+---
+
+## 🌍 Environment Configuration
+
+ATAS is fully environment-agnostic and supports multiple deployment environments:
+
+### **Environment Profiles**
+- **`dev`** - Development environment (default)
+- **`stage`** - Staging environment  
+- **`prod`** - Production environment
+
+### **Quick Environment Setup**
+
+**Development (default):**
+```bash
+make dev  # Uses dev profile automatically
+```
+
+**Staging:**
+```bash
+make dev-stage
+# or
+SPRING_PROFILES_ACTIVE=stage make dev
+```
+
+**Production:**
+```bash
+make dev-prod
+# or
+SPRING_PROFILES_ACTIVE=prod make dev
+```
+
+### **Environment Variables**
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `SPRING_PROFILES_ACTIVE` | Active Spring profile | `dev` |
+| `DB_URL` | Database connection URL | Auto-detected based on environment (see below) |
+| `DB_USERNAME` | Database username | `atas` |
+| `DB_PASSWORD` | Database password | `ataspass` |
+| `S3_BUCKET` | S3 bucket for media storage | `atas-videos` |
+| `S3_REGION` | AWS region | `us-east-1` |
+
+### **Smart Database Connection Detection**
+
+ATAS automatically detects and connects to the correct database based on your active environment:
+
+**Detection Priority:**
+1. **Explicit Configuration** (highest priority)
+   - `DB_URL` environment variable
+   - `spring.datasource.url` system property
+2. **Environment-Aware Detection** (automatic fallback)
+   - Checks `SPRING_PROFILES_ACTIVE` to determine intended environment
+   - Detects running Docker containers (`atas-db` for dev/stage, `atas-db-prod` for prod)
+   - Verifies port availability (5433 for local Docker Compose, 5432 for standard PostgreSQL)
+
+**How It Works:**
+
+- **`make dev`** → Detects `dev` profile → Connects to `localhost:5433` (local Docker Compose)
+- **`make dev-stage`** → Detects `stage` profile → Connects to `localhost:5433` (local Docker Compose)
+- **`make dev-prod`** → Detects `prod` profile → Warns if production DB not accessible from host
+
+**Note:** Production Docker containers don't expose database port to host for security. Use `make dev` for local testing, or set `DB_URL` explicitly for custom configurations.
+
+### **Configuration Files**
+- `atas-framework/src/main/resources/application-dev.yml` - Development settings
+- `atas-framework/src/main/resources/application-stage.yml` - Staging settings  
+- `atas-framework/src/main/resources/application-prod.yml` - Production settings
+- `atas-tests/src/test/resources/application-dev.yml` - Test development settings
+- `atas-tests/src/test/resources/application-stage.yml` - Test staging settings
+- `atas-tests/src/test/resources/application-prod.yml` - Test production settings
 
 ---
 
@@ -130,7 +205,6 @@ make dev      # Start all services with Docker
 make test              # Run all tests
 make test-unit         # Run unit tests only (fastest)
 make test-integration  # Run integration tests only
-make test-production   # Run production tests only
 make test-ui           # Run UI tests only
 make test-api          # Run API tests only
 make test-by-type      # Run all test types in sequence
@@ -144,7 +218,9 @@ make report-serve  # Serve reports locally
 
 **Development commands:**
 ```bash
-make build    # Build the project
+make build    # Build the project (compile)
+make compile  # Compile the project (alias for build)
+make install  # Install artifacts to local Maven repository
 make clean    # Clean build artifacts
 make logs     # View service logs
 make stop     # Stop all services
@@ -160,15 +236,19 @@ If you prefer to run the framework locally without Docker:
 make run      # Run ATAS framework locally
 ```
 
-**Note:** You'll need to configure PostgreSQL separately. Edit `atas-framework/src/main/resources/application.yml`:
+**Note:** You'll need to configure PostgreSQL separately. The system will auto-detect the database, or you can set environment variables:
 
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/atas
-    username: atas_user
-    password: secret
+```bash
+export DB_URL="jdbc:postgresql://localhost:5432/atasdb"
+export DB_USERNAME="atas"
+export DB_PASSWORD="ataspass"
+export SPRING_PROFILES_ACTIVE="dev"
 ```
+
+**Database Connection:** If `DB_URL` is not set, the system will automatically detect:
+- Local Docker Compose database on port 5433 (when `make dev` is used)
+- Standard PostgreSQL on port 5432 (if running locally)
+- Based on `SPRING_PROFILES_ACTIVE` and running Docker containers
 
 ---
 
@@ -184,7 +264,9 @@ ATAS includes a comprehensive Makefile with 30+ commands to simplify development
 | `make setup` | Complete project setup (prerequisites check, build, config) |
 | `make dev` | Start development environment (Docker services) |
 | `make test` | Run all tests |
-| `make build` | Build the project |
+| `make build` | Build the project (compiles source code) |
+| `make compile` | Compile the project (alias for build) |
+| `make install` | Install project artifacts to local Maven repository |
 | `make clean` | Clean build artifacts |
 
 ### 🧪 Testing Commands
@@ -194,13 +276,21 @@ ATAS includes a comprehensive Makefile with 30+ commands to simplify development
 | `make test` | Run all tests |
 | `make test-unit` | Run unit tests only (fastest, H2-based) |
 | `make test-integration` | Run integration tests only (PostgreSQL with Testcontainers) |
-| `make test-production` | Run production tests only (PostgreSQL-based) |
-| `make test-by-type` | Run all test types in sequence (unit, integration, production) |
+| `make test-by-type` | Run all test types in sequence (unit, integration) |
 | `make test-ui` | Run UI tests only |
 | `make test-api` | Run API tests only |
 | `make test-suite SUITE=authentication-ui` | Run specific test suite |
 | `make test-with-service` | Run tests with framework service running |
 | `make quick-test` | Quick test (alias for test-unit) |
+
+### 🏗️ Building Commands
+
+| Command | Description |
+|---------|-------------|
+| `make build` | Build the project (compiles source code) |
+| `make compile` | Compile the project (alias for build) |
+| `make package` | Package the project (create JARs) |
+| `make install` | Install project artifacts to local Maven repository |
 
 ### 🐳 Docker & Services
 
@@ -275,10 +365,11 @@ ATAS includes a comprehensive Makefile with 30+ commands to simplify development
 | Slow build                      | Use `make build-fast` for faster builds                            |
 | Tests failing with connection errors | Run `make test-with-service` instead of `make test`               |
 | Integration tests failing       | Run `make docker-up` first, then `make test-integration`           |
-| Production tests failing        | Run `make docker-up` first, then `make test-production`            |
 | Need fastest test feedback      | Use `make test-unit` for H2-based unit tests                       |
 | Docker build issues             | Rebuild with `make docker-build` or reset with `make stop && docker system prune -f` |
 | PostgreSQL version conflicts    | Ensure all tests use PostgreSQL 18 (check docker-compose and test files) |
+| Database connection wrong environment | System auto-detects based on `SPRING_PROFILES_ACTIVE` and Docker containers. Set `DB_URL` explicitly to override |
+| Production DB not accessible | Production containers don't expose DB port. Use `make dev` for local testing or set `DB_URL` to a different database |
 
 ---
 
@@ -304,7 +395,7 @@ ATAS supports multiple test types optimized for different scenarios:
 - **Fastest execution** - Uses H2 in-memory database
 - **No external dependencies** - Perfect for rapid feedback during development
 - **Framework tests only** - Tests the core ATAS framework functionality
-- **Pattern**: `*Test` (excludes `*IT` and `*ProductionTest`)
+- **Pattern**: `*Test` (excludes `*IT`)
 
 ### **Integration Tests** (`make test-integration`)
 - **PostgreSQL with Testcontainers** - Real database testing
@@ -312,12 +403,6 @@ ATAS supports multiple test types optimized for different scenarios:
 - **Pattern**: `*IT` (Integration Test)
 - **Requires**: PostgreSQL container running
 
-### **Production Tests** (`make test-production`)
-- **Production-like environment** - Simulates real-world scenarios
-- **PostgreSQL-based** - Uses actual database for realistic testing
-- **Test suite validation** - Tests the complete test execution flow
-- **Pattern**: `*ProductionTest`
-- **Requires**: PostgreSQL container running
 
 ### **Test Execution Examples**
 
@@ -327,9 +412,6 @@ make test-unit
 
 # Test with real database (integration)
 make test-integration
-
-# Full production simulation
-make test-production
 
 # Run all test types in sequence
 make test-by-type
@@ -360,10 +442,23 @@ Runs as a Spring Boot application exposing REST APIs to orchestrate and record e
 
 ### **2. atas-tests**
 
-Showcases how to implement tests on top of the framework using **Page Object Model** and **fluent chaining**.
+Showcases how to implement tests on top of the framework using **Page Object Model** and **fluent chaining**. The test layer is organized by product with feature-based test organization.
+
+**Test Organization:**
+- **Product-based structure**: `products/automationexercise/` - Tests organized by product
+- **Feature-based organization**: Tests grouped by features (UI/API separation)
+- **Page Objects**: Centralized page object model in `pages/` directory
+- **Shared utilities**: Common test utilities, hooks, and configuration
+
+**Test Configuration:**
+- `TestConfiguration` - Centralized test configuration with Testcontainers
+- `TestTags` - Standardized test tags for categorization and filtering
+- `ApiTestHooks` / `UiTestHooks` - Test lifecycle management hooks
 
 ```java
 @Test
+@Tag(TestTags.UI)
+@Tag(TestTags.SMOKE)
 void login_should_succeed() {
     Page page = playwrightService.createPage(CHROMIUM);
     LoginPage login = new LoginPage(page);
@@ -380,7 +475,6 @@ Run them with:
 make test              # Run all tests
 make test-unit         # Run unit tests only (fastest)
 make test-integration  # Run integration tests only
-make test-production   # Run production tests only
 make test-ui           # Run UI tests only
 make test-api          # Run API tests only
 make test-by-type      # Run all test types in sequence
@@ -397,9 +491,11 @@ Reports are automatically generated at:
 
 Comprehensive documentation is available in the [`docs/`](docs/) directory:
 
+- **[🚀 Getting Started](docs/GETTING_STARTED.md)** - Step-by-step onboarding guide for new contributors
 - **[📖 Documentation Index](docs/README.md)** - Overview of all available documentation
 - **[🔧 API Reference](docs/API_REFERENCE.md)** - Complete REST API documentation with endpoints, parameters, and examples
-- **[🚀 Test Execution Guide](docs/TEST_EXECUTION_GUIDE.md)** - Step-by-step guide for executing and monitoring tests
+- **[🧪 Test Execution Guide](docs/TEST_EXECUTION_GUIDE.md)** - Step-by-step guide for executing and monitoring tests
+- **[🌍 Environment Configuration](docs/ENVIRONMENT_CONFIGURATION.md)** - Complete guide for environment-agnostic configuration
 
 ### Quick API Examples
 
@@ -509,24 +605,25 @@ We welcome improvements! Please follow the guidelines below for contributing to 
 ### Quick Start for Contributors
 
 1. **Fork the repository**
-2. **Setup and build**:
+2. **Complete onboarding** - Follow the [Getting Started Guide](docs/GETTING_STARTED.md) for detailed step-by-step instructions
+3. **Setup and build**:
    ```bash
    make setup    # Complete setup (prerequisites, dependencies, build)
    ```
-3. **Create a feature branch**:
+4. **Create a feature branch**:
    ```bash
    make branch NAME=feature/your-feature-name
    ```
-4. **Start development**:
+5. **Start development**:
    ```bash
    make dev      # Start development environment
    ```
-5. **Follow commit guidelines** (see below)
-6. **Run tests** before submitting:
+6. **Follow commit guidelines** (see below)
+7. **Run tests** before submitting:
    ```bash
    make pr-check # Run all PR checks locally (build, test, lint, security)
    ```
-7. **Submit a pull request** with a clear description of your changes
+8. **Submit a pull request** with a clear description of your changes
 
 ### Development Workflow
 
@@ -536,11 +633,12 @@ make dev               # Start development environment
 make test              # Run all tests
 make test-unit         # Run unit tests only (fastest)
 make test-integration  # Run integration tests only
-make test-production   # Run production tests only
 make test-ui           # Run UI tests only
 make test-api          # Run API tests only
 make test-by-type      # Run all test types in sequence
-make build             # Build project
+make build             # Build project (compile)
+make compile           # Compile project (alias for build)
+make install           # Install artifacts to local Maven repository
 make lint              # Run code quality checks
 make report            # Generate test reports
 make clean             # Clean build artifacts
