@@ -5,6 +5,8 @@ import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
+import java.nio.file.Paths;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -22,36 +24,31 @@ public abstract class UiTestHooks {
   @BeforeEach
   void uiSetUp() {
     playwright = Playwright.create();
-    browser =
-        playwright
-            .chromium()
-            .launch(new BrowserType.LaunchOptions().setHeadless(resolveHeadless()));
+    var options = new BrowserType.LaunchOptions().setHeadless(resolveHeadless());
+
+    // Use system Chromium if CHROMIUM_PATH is set (when browser download is skipped)
+    Optional.ofNullable(System.getenv("CHROMIUM_PATH"))
+        .or(() -> Optional.ofNullable(System.getProperty("CHROMIUM_PATH")))
+        .filter(path -> !path.isBlank())
+        .ifPresent(path -> options.setExecutablePath(Paths.get(path)));
+
+    browser = playwright.chromium().launch(options);
     context = browser.newContext();
     page = context.newPage();
   }
 
   @AfterEach
   void uiTearDown() {
-    if (context != null) {
-      context.close();
-    }
-    if (browser != null) {
-      browser.close();
-    }
-    if (playwright != null) {
-      playwright.close();
-    }
+    Optional.ofNullable(context).ifPresent(BrowserContext::close);
+    Optional.ofNullable(browser).ifPresent(Browser::close);
+    Optional.ofNullable(playwright).ifPresent(Playwright::close);
   }
 
   protected boolean resolveHeadless() {
-    String fromEnv = System.getenv("HEADLESS");
-    if (fromEnv != null && !fromEnv.isBlank()) {
-      return Boolean.parseBoolean(fromEnv);
-    }
-    String fromProp = System.getProperty("HEADLESS");
-    if (fromProp != null && !fromProp.isBlank()) {
-      return Boolean.parseBoolean(fromProp);
-    }
-    return false;
+    return Optional.ofNullable(System.getenv("HEADLESS"))
+        .filter(s -> !s.isBlank())
+        .or(() -> Optional.ofNullable(System.getProperty("HEADLESS")).filter(s -> !s.isBlank()))
+        .map(Boolean::parseBoolean)
+        .orElse(false);
   }
 }
