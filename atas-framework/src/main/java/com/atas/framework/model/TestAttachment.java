@@ -46,4 +46,8 @@ public class TestAttachment {
 
   @Column(name = "created_at")
   LocalDateTime createdAt;
+
+  /** Description or metadata for the attachment */
+  @Column(name = "description", columnDefinition = "TEXT")
+  String description;
 }
