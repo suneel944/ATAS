@@ -4,1041 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ATAS Test Monitoring</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* Critical: Prevent white flash during initial load and scroll */
+        html, body {
+            background-color: #020617 !important;
         }
-
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: #000000;
-            color: #e4e4e7;
-            line-height: 1.6;
-            font-size: 14px;
-            min-height: 100vh;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: 32px;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Glass morphism header */
-        .header {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 40px;
-            margin-bottom: 32px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-            animation: shimmer 3s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 200%; }
-        }
-
-        .header-content {
-            position: relative;
-            z-index: 1;
-        }
-
-        .header-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-        }
-
-        .header-title-group {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .logo {
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
-            animation: pulse-glow 3s ease-in-out infinite;
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4); }
-            50% { box-shadow: 0 8px 32px rgba(59, 130, 246, 0.6); }
-        }
-
-        .header-title {
-            font-size: 36px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #ffffff 0%, #3b82f6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -1px;
-        }
-
-        .header-subtitle {
-            font-size: 15px;
-            color: #94a3b8;
-            font-weight: 400;
-            margin-left: 72px;
-        }
-
-        .system-status {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 24px;
-            background: rgba(34, 197, 94, 0.1);
-            border: 1px solid rgba(34, 197, 94, 0.3);
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #22c55e;
-            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background: #22c55e;
-            border-radius: 50%;
-            animation: pulse-dot 2s infinite;
-            box-shadow: 0 0 12px rgba(34, 197, 94, 0.6);
-        }
-
-        @keyframes pulse-dot {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.2); opacity: 0.8; }
-        }
-
-        /* Controls */
-        .controls {
-            margin-bottom: 32px;
-            display: flex;
-            gap: 16px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .refresh-button {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            color: #ffffff;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .refresh-button::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        .refresh-button:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-
-        .refresh-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 28px rgba(59, 130, 246, 0.6);
-        }
-
-        .refresh-button span {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Auto-refresh dropdown (Grafana-style) */
-        .auto-refresh-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 10px 16px;
-        }
-
-        .auto-refresh-label {
-            font-size: 13px;
-            color: #94a3b8;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .auto-refresh-select {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.05));
-            border: 1.5px solid rgba(255, 255, 255, 0.15);
-            color: #ffffff;
-            padding: 10px 40px 10px 16px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg width='14' height='9' viewBox='0 0 14 9' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L7 7.5L13 1.5' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 14px center;
-            background-size: 14px;
-            min-width: 140px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-            position: relative;
-        }
-
-        .auto-refresh-select:hover {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.08));
-            border-color: rgba(59, 130, 246, 0.4);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-            transform: translateY(-1px);
-        }
-
-        .auto-refresh-select:focus {
-            outline: none;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.1));
-            border-color: rgba(59, 130, 246, 0.6);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15), 0 4px 16px rgba(59, 130, 246, 0.3);
-            transform: translateY(-1px);
-        }
-
-        .auto-refresh-select:active {
-            transform: translateY(0);
-        }
-
-        .auto-refresh-select option {
-            background: #0a0a0a !important;
-            color: #ffffff !important;
-            padding: 12px 16px;
-            font-weight: 500;
-        }
-
-        .auto-refresh-select option:hover {
-            background: rgba(59, 130, 246, 0.25) !important;
-            color: #ffffff !important;
-        }
-
-        .auto-refresh-select option:checked,
-        .auto-refresh-select option:focus,
-        .auto-refresh-select option[selected] {
-            background: rgba(59, 130, 246, 0.3) !important;
-            color: #ffffff !important;
-            font-weight: 700;
-        }
-
-        .auto-refresh-status {
-            font-size: 11px;
-            color: #64748b;
-            font-weight: 600;
-            padding: 4px 8px;
-            background: rgba(59, 130, 246, 0.1);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .auto-refresh-status.active::before {
-            content: '';
-            width: 6px;
-            height: 6px;
-            background: #22c55e;
-            border-radius: 50%;
-            animation: pulse-dot 2s infinite;
-        }
-
-        /* Grid Layout */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 24px;
-        }
-
-        /* Glass morphism cards */
-        .card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 28px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.6), transparent);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .card:hover::before {
-            opacity: 1;
-        }
-
-        .card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 24px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .card-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #f1f5f9;
-            letter-spacing: -0.5px;
-        }
-
-        .card-icon {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            border-radius: 12px;
-            font-size: 18px;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-        }
-
-        /* Metrics with gradient backgrounds */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 16px;
-        }
-
-        .metric {
-            text-align: center;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .metric::before {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, currentColor, transparent);
-            opacity: 0.6;
-        }
-
-        .metric:hover {
-            transform: translateY(-4px);
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.15);
-        }
-
-        .metric-value {
-            font-size: 32px;
-            font-weight: 800;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, #ffffff, currentColor);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .metric-label {
-            font-size: 11px;
-            color: #94a3b8;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .metric.success { color: #22c55e; }
-        .metric.danger { color: #ef4444; }
-        .metric.warning { color: #f59e0b; }
-        .metric.info { color: #06b6d4; }
-        .metric.total { color: #8b5cf6; }
-
-        /* Success Rate Circle */
-        .success-rate-card {
-            text-align: center;
-            position: relative;
-        }
-
-        .success-rate-circle {
-            width: 180px;
-            height: 180px;
-            margin: 0 auto 20px;
-            position: relative;
-        }
-
-        .success-rate-svg {
-            transform: rotate(-90deg);
-        }
-
-        .success-rate-bg {
-            fill: none;
-            stroke: rgba(255, 255, 255, 0.05);
-            stroke-width: 12;
-        }
-
-        .success-rate-progress {
-            fill: none;
-            stroke: url(#successGradient);
-            stroke-width: 12;
-            stroke-linecap: round;
-            transition: stroke-dashoffset 1s ease;
-        }
-
-        .success-rate {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 34px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #22c55e, #10b981);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            padding: 20px;
-            box-sizing: border-box;
-            line-height: 1.1;
-            max-width: 140px;
-            text-align: center;
-            white-space: nowrap;
-        }
-
-        .success-rate-label {
-            font-size: 13px;
-            color: #94a3b8;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* Active Executions */
-        .active-executions-card {
-            text-align: center;
-        }
-
-        .active-count {
-            font-size: 64px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 12px;
-            animation: count-pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes count-pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .active-label {
-            font-size: 14px;
-            color: #cbd5e1;
-            font-weight: 600;
-            margin-bottom: 16px;
-        }
-
-        .monitoring-note {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            color: #64748b;
-            background: rgba(59, 130, 246, 0.1);
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: 1px solid rgba(59, 130, 246, 0.2);
-        }
-
-        .monitoring-note::before {
-            content: '⚡';
-            font-size: 14px;
-        }
-
-        /* Charts with better styling */
-        .chart-container {
-            position: relative;
-            height: 300px;
-        }
-
-        /* Filter controls */
-        .filter-section {
-            margin-bottom: 20px;
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .filter-input {
-            flex: 1;
-            min-width: 200px;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.05));
-            border: 1.5px solid rgba(255, 255, 255, 0.15);
-            color: #ffffff;
-            padding: 10px 16px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .filter-input::placeholder {
-            color: #94a3b8;
-            font-weight: 500;
-        }
-
-        .filter-input:hover {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.08));
-            border-color: rgba(255, 255, 255, 0.25);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-            transform: translateY(-1px);
-        }
-
-        .filter-input:focus {
-            outline: none;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.08));
-            border-color: rgba(59, 130, 246, 0.6);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15), 0 4px 16px rgba(59, 130, 246, 0.3);
-            transform: translateY(-1px);
-        }
-
-        .filter-input:active {
-            transform: translateY(0);
-        }
-
-        .filter-select {
-            appearance: none;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.05));
-            border: 1.5px solid rgba(255, 255, 255, 0.15);
-            color: #ffffff;
-            padding: 10px 40px 10px 16px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background-image: url("data:image/svg+xml,%3Csvg width='14' height='9' viewBox='0 0 14 9' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L7 7.5L13 1.5' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 14px center;
-            background-size: 14px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-            min-width: 150px;
-        }
-
-        .filter-select:hover {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.08));
-            border-color: rgba(59, 130, 246, 0.4);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-            transform: translateY(-1px);
-        }
-
-        .filter-select:focus {
-            outline: none;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.1));
-            border-color: rgba(59, 130, 246, 0.6);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15), 0 4px 16px rgba(59, 130, 246, 0.3);
-            transform: translateY(-1px);
-        }
-
-        .filter-select:active {
-            transform: translateY(0);
-        }
-
-        .filter-select option {
-            background: #0a0a0a !important;
-            color: #ffffff !important;
-            padding: 12px 16px;
-            font-weight: 500;
-        }
-
-        .filter-select option:hover {
-            background: rgba(59, 130, 246, 0.25) !important;
-            color: #ffffff !important;
-        }
-
-        .filter-select option:checked,
-        .filter-select option:focus,
-        .filter-select option[selected] {
-            background: rgba(59, 130, 246, 0.3) !important;
-            color: #ffffff !important;
-            font-weight: 700;
-        }
-
-        .filter-label {
-            font-size: 12px;
-            color: #94a3b8;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .clear-filters {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #ef4444;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .clear-filters:hover {
-            background: rgba(239, 68, 68, 0.2);
-            border-color: rgba(239, 68, 68, 0.5);
-        }
-
-        /* Elegant table */
-        .table-container {
-            overflow-x: auto;
-            border-radius: 12px;
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            font-size: 13px;
-        }
-
-        .data-table thead {
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .data-table th {
-            padding: 16px 20px;
-            text-align: left;
-            font-weight: 700;
-            color: #94a3b8;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.05);
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            white-space: nowrap;
-        }
-
-        .data-table td {
-            padding: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-            color: #e4e4e7;
-            vertical-align: middle;
-        }
-
-        .data-table tbody tr {
-            transition: all 0.2s ease;
-        }
-
-        .data-table tbody tr:hover {
-            background: rgba(59, 130, 246, 0.05);
-        }
-
-        .suite-name {
-            font-weight: 700;
-            color: #f1f5f9;
-            font-size: 14px;
-        }
-
-        /* Status badges with glow */
-        .status-badge {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border: 1px solid transparent;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.3s ease;
-        }
-
-        .status-badge::before {
-            content: '';
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: currentColor;
-        }
-
-        .status-badge.passed {
-            background: rgba(34, 197, 94, 0.15);
-            color: #22c55e;
-            border-color: rgba(34, 197, 94, 0.3);
-            box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
-        }
-
-        .status-badge.failed {
-            background: rgba(239, 68, 68, 0.15);
-            color: #ef4444;
-            border-color: rgba(239, 68, 68, 0.3);
-            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
-        }
-
-        .status-badge.running {
-            background: rgba(59, 130, 246, 0.15);
-            color: #3b82f6;
-            border-color: rgba(59, 130, 246, 0.3);
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
-            animation: pulse-badge 2s ease-in-out infinite;
-        }
-
-        .status-badge.completed {
-            background: rgba(139, 92, 246, 0.15);
-            color: #8b5cf6;
-            border-color: rgba(139, 92, 246, 0.3);
-            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2);
-        }
-
-        @keyframes pulse-badge {
-            0%, 100% { box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2); }
-            50% { box-shadow: 0 2px 16px rgba(59, 130, 246, 0.4); }
-        }
-
-        /* Progress bar with gradient */
-        .progress-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .progress-bar {
-            flex: 1;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 4px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-            border-radius: 4px;
-            transition: width 0.5s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .progress-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            animation: progress-shimmer 2s infinite;
-        }
-
-        @keyframes progress-shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        .progress-text {
-            font-size: 12px;
-            color: #94a3b8;
-            font-weight: 700;
-            min-width: 45px;
-        }
-
-        /* Test results with color coding */
-        .test-results {
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .test-passed { color: #22c55e; }
-        .test-failed { color: #ef4444; }
-        .test-skipped { color: #f59e0b; }
-        .test-total { color: #64748b; font-size: 11px; }
-
-        /* Loading and Error States */
-        .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 48px;
-            color: #64748b;
-            font-size: 14px;
-        }
-
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(59, 130, 246, 0.2);
-            border-top: 3px solid #3b82f6;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-right: 12px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .error-message {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #ef4444;
-            padding: 16px 20px;
-            border-radius: 12px;
-            margin: 16px 0;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        /* Database Health Styles */
-        .database-health-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 12px;
-        }
-
-        .database-operations-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 12px;
-        }
-
-        .db-health-metric {
-            text-align: center;
-            padding: 16px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            min-width: 140px;
-        }
-
-        .db-health-metric::before {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, currentColor, transparent);
-            opacity: 0.6;
-        }
-
-        .db-health-metric:hover {
-            transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.15);
-        }
-
-        .db-health-value {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 6px;
-            background: linear-gradient(135deg, #ffffff, currentColor);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .db-health-label {
-            font-size: 10px;
-            color: #94a3b8;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            line-height: 1.2;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            hyphens: auto;
-            text-align: center;
-            max-width: 100%;
-            padding: 0 4px;
-        }
-
-        .db-health-metric.healthy { color: #22c55e; }
-        .db-health-metric.warning { color: #f59e0b; }
-        .db-health-metric.error { color: #ef4444; }
-        .db-health-metric.info { color: #06b6d4; }
-
-        .db-connection-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .db-connection-status.healthy {
-            background: rgba(34, 197, 94, 0.15);
-            color: #22c55e;
-            border: 1px solid rgba(34, 197, 94, 0.3);
-        }
-
-        .db-connection-status.warning {
-            background: rgba(245, 158, 11, 0.15);
-            color: #f59e0b;
-            border: 1px solid rgba(245, 158, 11, 0.3);
-        }
-
-        .db-connection-status.error {
-            background: rgba(239, 68, 68, 0.15);
-            color: #ef4444;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
-
-        .db-connection-status::before {
-            content: '';
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: currentColor;
-            animation: pulse-dot 2s infinite;
-        }
-
-        /* Grid Spans */
-        .span-6 { grid-column: span 6; }
-        .span-12 { grid-column: span 12; }
-        .span-3 { grid-column: span 3; }
-        .span-4 { grid-column: span 4; }
-        .span-8 { grid-column: span 8; }
-
-        /* Responsive Design */
-        @media (max-width: 1200px) {
-            .dashboard-grid {
-                grid-template-columns: repeat(8, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 16px;
-            }
-
-            .header {
-                padding: 24px;
-            }
-
-            .header-top {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 16px;
-            }
-
-            .header-title {
-                font-size: 28px;
-            }
-
-            .header-subtitle {
-                margin-left: 0;
-            }
-
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-
-            .metrics-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .success-rate-circle {
-                width: 150px;
-                height: 150px;
-            }
-
-            .success-rate {
-                font-size: 22px;
-                padding: 16px;
-                max-width: 100px;
-            }
-
-            .active-count {
-                font-size: 48px;
-            }
-
-            .span-6, .span-12, .span-3, .span-4, .span-8 {
-                grid-column: span 1;
-            }
+            background: linear-gradient(to bottom right, #020617, #0f172a, #1e293b, #0f172a) !important;
+            background-attachment: fixed !important;
         }
     </style>
 </head>
@@ -1046,197 +25,305 @@
 
     <div class="container">
         <!-- Header -->
-        <div class="header">
-            <div class="header-content">
-                <div class="header-top">
-                    <div class="header-title-group">
-                        <div class="logo">⚡</div>
-                        <div class="header-title">ATAS Test Monitoring</div>
+        <header class="header">
+            <div class="header-left">
+                <div class="brand">
+                    <div class="brand-icon">
+                        <svg class="icon" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Background Circle -->
+                            <circle cx="100" cy="100" r="95" fill="#0066FF" opacity="0.1"/>
+                            <circle cx="100" cy="100" r="85" fill="#0066FF" opacity="0.2"/>
+                            
+                            <!-- Main Circle Background -->
+                            <circle cx="100" cy="100" r="75" fill="url(#gradient1)"/>
+                            
+                            <!-- Gradient Definitions -->
+                            <defs>
+                                <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#0066FF;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#0099FF;stop-opacity:1" />
+                                </linearGradient>
+                                <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#00CC88;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#00FF99;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            
+                            <!-- Testing Symbol - Checkmark in Shield -->
+                            <path d="M 100 40 L 130 55 L 130 90 Q 130 110 100 125 Q 70 110 70 90 L 70 55 Z" 
+                                  fill="white" opacity="0.9"/>
+                            
+                            <!-- Checkmark -->
+                            <path d="M 85 80 L 95 92 L 115 65" 
+                                  stroke="url(#gradient2)" 
+                                  stroke-width="6" 
+                                  fill="none" 
+                                  stroke-linecap="round" 
+                                  stroke-linejoin="round"/>
+                            
+                            <!-- Service Cloud Symbols (3 nodes representing distributed testing) -->
+                            <circle cx="65" cy="145" r="10" fill="white" opacity="0.9"/>
+                            <circle cx="100" cy="155" r="10" fill="white" opacity="0.9"/>
+                            <circle cx="135" cy="145" r="10" fill="white" opacity="0.9"/>
+                            
+                            <!-- Connection Lines -->
+                            <line x1="65" y1="145" x2="100" y2="155" stroke="white" stroke-width="2" opacity="0.7"/>
+                            <line x1="100" y1="155" x2="135" y2="145" stroke="white" stroke-width="2" opacity="0.7"/>
+                            <line x1="65" y1="145" x2="135" y2="145" stroke="white" stroke-width="2" opacity="0.7"/>
+                            
+                            <!-- Letter M (subtle, integrated) -->
+                            <text x="100" y="108" font-family="Arial, sans-serif" font-size="32" font-weight="bold" 
+                                  fill="url(#gradient2)" text-anchor="middle" opacity="0.3">M</text>
+                            
+                            <!-- Small accent dots for tech feel -->
+                            <circle cx="45" cy="70" r="3" fill="white" opacity="0.5"/>
+                            <circle cx="155" cy="70" r="3" fill="white" opacity="0.5"/>
+                            <circle cx="50" cy="120" r="2" fill="white" opacity="0.4"/>
+                            <circle cx="150" cy="120" r="2" fill="white" opacity="0.4"/>
+                        </svg>
                     </div>
+                    <h1 class="header-title" data-text="ATAS Test Monitoring">ATAS Test Monitoring</h1>
+                </div>
+                <p class="header-subtitle">Real-time test execution tracking and analytics</p>
+            </div>
+            <div class="header-right">
                     <div class="system-status">
                         <div class="status-dot"></div>
                         <span>System Online</span>
                     </div>
                 </div>
-                <div class="header-subtitle">Advanced Testing as a Service - Real-time Test Execution Monitoring</div>
-            </div>
-        </div>
+        </header>
 
         <!-- Controls -->
-        <div class="controls">
-            <div class="auto-refresh-container">
-                <div class="auto-refresh-label">
-                    <span>⏱️</span>
-                    <span>Auto-refresh</span>
+        <div class="controls-bar">
+            <div class="auto-refresh-group">
+                <div class="dropdown auto-refresh-dropdown">
+                    <select id="auto-refresh-select" class="refresh-select" onchange="updateAutoRefresh()">
+                        <option value="0">Manual Refresh</option>
+                        <option value="5000">5s</option>
+                        <option value="10000" selected>10s</option>
+                        <option value="30000">30s</option>
+                        <option value="60000">1m</option>
+                    </select>
+                    <button type="button" class="dropdown-trigger" id="refresh-dropdown-trigger" aria-haspopup="true" aria-expanded="false" onclick="toggleDropdown(this)" onkeydown="handleDropdownKeydown(event, this)">
+                        <span id="refresh-dropdown-text">10s</span>
+                        <svg class="icon" viewBox="0 0 24 24" style="width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none;">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="dropdown-menu" id="refresh-dropdown-menu" role="menu">
+                        <div class="dropdown-option selected" role="menuitem" tabindex="0" data-value="10000" onclick="selectRefreshOption(10000)" onkeydown="handleDropdownOptionKeydown(event, 10000)">10s</div>
+                        <div class="dropdown-option" role="menuitem" tabindex="0" data-value="0" onclick="selectRefreshOption(0)" onkeydown="handleDropdownOptionKeydown(event, 0)">Manual Refresh</div>
+                        <div class="dropdown-option" role="menuitem" tabindex="0" data-value="5000" onclick="selectRefreshOption(5000)" onkeydown="handleDropdownOptionKeydown(event, 5000)">5s</div>
+                        <div class="dropdown-option" role="menuitem" tabindex="0" data-value="30000" onclick="selectRefreshOption(30000)" onkeydown="handleDropdownOptionKeydown(event, 30000)">30s</div>
+                        <div class="dropdown-option" role="menuitem" tabindex="0" data-value="60000" onclick="selectRefreshOption(60000)" onkeydown="handleDropdownOptionKeydown(event, 60000)">1m</div>
+                    </div>
                 </div>
-                <select id="auto-refresh-select" class="auto-refresh-select" onchange="updateAutoRefresh()">
-                    <option value="0">Off</option>
-                    <option value="5000">5 seconds</option>
-                    <option value="10000" selected>10 seconds</option>
-                    <option value="30000">30 seconds</option>
-                    <option value="60000">1 minute</option>
-                    <option value="300000">5 minutes</option>
-                    <option value="600000">10 minutes</option>
-                </select>
-                <div id="auto-refresh-status" class="auto-refresh-status active">
-                    Next refresh in <span id="refresh-countdown">10</span>s
-                </div>
+                <div id="refresh-countdown" class="refresh-countdown">10</div>
             </div>
-            <button class="refresh-button" onclick="window.open('/monitoring/database', '_blank')" style="background: linear-gradient(135deg, #8b5cf6, #ec4899);">
-                <span>🗄️ Database Management</span>
+            
+            <div class="action-buttons-group">
+                <button class="action-btn btn-primary" onclick="window.location.href = '/monitoring/database'">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                    </svg>
+                    <span>Database Management</span>
             </button>
+            </div>
         </div>
 
-        <!-- Dashboard Grid -->
-        <div class="dashboard-grid">
-            <!-- Overview Metrics -->
-            <div class="card span-6">
+        <!-- Stats Grid -->
+        <div class="grid">
+            <!-- Test Overview -->
+            <div class="card spotlight-card col-span-6">
                 <div class="card-header">
-                    <div class="card-title">Test Overview</div>
-                    <div class="card-icon">📊</div>
+                    <span class="card-title">
+                        <span class="card-icon">
+                            <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                        </span> 
+                        Test Metrics
+                    </span>
                 </div>
                 <div class="metrics-grid" id="overview-metrics">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        Loading metrics...
-                    </div>
+                    <div class="loading-overlay"><div class="spinner"></div> Loading metrics...</div>
                 </div>
             </div>
 
             <!-- Success Rate -->
-            <div class="card span-3">
+            <div class="card spotlight-card col-span-3">
                 <div class="card-header">
-                    <div class="card-title">Success Rate</div>
-                    <div class="card-icon">✓</div>
+                    <span class="card-title">
+                        <span class="card-icon">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </span> 
+                        Success Rate
+                    </span>
                 </div>
-                <div class="success-rate-card">
-                    <div class="success-rate-circle">
-                        <svg class="success-rate-svg" width="180" height="180">
-                            <defs>
-                                <linearGradient id="successGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" style="stop-color:#22c55e;stop-opacity:1" />
-                                    <stop offset="100%" style="stop-color:#10b981;stop-opacity:1" />
-                                </linearGradient>
-                            </defs>
-                            <circle class="success-rate-bg" cx="90" cy="90" r="80"></circle>
-                            <circle class="success-rate-progress" cx="90" cy="90" r="80" 
-                                    stroke-dasharray="502.4" stroke-dashoffset="502.4" id="success-circle"></circle>
-                        </svg>
-                        <div class="success-rate" id="success-rate">--%</div>
+                <div class="success-circle-container">
+                    <canvas id="successRateChart"></canvas>
+                    <div class="success-rate-center">
+                        <div class="success-rate-value" id="success-rate">--%</div>
                     </div>
-                    <div class="success-rate-label">Overall Pass Rate</div>
                 </div>
             </div>
 
             <!-- Active Executions -->
-            <div class="card span-3">
+            <div class="card spotlight-card col-span-3">
                 <div class="card-header">
-                    <div class="card-title">Active Executions</div>
-                    <div class="card-icon">⚡</div>
+                    <span class="card-title">
+                        <span class="card-icon">
+                            <svg class="icon" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        </span> 
+                        Active Runs
+                    </span>
                 </div>
-                <div class="active-executions-card">
-                    <div class="active-count" id="active-executions">0</div>
-                    <div class="active-label">Currently Running</div>
-                    <div class="monitoring-note">Real-time monitoring</div>
+                <div class="active-count-display">
+                    <div class="active-number" id="active-executions">0</div>
+                    <div class="metric-label">Currently Running</div>
                 </div>
             </div>
 
-            <!-- Database Health -->
-            <div class="card span-6">
+            <!-- Charts -->
+            <div class="card spotlight-card col-span-6">
                 <div class="card-header">
-                    <div class="card-title">Database Health</div>
-                    <div class="card-icon">🗄️</div>
+                    <span class="card-title">
+                        <span class="card-icon">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                        </span> 
+                        Distribution
+                    </span>
                 </div>
-                <div class="database-health-grid" id="database-health">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        Loading database health...
+                <div class="distribution-wrapper">
+                    <div class="distribution-chart-section">
+                        <div class="distribution-chart-container" id="monitoring-chart-container">
+                            <div class="distribution-center-content">
+                                <div class="distribution-total" id="distribution-total">0</div>
+                                <div class="distribution-label">Total Tests</div>
+                            </div>
+                            <canvas id="testDistributionChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Database Operations -->
-            <div class="card span-6">
+            <div class="card spotlight-card col-span-6">
                 <div class="card-header">
-                    <div class="card-title">Database Operations</div>
-                    <div class="card-icon">📊</div>
+                    <span class="card-title">
+                        <span class="card-icon">
+                            <svg class="icon" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                        </span> 
+                        Trends (7 Days)
+                    </span>
                 </div>
-                <div class="database-operations-grid" id="database-operations">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        Loading operations...
-                    </div>
-                </div>
-            </div>
-
-            <!-- Test Distribution Chart -->
-            <div class="card span-6">
-                <div class="card-header">
-                    <div class="card-title">Test Distribution</div>
-                    <div class="card-icon">📈</div>
-                </div>
-                <div class="chart-container">
-                    <canvas id="testDistributionChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Execution Trends Chart -->
-            <div class="card span-6">
-                <div class="card-header">
-                    <div class="card-title">Execution Trends</div>
-                    <div class="card-icon">📊</div>
-                </div>
-                <div class="chart-container">
+                <div class="chart-wrapper">
                     <canvas id="executionTrendsChart"></canvas>
                 </div>
             </div>
 
-            <!-- Recent Executions -->
-            <div class="card span-12">
+            <!-- DB Stats (Compact) -->
+            <div class="card spotlight-card col-span-6">
                 <div class="card-header">
-                    <div class="card-title">Recent Test Executions</div>
-                    <div class="card-icon">🕐</div>
+                    <span class="card-title">
+                        <span class="card-icon">
+                            <svg class="icon" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                        </span> 
+                        DB Health
+                    </span>
                 </div>
-                <div class="filter-section">
-                    <input type="text" id="filter-suite" class="filter-input" placeholder="Search by suite name..." oninput="applyFilters()">
-                    <select id="filter-status" class="filter-select" onchange="applyFilters()">
-                        <option value="">All Statuses</option>
-                        <option value="PASSED">Passed</option>
-                        <option value="FAILED">Failed</option>
-                        <option value="RUNNING">Running</option>
-                        <option value="COMPLETED">Completed</option>
-                        <option value="SKIPPED">Skipped</option>
-                    </select>
-                    <select id="filter-environment" class="filter-select" onchange="applyFilters()">
-                        <option value="">All Environments</option>
-                        <option value="dev">Dev</option>
-                        <option value="stage">Stage</option>
-                        <option value="prod">Prod</option>
-                    </select>
-                    <button class="clear-filters" onclick="clearFilters()">Clear Filters</button>
+                <div class="metrics-grid" id="database-health">
+                    <div class="loading-overlay"><div class="spinner"></div> Loading DB health...</div>
                 </div>
-                <div class="table-container">
-                    <table class="data-table" id="recent-executions">
+            </div>
+
+            <div class="card spotlight-card col-span-6">
+                <div class="card-header">
+                    <span class="card-title">
+                        <span class="card-icon">
+                            <svg class="icon" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                        </span> 
+                        DB Operations
+                    </span>
+                </div>
+                <div class="metrics-grid" id="database-operations">
+                    <div class="loading-overlay"><div class="spinner"></div> Loading operations...</div>
+                </div>
+            </div>
+
+            <!-- Recent Executions Table -->
+            <div class="card spotlight-card col-span-12">
+                <div class="card-header">
+                    <span class="card-title">
+                        <span class="card-icon">
+                            <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </span> 
+                        Recent Executions
+                    </span>
+                </div>
+                <div class="filters-bar">
+                    <div class="filters-left">
+                        <input type="text" id="filter-suite" class="filter-input" placeholder="Search Suite...">
+                        <div class="dropdown">
+                            <select id="filter-status" class="refresh-select" onchange="applyFilters()">
+                                <option value="">All Statuses</option>
+                                <option value="PASSED">Passed</option>
+                                <option value="FAILED">Failed</option>
+                                <option value="RUNNING">Running</option>
+                            </select>
+                            <button type="button" class="dropdown-trigger" id="filter-status-trigger" onclick="toggleDropdown(this)">
+                                <span id="filter-status-text">All Statuses</span>
+                                <svg class="icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </button>
+                            <div class="dropdown-menu" id="filter-status-menu">
+                                <div class="dropdown-option selected" data-value="" onclick="selectFilterOption('status', '')">All Statuses</div>
+                                <div class="dropdown-option" data-value="PASSED" onclick="selectFilterOption('status', 'PASSED')">Passed</div>
+                                <div class="dropdown-option" data-value="FAILED" onclick="selectFilterOption('status', 'FAILED')">Failed</div>
+                                <div class="dropdown-option" data-value="RUNNING" onclick="selectFilterOption('status', 'RUNNING')">Running</div>
+                            </div>
+                        </div>
+                        <div class="dropdown">
+                            <select id="filter-environment" class="refresh-select" onchange="applyFilters()">
+                                <option value="">All Envs</option>
+                                <option value="dev">Dev</option>
+                                <option value="stage">Stage</option>
+                                <option value="prod">Prod</option>
+                            </select>
+                            <button type="button" class="dropdown-trigger" id="filter-environment-trigger" onclick="toggleDropdown(this)">
+                                <span id="filter-environment-text">All Envs</span>
+                                <svg class="icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </button>
+                            <div class="dropdown-menu" id="filter-environment-menu">
+                                <div class="dropdown-option selected" data-value="" onclick="selectFilterOption('environment', '')">All Envs</div>
+                                <div class="dropdown-option" data-value="dev" onclick="selectFilterOption('environment', 'dev')">Dev</div>
+                                <div class="dropdown-option" data-value="stage" onclick="selectFilterOption('environment', 'stage')">Stage</div>
+                                <div class="dropdown-option" data-value="prod" onclick="selectFilterOption('environment', 'prod')">Prod</div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-reset" onclick="clearFilters()">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                        Reset
+                    </button>
+                </div>
+                <div class="table-wrapper">
+                    <table id="recent-executions">
                         <thead>
                             <tr>
                                 <th>Suite</th>
-                                <th>Environment</th>
+                                <th>Env</th>
                                 <th>Status</th>
                                 <th>Progress</th>
-                                <th>Results</th>
+                                <th>Results (P/F/S)</th>
                                 <th>Duration</th>
                                 <th>Started</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td colspan="7">
-                                    <div class="loading">
-                                        <div class="spinner"></div>
-                                        Loading recent executions...
-                                    </div>
-                                </td>
-                            </tr>
+                            <tr><td colspan="7" class="table-loading">Loading data...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -1244,907 +331,1773 @@
         </div>
     </div>
 
-    <script>
-        let testDistributionChart = null;
-        let executionTrendsChart = null;
-        let refreshInterval = null;
-        let countdownInterval = null;
-        let currentRefreshInterval = 10000; // Default 10 seconds
-        let allExecutions = []; // Store all executions for filtering
-        let activeExecutionsEventSource = null; // SSE connection for active executions
-        let activeExecutionsPollInterval = null; // Polling fallback for active executions
+    <script type="module">
+        import { getAuthToken, redirectToLogin, isAuthenticated } from '/js/core/auth.js';
+        import { authenticatedFetch, parseJsonResponse } from '/js/core/api.js';
+        import { pollingManager } from '/js/components/polling.js';
+        import { initializeAllSpotlightCards } from '/js/components/spotlight.js';
+        import { escapeHtml, debounce } from '/js/utils/dom.js';
+        import { createDistributionGradients, createTrendsGradients, destroyChart, calculateSpiderLabelOffsets } from '/js/components/charts.js';
+        import { config } from '/js/config.js';
 
-        document.addEventListener('DOMContentLoaded', function() {
+        // Auth check
+        if (!isAuthenticated()) {
+            redirectToLogin();
+            throw new Error('Auth required');
+        }
+
+        function getSelectedDays() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const daysParam = urlParams.get('days');
+            if (daysParam) {
+                const days = parseInt(daysParam, 10);
+                if (!isNaN(days) && days > 0) {
+                    localStorage.setItem('dashboardDays', days);
+                    return days;
+                }
+            }
+            const storedDays = localStorage.getItem('dashboardDays');
+            if (storedDays) {
+                const days = parseInt(storedDays, 10);
+                if (!isNaN(days) && days > 0) {
+                    return days;
+                }
+            }
+            return config.ui.defaultDays;
+        }
+
+        let testDistributionChart, executionTrendsChart, successRateChart;
+        let refreshInterval, countdownInterval;
+        let allExecutions = [];
+        let activeExecutionsEventSource, activeExecutionsPollInterval;
+        let isFirstChartLoad = true;
+        let chartsInitialized = false;
+        let isFetching = false;
+        let chartUpdateInterval = null;
+        
+        // Initialize spotlight cards
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeAllSpotlightCards();
+            initializeCustomDropdown();
+            initializeFilterDropdowns();
             refreshDashboard();
-            updateAutoRefresh(); // Initialize auto-refresh
+            updateAutoRefresh();
+            connectActiveExecutionsSSE();
+            setTimeout(startActiveExecutionsPolling, 1000);
             
-            // Start with both SSE and polling for reliability
-            connectActiveExecutionsSSE(); // Connect to real-time active executions stream
-            // Also start polling as backup (runs independently)
-            setTimeout(() => {
-                startActiveExecutionsPolling();
-            }, 1000);
+            const filterSuiteInput = document.getElementById('filter-suite');
+            if (filterSuiteInput) {
+                filterSuiteInput.addEventListener('input', debounce(applyFilters, 300));
+            }
         });
+
+        // Spotlight Card Mouse Tracking
+
+        // Sparkline Chart Helper
+        function createSparklineChart(canvasId, data, color) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return null;
+            
+            // Ensure we have valid data
+            if (!data || data.length === 0) {
+                data = Array(7).fill(0);
+            }
+            
+            const ctx = canvas.getContext('2d');
+            
+            // Get actual rendered dimensions
+            const rect = canvas.getBoundingClientRect();
+            let width = rect.width || canvas.offsetWidth || 200;
+            let height = rect.height || canvas.offsetHeight || 48;
+            
+            // Fallback: if dimensions are still invalid, use default
+            if (width <= 0 || isNaN(width)) width = 200;
+            if (height <= 0 || isNaN(height)) height = 48;
+            
+            // Set canvas dimensions (this clears the canvas automatically)
+            canvas.width = width;
+            canvas.height = height;
+            
+            const padding = 4;
+            const chartWidth = width - (padding * 2);
+            const chartHeight = height - (padding * 2);
+            
+            const max = Math.max(...data);
+            const min = Math.min(...data);
+            const range = max - min || 1;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // Create gradient
+            const gradient = ctx.createLinearGradient(0, padding, 0, height - padding);
+            gradient.addColorStop(0, color);
+            gradient.addColorStop(1, 'transparent');
+            
+            // Draw area
+            ctx.beginPath();
+            ctx.moveTo(padding, height - padding);
+            
+            data.forEach((value, index) => {
+                const x = padding + (index / (data.length - 1)) * chartWidth;
+                const y = height - padding - ((value - min) / range) * chartHeight;
+                ctx.lineTo(x, y);
+            });
+            
+            ctx.lineTo(width - padding, height - padding);
+            ctx.closePath();
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            
+            // Draw line
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            data.forEach((value, index) => {
+                const x = padding + (index / (data.length - 1)) * chartWidth;
+                const y = height - padding - ((value - min) / range) * chartHeight;
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            
+            ctx.stroke();
+            
+            return { canvas, ctx };
+        }
+
+        function initializeCustomDropdown() {
+            const select = document.getElementById('auto-refresh-select');
+            const trigger = document.getElementById('refresh-dropdown-trigger');
+            const menu = document.getElementById('refresh-dropdown-menu');
+            if (select && trigger && menu) {
+                const savedInterval = localStorage.getItem('autoRefreshInterval');
+                if (savedInterval) {
+                    const intervalValue = parseInt(savedInterval, 10);
+                    if (!isNaN(intervalValue)) {
+                        select.value = intervalValue;
+                    }
+                }
+                
+                const selectedValue = select.value;
+                const selectedOption = select.options[select.selectedIndex];
+                if (selectedOption) {
+                    trigger.querySelector('#refresh-dropdown-text').textContent = selectedOption.textContent.trim();
+                    const customOption = menu.querySelector(`[data-value="${selectedValue}"]`);
+                    if (customOption) {
+                        menu.querySelectorAll('.dropdown-option').forEach(opt => opt.classList.remove('selected'));
+                        customOption.classList.add('selected');
+                    }
+                }
+            }
+        }
+
+        function initializeFilterDropdowns() {
+            ['status', 'environment'].forEach(type => {
+                const select = document.getElementById(`filter-${type}`);
+                const trigger = document.getElementById(`filter-${type}-trigger`);
+                const menu = document.getElementById(`filter-${type}-menu`);
+                const textElement = document.getElementById(`filter-${type}-text`);
+                
+                if (select && trigger && menu && textElement) {
+                    const selectedValue = select.value || '';
+                    const selectedOption = select.options[select.selectedIndex];
+                    if (selectedOption) {
+                        textElement.textContent = selectedOption.textContent.trim();
+                        const customOption = menu.querySelector(`[data-value="${selectedValue}"]`);
+                        if (customOption) {
+                            menu.querySelectorAll('.dropdown-option').forEach(opt => opt.classList.remove('selected'));
+                            customOption.classList.add('selected');
+                        } else {
+                            const firstOption = menu.querySelector('.dropdown-option');
+                            if (firstOption) {
+                                firstOption.classList.add('selected');
+                                textElement.textContent = firstOption.textContent.trim();
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function toggleDropdown(trigger) {
+            const menu = trigger.nextElementSibling;
+            if (!menu || !menu.classList.contains('dropdown-menu')) return;
+
+            const isOpen = menu.classList.contains('show');
+            
+            document.querySelectorAll('.dropdown-menu.show').forEach(m => {
+                m.classList.remove('show');
+                const mTrigger = m.previousElementSibling;
+                if (mTrigger) {
+                    mTrigger.classList.remove('active');
+                    mTrigger.setAttribute('aria-expanded', 'false');
+                }
+            });
+            document.querySelectorAll('.dropdown-trigger.active').forEach(t => t.classList.remove('active'));
+            
+            if (isOpen) {
+                trigger.classList.remove('active');
+                trigger.setAttribute('aria-expanded', 'false');
+                return;
+            }
+
+            trigger.classList.add('active');
+            trigger.setAttribute('aria-expanded', 'true');
+            menu.classList.add('show');
+            
+            const firstOption = menu.querySelector('.dropdown-option');
+            if (firstOption) {
+                setTimeout(() => firstOption.focus(), 0);
+            }
+        }
+        
+        function handleDropdownKeydown(event, trigger) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                toggleDropdown(trigger);
+            } else if (event.key === 'Escape') {
+                const menu = trigger.nextElementSibling;
+                if (menu && menu.classList.contains('dropdown-menu')) {
+                    menu.classList.remove('show');
+                    trigger.classList.remove('active');
+                    trigger.setAttribute('aria-expanded', 'false');
+                }
+            }
+        }
+        
+        function handleDropdownOptionKeydown(event, value) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                selectRefreshOption(value);
+            } else if (event.key === 'Escape') {
+                const menu = event.target.closest('.dropdown-menu');
+                const trigger = menu ? menu.previousElementSibling : null;
+                if (trigger) {
+                    menu.classList.remove('show');
+                    trigger.classList.remove('active');
+                    trigger.setAttribute('aria-expanded', 'false');
+                    trigger.focus();
+                }
+            } else if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                const options = Array.from(event.target.parentElement.querySelectorAll('.dropdown-option'));
+                const currentIndex = options.indexOf(event.target);
+                const nextIndex = (currentIndex + 1) % options.length;
+                options[nextIndex].focus();
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                const options = Array.from(event.target.parentElement.querySelectorAll('.dropdown-option'));
+                const currentIndex = options.indexOf(event.target);
+                const prevIndex = (currentIndex - 1 + options.length) % options.length;
+                options[prevIndex].focus();
+            }
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.dropdown')) {
+                document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+                document.querySelectorAll('.dropdown-trigger.active').forEach(t => t.classList.remove('active'));
+            }
+        });
+
+        function selectRefreshOption(value) {
+            const texts = {0: 'Manual Refresh', 5000: '5s', 10000: '10s', 30000: '30s', 60000: '1m'};
+            const select = document.getElementById('auto-refresh-select');
+            const trigger = document.getElementById('refresh-dropdown-trigger');
+            const menu = document.getElementById('refresh-dropdown-menu');
+            const options = menu.querySelectorAll('.dropdown-option');
+            
+            if (select) select.value = value;
+            options.forEach(opt => opt.classList.remove('selected'));
+            const selectedOption = Array.from(options).find(opt => opt.dataset.value === value.toString());
+            if (selectedOption) {
+                selectedOption.classList.add('selected');
+                trigger.querySelector('#refresh-dropdown-text').textContent = texts[value] || '10s';
+            }
+            
+            localStorage.setItem('autoRefreshInterval', value.toString());
+            
+            document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+            document.querySelectorAll('.dropdown-trigger.active').forEach(t => t.classList.remove('active'));
+            updateAutoRefresh();
+        }
 
         function updateAutoRefresh() {
             const select = document.getElementById('auto-refresh-select');
-            const statusEl = document.getElementById('auto-refresh-status');
             const interval = parseInt(select.value);
+            if (refreshInterval) clearInterval(refreshInterval);
+            if (countdownInterval) clearInterval(countdownInterval);
+            if (chartUpdateInterval) clearInterval(chartUpdateInterval);
 
-            // Clear existing intervals
-            if (refreshInterval) {
-                clearInterval(refreshInterval);
-                refreshInterval = null;
+            if (select && select.value) {
+                localStorage.setItem('autoRefreshInterval', select.value);
             }
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
-                countdownInterval = null;
-            }
-
-            currentRefreshInterval = interval;
 
             if (interval > 0) {
-                // Start auto-refresh
-                statusEl.classList.add('active');
-                refreshInterval = setInterval(refreshDashboard, interval);
+                // Use PollingManager for smart polling
+                refreshInterval = pollingManager.start(refreshDashboard, interval);
+                // Also update charts at the same interval (but independently for faster response)
+                chartUpdateInterval = pollingManager.start(() => {
+                    updateChartsOnly();
+                }, interval);
                 startCountdown(interval);
-            } else {
-                // Disable auto-refresh
-                statusEl.classList.remove('active');
-                statusEl.innerHTML = 'Auto-refresh disabled';
+                } else {
+                document.getElementById('refresh-countdown').textContent = '--';
             }
         }
 
         function startCountdown(intervalMs) {
-            const statusEl = document.getElementById('auto-refresh-status');
-            const countdownEl = document.getElementById('refresh-countdown');
+            const el = document.getElementById('refresh-countdown');
             let seconds = Math.floor(intervalMs / 1000);
-
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
-            }
-
-            countdownInterval = setInterval(() => {
+            el.textContent = seconds;
+            countdownInterval = pollingManager.start(() => {
                 seconds--;
-                if (seconds <= 0) {
-                    seconds = Math.floor(intervalMs / 1000);
-                }
-                countdownEl.textContent = seconds;
+                if (seconds <= 0) seconds = Math.floor(intervalMs / 1000);
+                el.textContent = seconds;
             }, 1000);
         }
 
         async function refreshDashboard() {
+            if (isFetching) return;
+            isFetching = true;
+
             try {
-                // Use Promise.allSettled to prevent one failing request from blocking others
-                // Note: loadActiveExecutions is handled separately via SSE/polling
-                const results = await Promise.allSettled([
-                    loadOverviewMetrics(),
+                // Fetch shared data once to avoid duplicate API calls
+                const days = getSelectedDays() || 30;
+                const cacheBuster = Date.now();
+                const [overviewRes, trendsRes] = await Promise.all([
+                    authenticatedFetch(`/api/v1/test-execution/dashboard/overview?days=${days}&_t=${cacheBuster}`),
+                    authenticatedFetch(`/api/v1/test-execution/dashboard/execution-trends?days=${Math.min(days, 30)}&_t=${cacheBuster}`)
+                ]);
+                
+                const overviewData = overviewRes.ok ? await parseJsonResponse(overviewRes) : null;
+                const trendsData = trendsRes.ok ? await parseJsonResponse(trendsRes) : null;
+                
+                // Update all components in parallel with shared data
+                await Promise.allSettled([
+                    loadOverviewMetrics(overviewData, trendsData),
                     loadRecentExecutions(),
                     loadDatabaseHealth(),
                     loadDatabaseOperations(),
-                    updateCharts()
+                    updateCharts(overviewData, trendsData)
                 ]);
-                
-                // Check if any critical requests failed
-                const hasFailures = results.some(result => result.status === 'rejected');
-                if (hasFailures) {
-                    const failed = results.filter(r => r.status === 'rejected');
-                    console.warn('Some requests failed:', failed.map(r => r.reason));
-                }
-                
-                updateSystemStatus(!hasFailures);
-            } catch (error) {
-                console.error('Error refreshing dashboard:', error);
-                updateSystemStatus(false);
-                // Don't show error on every refresh to avoid spam
+                updateSystemStatus(true);
+            } catch (e) { 
+                updateSystemStatus(false); 
+            } finally {
+                isFetching = false;
             }
         }
 
-        async function loadOverviewMetrics() {
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 8000);
-                
-                const response = await fetch('/api/v1/test-execution/dashboard/overview?' + new URLSearchParams({
-                    _t: Date.now()
-                }), {
-                    signal: controller.signal,
-                    headers: {
-                        'Cache-Control': 'no-cache',
-                        'Pragma': 'no-cache'
-                    }
-                });
-                
-                clearTimeout(timeoutId);
-                
-                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-
-                const data = await response.json();
-                updateOverviewMetrics(data);
-            } catch (error) {
-                if (error.name === 'AbortError') {
-                    console.error('Overview metrics request timed out');
-                } else {
-                    console.error('Error loading overview metrics:', error);
-                }
-                const metricsContainer = document.getElementById('overview-metrics');
-                if (metricsContainer) {
-                    metricsContainer.innerHTML =
-                        '<div class="error-message">Failed to load overview metrics</div>';
-                }
+        function updateSystemStatus(isOnline) {
+            const el = document.querySelector('.system-status');
+            const text = el.querySelector('span');
+            if(isOnline) {
+                el.classList.remove('status-error');
+                text.textContent = 'System Online';
+            } else {
+                el.classList.add('status-error');
+                text.textContent = 'Connection Issue';
             }
         }
 
-        function updateOverviewMetrics(data) {
-            const metricsContainer = document.getElementById('overview-metrics');
-            const successRate = document.getElementById('success-rate');
-
-            metricsContainer.innerHTML = `
-                <div class="metric total">
-                    <div class="metric-value">${data.totalExecutions.toLocaleString()}</div>
-                    <div class="metric-label">Total Executions</div>
-                </div>
-                <div class="metric total">
-                    <div class="metric-value">${data.totalTests.toLocaleString()}</div>
-                    <div class="metric-label">Total Tests</div>
-                </div>
-                <div class="metric success">
-                    <div class="metric-value">${data.passedTests.toLocaleString()}</div>
-                    <div class="metric-label">Passed</div>
-                </div>
-                <div class="metric danger">
-                    <div class="metric-value">${data.failedTests.toLocaleString()}</div>
-                    <div class="metric-label">Failed</div>
-                </div>
-                <div class="metric warning">
-                    <div class="metric-value">${data.skippedTests.toLocaleString()}</div>
-                    <div class="metric-label">Skipped</div>
-                </div>
-                <div class="metric info">
-                    <div class="metric-value">${data.runningTests.toLocaleString()}</div>
-                    <div class="metric-label">Running</div>
-                </div>
-            `;
-
-            const rate = data.successRate.toFixed(1);
-            successRate.textContent = `${rate}%`;
+        async function loadOverviewMetrics(overviewData = null, trendsData = null) {
+            // Use provided data or fetch if not provided (for backward compatibility)
+            if (!overviewData) {
+                const days = getSelectedDays() || 30;
+                const cacheBuster = Date.now();
+                const [overviewRes, trendsRes] = await Promise.all([
+                    authenticatedFetch(`/api/v1/test-execution/dashboard/overview?days=${days}&_t=${cacheBuster}`),
+                    authenticatedFetch(`/api/v1/test-execution/dashboard/execution-trends?days=${Math.min(days, 30)}&_t=${cacheBuster}`)
+                ]);
+                overviewData = overviewRes.ok ? await parseJsonResponse(overviewRes) : null;
+                trendsData = trendsRes.ok ? await parseJsonResponse(trendsRes) : null;
+            }
             
-            const circle = document.getElementById('success-circle');
-            const circumference = 502.4;
-            const offset = circumference - (rate / 100 * circumference);
-            circle.style.strokeDashoffset = offset;
+            if(overviewData) {
+                const data = overviewData;
+                const container = document.getElementById('overview-metrics');
+                
+                const metrics = [
+                    { value: data.totalExecutions ?? 0, label: 'Total Runs', className: '', sparklineKey: 'totalRuns' },
+                    { value: data.totalTests ?? 0, label: 'Total Tests', className: '', sparklineKey: 'totalTests' },
+                    { value: data.passedTests ?? 0, label: 'Passed', className: 'text-success', sparklineKey: 'passed' },
+                    { value: data.failedTests ?? 0, label: 'Failed', className: 'text-danger', sparklineKey: 'failed' },
+                    { value: data.skippedTests ?? 0, label: 'Skipped', className: 'text-warning', sparklineKey: 'skipped' },
+                    { value: data.runningTests ?? 0, label: 'Running', className: 'text-info', sparklineKey: 'running' }
+                ];
+                
+                const loadingOverlay = container.querySelector('.loading-overlay');
+                if (loadingOverlay) {
+                    loadingOverlay.remove();
+                }
+                
+                requestAnimationFrame(() => {
+                    metrics.forEach((metric, index) => {
+                        let item = container.children[index];
+                        const sparklineId = `sparkline-${metric.label.toLowerCase().replace(/\s+/g, '-')}-${index}`;
+                        
+                        if (!item || !item.classList.contains('metric-item')) {
+                            item = document.createElement('div');
+                            item.className = 'metric-item';
+                            item.innerHTML = `
+                                <div class="metric-value ${metric.className}"></div>
+                                <div class="metric-label">${metric.label}</div>
+                                <canvas id="${sparklineId}" class="sparkline-canvas" style="width: 100%; height: 32px; margin-top: 8px;"></canvas>
+                            `;
+                            container.appendChild(item);
+                        }
+                        
+                        // Get real sparkline data from trends
+                        let sparklineData = [];
+                        if (trendsData) {
+                            switch(metric.sparklineKey) {
+                                case 'passed':
+                                    sparklineData = trendsData.passedData || [];
+                                    break;
+                                case 'failed':
+                                    sparklineData = trendsData.failedData || [];
+                                    break;
+                                case 'skipped':
+                                    sparklineData = trendsData.skippedData || [];
+                                    break;
+                                case 'totalTests':
+                                    // Calculate total tests as sum of passed + failed + skipped per day
+                                    const passed = trendsData.passedData || [];
+                                    const failed = trendsData.failedData || [];
+                                    const skipped = trendsData.skippedData || [];
+                                    sparklineData = passed.map((p, i) => (p || 0) + (failed[i] || 0) + (skipped[i] || 0));
+                                    break;
+                                case 'totalRuns':
+                                    // Use real execution counts per day from API
+                                    sparklineData = trendsData.executionCountsData || [];
+                                    break;
+                                case 'running':
+                                    // Use real running tests per day from API
+                                    sparklineData = trendsData.runningData || [];
+                                    break;
+                                default:
+                                    sparklineData = [];
+                            }
+                        }
+                        
+                        // If no trends data or empty, use zeros instead of random data
+                        if (sparklineData.length === 0) {
+                            sparklineData = Array(7).fill(0);
+                        }
+                        
+                        // Update sparkline chart immediately (canvas is already ready)
+                        const color = metric.className.includes('success') ? '#10b981' : 
+                                    metric.className.includes('danger') ? '#ef4444' : 
+                                    metric.className.includes('warning') ? '#f59e0b' : '#3b82f6';
+                        createSparklineChart(sparklineId, sparklineData, color);
+                        
+                        const valueEl = item.querySelector('.metric-value');
+                        if (valueEl) {
+                            const oldValue = parseInt(valueEl.textContent) || 0;
+                            const newValue = metric.value;
+                            if (oldValue !== newValue) {
+                                animateValue(valueEl, oldValue, newValue, 300);
+                            } else {
+                                valueEl.textContent = newValue;
+                            }
+                            valueEl.className = `metric-value ${metric.className}`;
+                        }
+                    });
+                    
+                    const itemsToRemove = Array.from(container.children).slice(metrics.length);
+                    itemsToRemove.forEach(item => {
+                        if (!item.classList.contains('metric-item')) {
+                            item.remove();
+                        }
+                    });
+                });
 
+                const rate = (data.successRate ?? 0).toFixed(1);
+                const rateEl = document.getElementById('success-rate');
+                if (rateEl && rateEl.textContent !== `${rate}%`) {
+                    requestAnimationFrame(() => {
+                        rateEl.textContent = `${rate}%`;
+                    });
+                }
+                updateSuccessRateChart(data.successRate ?? 0);
+            }
+        }
+        
+        function animateValue(element, start, end, duration) {
+            if (element.dataset.animationId) {
+                cancelAnimationFrame(parseInt(element.dataset.animationId));
+            }
+            
+            const startTime = performance.now();
+            const change = end - start;
+            
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const ease = 1 - Math.pow(1 - progress, 3);
+                
+                const current = Math.floor(start + change * ease);
+                element.textContent = current;
+                
+                if (progress < 1) {
+                    element.dataset.animationId = requestAnimationFrame(update);
+                } else {
+                    element.textContent = end;
+                    delete element.dataset.animationId;
+                }
+            }
+            element.dataset.animationId = requestAnimationFrame(update);
+        }
+
+        function updateSuccessRateChart(rate) {
+            const canvas = document.getElementById('successRateChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            const width = canvas.width || canvas.offsetWidth || 200;
+            const height = canvas.height || canvas.offsetHeight || 200;
+            
+            if(successRateChart) {
+                const successPercentage = Math.min(100, Math.max(0, rate));
+                const remainingPercentage = 100 - successPercentage;
+                successRateChart.data.datasets[0].data = [successPercentage, remainingPercentage];
+                
+                const chartArea = successRateChart.chartArea;
+                if (chartArea && width > 0 && height > 0) {
+                    const gradient = ctx.createLinearGradient(0, 0, width, height);
+                    gradient.addColorStop(0, '#06b6d4');
+                    gradient.addColorStop(0.5, '#8b5cf6');
+                    gradient.addColorStop(1, '#ec4899');
+                    successRateChart.data.datasets[0].backgroundColor[0] = gradient;
+                }
+                
+                successRateChart.update('none');
+                return;
+            }
+            
+            const successPercentage = Math.min(100, Math.max(0, rate));
+            const remainingPercentage = 100 - successPercentage;
+            
+            const gradient = ctx.createLinearGradient(0, 0, width, height);
+            gradient.addColorStop(0, '#06b6d4');
+            gradient.addColorStop(0.5, '#8b5cf6');
+            gradient.addColorStop(1, '#ec4899');
+            
+            const borderGradient = ctx.createLinearGradient(0, 0, width, height);
+            borderGradient.addColorStop(0, '#06b6d4');
+            borderGradient.addColorStop(1, '#ec4899');
+            
+            successRateChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [successPercentage, remainingPercentage],
+                        backgroundColor: [
+                            gradient,
+                            'rgba(30, 41, 59, 0.8)'
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 1,
+                    cutout: '70%',
+                    rotation: -90,
+                    circumference: 360,
+                    layout: {
+                        padding: {
+                            top: 10,
+                            bottom: 10,
+                            left: 10,
+                            right: 10
+                        }
+                    },
+                    animation: isFirstChartLoad && !chartsInitialized ? {
+                        animateRotate: true,
+                        animateScale: true,
+                        duration: 1200,
+                        easing: 'easeOutQuart'
+                    } : {
+                        duration: 0  // No animation on refresh to prevent flickering
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: false
+                        }
+                    },
+                    onResize: (chart) => {
+                        // Recalculate gradients on resize
+                        const canvas = chart.canvas;
+                        const ctx = canvas.getContext('2d');
+                        const width = canvas.width || canvas.offsetWidth || 200;
+                        const height = canvas.height || canvas.offsetHeight || 200;
+                        if (width > 0 && height > 0) {
+                            const gradient = ctx.createLinearGradient(0, 0, width, height);
+                            gradient.addColorStop(0, '#06b6d4');
+                            gradient.addColorStop(0.5, '#8b5cf6');
+                            gradient.addColorStop(1, '#ec4899');
+                            chart.data.datasets[0].backgroundColor[0] = gradient;
+                        }
+                    }
+                },
+                plugins: [{
+                    id: 'successRateBorder',
+                    afterLayout: (chart) => {
+                        const canvas = chart.canvas;
+                        const ctx = canvas.getContext('2d');
+                        const width = canvas.width || canvas.offsetWidth || 200;
+                        const height = canvas.height || canvas.offsetHeight || 200;
+                        if (width > 0 && height > 0) {
+                            const gradient = ctx.createLinearGradient(0, 0, width, height);
+                            gradient.addColorStop(0, '#06b6d4');
+                            gradient.addColorStop(0.5, '#8b5cf6');
+                            gradient.addColorStop(1, '#ec4899');
+                            chart.data.datasets[0].backgroundColor[0] = gradient;
+                        }
+                    },
+                    afterDraw: (chart) => {
+                        const ctx = chart.ctx;
+                        const chartArea = chart.chartArea;
+                        const centerX = (chartArea.left + chartArea.right) / 2;
+                        const centerY = (chartArea.top + chartArea.bottom) / 2;
+                        const radius = Math.min(chartArea.right - chartArea.left, chartArea.bottom - chartArea.top) / 2;
+                        const data = chart.data.datasets[0].data[0];
+                        const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                        const progressAngle = (data / total) * Math.PI * 2;
+                        
+                        ctx.save();
+                        ctx.strokeStyle = 'rgba(236, 72, 153, 0.4)';
+                        ctx.lineWidth = 8;
+                        ctx.lineCap = 'round';
+                        ctx.shadowColor = 'rgba(236, 72, 153, 0.6)';
+                        ctx.shadowBlur = 16;
+                        ctx.shadowOffsetX = 0;
+                        ctx.shadowOffsetY = 0;
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY, radius + 4, -Math.PI / 2, -Math.PI / 2 + progressAngle);
+                        ctx.stroke();
+                        ctx.restore();
+                        
+                        ctx.save();
+                        ctx.strokeStyle = '#ec4899';
+                        ctx.lineWidth = 3;
+                        ctx.shadowColor = 'rgba(236, 72, 153, 0.5)';
+                        ctx.shadowBlur = 8;
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                }]
+            });
+            chartsInitialized = true;
+            isFirstChartLoad = false;
         }
 
         function connectActiveExecutionsSSE() {
-            const activeExecEl = document.getElementById('active-executions');
-            if (!activeExecEl) {
-                return;
-            }
+                const token = getAuthToken();
+            if(!token) return;
+            
+            fetch('/api/v1/test-execution/dashboard/active/live', {
+                headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'text/event-stream' }
+            }).then(response => {
+                if(response.ok) {
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                    readStream(reader, decoder);
+                } else startActiveExecutionsPolling();
+            }).catch(startActiveExecutionsPolling);
+        }
 
-            // Close existing connection if any
-            if (activeExecutionsEventSource) {
-                activeExecutionsEventSource.close();
-                activeExecutionsEventSource = null;
-            }
-
-            try {
-                // Connect to SSE endpoint for real-time updates
-                const sseUrl = '/api/v1/test-execution/dashboard/active/live';
-                activeExecutionsEventSource = new EventSource(sseUrl);
-
-                let connectionTimeout = setTimeout(() => {
-                    if (activeExecutionsEventSource && activeExecutionsEventSource.readyState === EventSource.CONNECTING) {
-                        activeExecutionsEventSource.close();
-                        activeExecutionsEventSource = null;
-                        startActiveExecutionsPolling();
-                    }
-                }, 10000); // 10 second timeout
-
-                activeExecutionsEventSource.onmessage = function(event) {
-                    clearTimeout(connectionTimeout);
-                    try {
-                        // Parse JSON data
-                        let data;
-                        try {
-                            data = JSON.parse(event.data);
-                        } catch (e) {
-                            return; // Ignore invalid JSON
-                        }
-                        
-                        // The backend sends an array of RecentExecutionDto objects
-                        let activeCount = 0;
-                        if (Array.isArray(data)) {
-                            activeCount = data.length;
-                        } else if (data && typeof data === 'object') {
-                            // Handle object responses
-                            if (data.activeExecutions !== undefined) {
-                                activeCount = data.activeExecutions;
-                            } else if (Array.isArray(data.executions)) {
-                                activeCount = data.executions.length;
-                            } else if (typeof data.length === 'number') {
-                                activeCount = data.length;
-                            }
-                        } else if (typeof data === 'number') {
-                            activeCount = data;
-                        } else if (typeof data === 'string') {
-                            const parsed = parseInt(data, 10);
-                            if (!isNaN(parsed)) {
-                                activeCount = parsed;
-                            }
-                        }
-                        
-                        if (activeExecEl) {
-                            activeExecEl.textContent = activeCount.toLocaleString();
-                        }
-                    } catch (parseError) {
-                        console.error('Error processing active executions SSE data:', parseError);
-                    }
-                };
-
-                activeExecutionsEventSource.onerror = function(error) {
-                    clearTimeout(connectionTimeout);
-                    const readyState = activeExecutionsEventSource?.readyState;
+        async function readStream(reader, decoder) {
+            let buffer = '';
+            
+            while(true) {
+                try {
+                    const {done, value} = await reader.read();
+                    if(done) break;
                     
-                    // EventSource.CONNECTING = 0, OPEN = 1, CLOSED = 2
-                    if (readyState === EventSource.CLOSED) {
-                        activeExecutionsEventSource = null;
-                        startActiveExecutionsPolling();
+                    const chunk = decoder.decode(value, {stream: true});
+                    buffer += chunk;
+                    
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+                    
+                    for(const line of lines) {
+                        if(line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.substring(6));
+                                let count = typeof data === 'number' ? data : (data.count || data.length || 0);
+                                document.getElementById('active-executions').textContent = count;
+                                
+                                // Trigger immediate chart update when active executions change
+                                // This indicates test data has changed, so charts need refresh
+                                updateChartsOnly();
+                            } catch(e) {
+                                console.warn('SSE Parse Error', e);
+                            }
+                        }
                     }
-                };
-
-                activeExecutionsEventSource.onopen = function() {
-                    clearTimeout(connectionTimeout);
-                    // Fetch initial data immediately
-                    loadActiveExecutionsFallback();
-                };
-
-            } catch (error) {
-                clearTimeout(connectionTimeout);
-                console.error('Failed to establish SSE connection for active executions:', error);
-                // Fallback to polling if SSE fails
-                startActiveExecutionsPolling();
+                } catch(error) {
+                    console.error('SSE stream error:', error);
+                    startActiveExecutionsPolling();
+                    break;
+                }
             }
         }
 
         function startActiveExecutionsPolling() {
-            // Stop existing polling if any
-            if (activeExecutionsPollInterval) {
-                clearInterval(activeExecutionsPollInterval);
-                activeExecutionsPollInterval = null;
-            }
-
-            // Poll every 3 seconds
-            loadActiveExecutionsFallback(); // Load immediately
-            activeExecutionsPollInterval = setInterval(() => {
-                loadActiveExecutionsFallback();
-            }, 3000);
+            if(activeExecutionsPollInterval) clearInterval(activeExecutionsPollInterval);
+            loadActiveCount();
+            activeExecutionsPollInterval = pollingManager.start(loadActiveCount, 3000);
         }
 
-        async function loadActiveExecutionsFallback() {
-            const activeExecEl = document.getElementById('active-executions');
-            if (!activeExecEl) {
-                return;
-            }
-            
+        async function loadActiveCount() {
             try {
-                const url = '/api/v1/test-execution/dashboard/active?' + new URLSearchParams({
-                    _t: Date.now()
-                });
-                
-                // Fallback polling method (used if SSE fails)
-                const response = await fetch(url, {
-                    method: 'GET',
-                    cache: 'no-store',
-                    headers: {
-                        'Cache-Control': 'no-cache'
+                const res = await authenticatedFetch('/api/v1/test-execution/dashboard/active?_t=' + Date.now());
+                if(res.ok) {
+                    const data = await parseJsonResponse(res);
+                    let count = typeof data === 'number' ? data : (Array.isArray(data) ? data.length : (data.count || 0));
+                    const oldCount = parseInt(document.getElementById('active-executions').textContent) || 0;
+                    document.getElementById('active-executions').textContent = count;
+                    
+                    // If count changed, trigger immediate chart update
+                    if (count !== oldCount) {
+                        updateChartsOnly();
                     }
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                
-                // The backend returns an array of RecentExecutionDto objects
-                let activeCount = 0;
-                if (Array.isArray(data)) {
-                    activeCount = data.length;
-                } else if (data && typeof data === 'object') {
-                    if (data.activeExecutions !== undefined) {
-                        activeCount = data.activeExecutions;
-                    } else if (Array.isArray(data.executions)) {
-                        activeCount = data.executions.length;
-                    } else if (typeof data.length === 'number') {
-                        activeCount = data.length;
+                } else if (res.status === 401 || res.status === 403) {
+                    console.warn('Authentication expired during active count poll - pausing polling');
+                    if (activeExecutionsPollInterval) {
+                        clearInterval(activeExecutionsPollInterval);
+                        activeExecutionsPollInterval = null;
                     }
-                } else if (typeof data === 'number') {
-                    activeCount = data;
-                }
-                
-                if (activeExecEl) {
-                    activeExecEl.textContent = activeCount.toLocaleString();
                 }
             } catch (error) {
-                // Don't update the UI on error, keep previous value
-                // Only log actual errors (not network issues)
-                if (error.name !== 'AbortError' && !error.message.includes('fetch')) {
-                    console.error('Error polling active executions:', error);
-                }
+                console.error('Failed to load active count:', error);
             }
         }
 
-        // Keep this for compatibility but it's mainly used as fallback
-        async function loadActiveExecutions() {
-            // SSE handles real-time updates, this is just a one-time fetch if needed
-            await loadActiveExecutionsFallback();
+        async function loadDatabaseHealth() {
+            const res = await authenticatedFetch('/api/v1/test-execution/dashboard/database-health?_t=' + Date.now());
+            if(res.ok) {
+                const data = await parseJsonResponse(res);
+                const container = document.getElementById('database-health');
+                const connStatus = data.connectionStatus || 'UNKNOWN';
+                const statusColor = connStatus === 'HEALTHY' ? 'text-success' : 'text-danger';
+                
+                const metrics = [
+                    { value: connStatus, label: 'Status', className: statusColor },
+                    { value: (data.tableStatistics ?? []).length, label: 'Tables', className: '' },
+                    { value: `${(data.performanceMetrics?.cacheHitRatio ?? 0).toFixed(1)}%`, label: 'Cache Hit', className: 'text-success' },
+                    { value: data.connectionPoolStatus?.activeConnections ?? 0, label: 'Active Conn', className: '' }
+                ];
+                
+                const loadingOverlay = container.querySelector('.loading-overlay');
+                if (loadingOverlay) {
+                    loadingOverlay.remove();
+                }
+                
+                requestAnimationFrame(() => {
+                    metrics.forEach((metric, index) => {
+                        let item = container.children[index];
+                        if (!item || !item.classList.contains('metric-item')) {
+                            item = document.createElement('div');
+                            item.className = 'metric-item';
+                            item.innerHTML = `<div class="metric-value ${metric.className}"></div><div class="metric-label">${metric.label}</div>`;
+                            container.appendChild(item);
+                        }
+                        const valueEl = item.querySelector('.metric-value');
+                        if (valueEl) {
+                            valueEl.textContent = metric.value;
+                            valueEl.className = `metric-value ${metric.className}`;
+                        }
+                    });
+                    // Remove extra items (but keep metric-items)
+                    const itemsToRemove = Array.from(container.children).slice(metrics.length);
+                    itemsToRemove.forEach(item => {
+                        if (!item.classList.contains('metric-item')) {
+                            item.remove();
+                        }
+                    });
+                });
+            }
+        }
+
+        async function loadDatabaseOperations() {
+            const res = await authenticatedFetch('/api/v1/test-execution/dashboard/database-operations?_t=' + Date.now());
+            if(res.ok) {
+                const data = await parseJsonResponse(res);
+                const container = document.getElementById('database-operations');
+                
+                const metrics = [
+                    { value: data.totalInserts ?? 0, label: 'Inserts', className: 'text-info' },
+                    { value: data.totalUpdates ?? 0, label: 'Updates', className: 'text-primary' },
+                    { value: data.totalSelects ?? 0, label: 'Selects', className: 'text-success' },
+                    { value: data.totalDeletes ?? 0, label: 'Deletes', className: 'text-warning' }
+                ];
+                
+                // Remove loading overlay if present
+                const loadingOverlay = container.querySelector('.loading-overlay');
+                if (loadingOverlay) {
+                    loadingOverlay.remove();
+                }
+                
+                requestAnimationFrame(() => {
+                    metrics.forEach((metric, index) => {
+                        let item = container.children[index];
+                        if (!item || !item.classList.contains('metric-item')) {
+                            item = document.createElement('div');
+                            item.className = 'metric-item';
+                            item.innerHTML = `<div class="metric-value ${metric.className}"></div><div class="metric-label">${metric.label}</div>`;
+                            container.appendChild(item);
+                        }
+                        const valueEl = item.querySelector('.metric-value');
+                        if (valueEl) {
+                            const oldValue = parseInt(valueEl.textContent) || 0;
+                            const newValue = metric.value;
+                            if (oldValue !== newValue) {
+                                animateValue(valueEl, oldValue, newValue, 300);
+                            } else {
+                                valueEl.textContent = newValue;
+                            }
+                            valueEl.className = `metric-value ${metric.className}`;
+                        }
+                    });
+                    const itemsToRemove = Array.from(container.children).slice(metrics.length);
+                    itemsToRemove.forEach(item => {
+                        if (!item.classList.contains('metric-item')) {
+                            item.remove();
+                        }
+                    });
+                });
+            }
+        }
+
+        // Fast chart-only update (doesn't fetch data, uses existing or fetches fresh)
+        let isChartUpdating = false;
+        let lastChartDataHash = null; // Track data to prevent unnecessary updates
+        
+        async function updateChartsOnly() {
+            // Don't block on full refresh, but prevent concurrent chart updates
+            if (isChartUpdating) return;
+            isChartUpdating = true;
+            try {
+                await updateCharts();
+            } finally {
+                isChartUpdating = false;
+            }
+        }
+        
+        // Simple hash function to detect data changes
+        function hashData(data) {
+            if (!data) return null;
+            return JSON.stringify({
+                labels: data.labels?.slice(-7) || [],
+                passed: data.passedData?.slice(-7) || [],
+                failed: data.failedData?.slice(-7) || []
+            });
+        }
+        
+        // Charts update with auto-refresh, no separate interval needed
+        
+        async function updateCharts(overviewData = null, trendsResponse = null) {
+            
+            // Use provided data or fetch if not provided (for backward compatibility)
+            let overview, trendsData;
+            if (!overviewData || !trendsResponse) {
+                const days = getSelectedDays() || 30;
+                const cacheBuster = Date.now();
+                try {
+                    [overview, trendsData] = await Promise.all([
+                        authenticatedFetch(`/api/v1/test-execution/dashboard/overview?days=${days}&_t=${cacheBuster}`).then(async r => r.ok ? await parseJsonResponse(r) : { passedTests: 0, failedTests: 0, skippedTests: 0, runningTests: 0 }),
+                        authenticatedFetch(`/api/v1/test-execution/dashboard/execution-trends?days=7&_t=${cacheBuster}`).then(async r => {
+                            if (r.ok) {
+                                return await parseJsonResponse(r);
+                            } else {
+                                console.warn('Trends API returned non-OK status:', r.status);
+                                return { labels: [], passedData: [], failedData: [], skippedData: [] };
+                            }
+                        })
+                    ]);
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                    return;
+                }
+            } else {
+                overview = overviewData;
+                trendsData = trendsResponse;
+            }
+            
+            // Check if data actually changed to prevent unnecessary updates
+            const dataHash = hashData(trendsData);
+            const dataChanged = dataHash !== lastChartDataHash;
+            if (dataChanged) {
+                lastChartDataHash = dataHash;
+            }
+            
+            // Data validation - ensure we have valid trends data
+            if (!trendsData || !trendsData.labels || !trendsData.passedData || !trendsData.failedData) {
+                console.warn('Invalid trends data received, skipping chart update');
+                return;
+            }
+            // --- 1. Update Distribution Chart with 3D Depth Effects ---
+            const canvasDist = document.getElementById('testDistributionChart');
+            if (canvasDist) {
+                const ctxDist = canvasDist.getContext('2d');
+                
+                // Use totalTests from API (now guaranteed to equal passed + failed + skipped + running)
+                const totalTests = overview.totalTests ?? (overview.passedTests + overview.failedTests + overview.skippedTests + overview.runningTests);
+                document.getElementById('distribution-total').textContent = totalTests;
+                
+                // Use cached gradient creation
+                const gradients = createDistributionGradients(
+                    ctxDist, 
+                    ctxDist.canvas.width, 
+                    ctxDist.canvas.height, 
+                    'testDistributionChart'
+                );
+                const distPassedGradient = gradients.passed;
+                const distFailedGradient = gradients.failed;
+                const distSkippedGradient = gradients.skipped;
+                const distRunningGradient = gradients.running;
+                
+                // Define segment colors for spider labels (matching the gradient colors)
+                const segmentColors = [
+                    '#06b6d4',  // Passed: Cyan/Teal
+                    '#f97316',  // Failed: Coral Orange
+                    '#fbbf24',  // Skipped: Golden Yellow
+                    '#a855f7'   // Running: Purple/Magenta
+                ];
+                
+                // MONITORING DASHBOARD - L-Shaped Spider Labels with PROPER SLANT
+                const spiderLabelPlugin = {
+                    id: 'spiderLabels',
+                    afterDraw: (chart) => {
+                        const ctx = chart.ctx;
+                        const chartArea = chart.chartArea;
+                        const centerX = (chartArea.left + chartArea.right) / 2;
+                        const centerY = (chartArea.top + chartArea.bottom) / 2;
+                        const radius = Math.min(chartArea.right - chartArea.left, chartArea.bottom - chartArea.top) / 2;
+                        const outerRadius = radius;
+                        
+                        const chartData = chart.data.datasets[0].data;
+                        const labels = chart.data.labels;
+                        const total = chartData.reduce((a, b) => a + b, 0);
+                        
+                        if (total === 0) return;
+                        
+                        const textColor = '#ffffff';
+                        let currentAngle = -Math.PI / 2; // Start at top
+                        const gapAngle = (Math.PI * 2) * 0.01;
+                        
+                        chartData.forEach((value, index) => {
+                            if (value === 0) {
+                                const segmentAngle = (value / total) * (Math.PI * 2 - gapAngle * chartData.filter(d => d > 0).length);
+                                currentAngle += segmentAngle + gapAngle;
+                                return;
+                            }
+                            
+                            const segmentAngle = (value / total) * (Math.PI * 2 - gapAngle * chartData.filter(d => d > 0).length);
+                            const midAngle = currentAngle + segmentAngle / 2;
+                            
+                            // Get segment color
+                            let segmentColor = segmentColors[index % segmentColors.length];
+                            if (chart.data.datasets[0].backgroundColor[index]) {
+                                if (typeof chart.data.datasets[0].backgroundColor[index] === 'string') {
+                                    segmentColor = chart.data.datasets[0].backgroundColor[index];
+                                } else {
+                                    segmentColor = segmentColors[index % segmentColors.length];
+                                }
+                            }
+                            
+                            // Intelligently choose starting angle to avoid label truncation
+                            // For segments on left/right sides, prefer angles closer to top/bottom for better label positioning
+                            const segmentStart = currentAngle;
+                            const segmentEnd = currentAngle + segmentAngle;
+                            const isRight = Math.cos(midAngle) >= 0;
+                            
+                            // Calculate candidate angles within the segment
+                            // Try angles at 25%, 50% (mid), and 75% of the segment
+                            const candidateAngles = [
+                                segmentStart + segmentAngle * 0.25,
+                                midAngle,
+                                segmentStart + segmentAngle * 0.75
+                            ];
+                            
+                            // Choose the angle that's most vertical (furthest from horizontal edges)
+                            // This gives more horizontal space for labels on left/right sides
+                            let startAngle = midAngle;
+                            let maxVerticalDistance = 0;
+                            
+                            candidateAngles.forEach(angle => {
+                                // Calculate how vertical this angle is (distance from horizontal center)
+                                const verticalDistance = Math.abs(Math.sin(angle));
+                                // For left/right segments, prefer more vertical angles
+                                if (verticalDistance > maxVerticalDistance) {
+                                    maxVerticalDistance = verticalDistance;
+                                    startAngle = angle;
+                                }
+                            });
+                            
+                            // Recalculate side and direction based on chosen angle
+                            const finalIsRight = Math.cos(startAngle) >= 0;
+                            const finalIsTop = Math.sin(startAngle) < 0;
+                            
+                            // Start point on pie edge using the intelligently chosen angle
+                            const x0 = centerX + Math.cos(startAngle) * (outerRadius + 2);
+                            const y0 = centerY + Math.sin(startAngle) * (outerRadius + 2);
+                            
+                            // Calculate responsive label offsets based on chart radius
+                            const offsets = calculateSpiderLabelOffsets(outerRadius);
+                            const slantLength = offsets.slantLength;
+                            const verticalOffset = finalIsTop ? -offsets.verticalOffset : offsets.verticalOffset;
+                            const x1 = x0 + (finalIsRight ? offsets.horizontalLength : -offsets.horizontalLength);
+                            const y1 = y0 + verticalOffset;
+                            
+                            // HORIZONTAL second leg
+                            const horizontalLength = offsets.horizontalLength;
+                            const x2 = x1 + (finalIsRight ? horizontalLength : -horizontalLength);
+                            const y2 = y1; // Same Y = horizontal
+                            
+                            // Draw thick L-shaped line with glow
+                            ctx.save();
+                            ctx.strokeStyle = segmentColor;
+                            ctx.lineWidth = 2.5;
+                            ctx.lineCap = 'round';
+                            ctx.lineJoin = 'round';
+                            ctx.shadowColor = segmentColor;
+                            ctx.shadowBlur = 12;
+                            
+                            ctx.beginPath();
+                            ctx.moveTo(x0, y0);
+                            ctx.lineTo(x1, y1);
+                            ctx.lineTo(x2, y2);
+                            ctx.stroke();
+                            ctx.restore();
+                            
+                            // Dot at pie edge
+                            ctx.save();
+                            ctx.fillStyle = segmentColor;
+                            ctx.shadowColor = segmentColor;
+                            ctx.shadowBlur = 8;
+                            ctx.beginPath();
+                            ctx.arc(x0, y0, 4, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.restore();
+                            
+                            // Dot at elbow
+                            ctx.save();
+                            ctx.fillStyle = segmentColor;
+                            ctx.shadowColor = segmentColor;
+                            ctx.shadowBlur = 6;
+                            ctx.beginPath();
+                            ctx.arc(x1, y1, 3, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.restore();
+                            
+                            // Bold label text - two lines
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            const labelName = labels[index] || '';
+                            const textX = x2 + (finalIsRight ? 10 : -10);
+                            
+                            ctx.save();
+                            ctx.fillStyle = textColor;
+                            ctx.textAlign = finalIsRight ? 'left' : 'right';
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                            ctx.shadowBlur = 6;
+                            ctx.shadowOffsetX = 2;
+                            ctx.shadowOffsetY = 2;
+                            
+                            // Draw label name (top line)
+                            ctx.font = '900 14px Inter, sans-serif';
+                            ctx.textBaseline = 'bottom';
+                            ctx.fillText(labelName, textX, y2 - 2);
+                            
+                            // Draw percentage (bottom line)
+                            ctx.font = '700 13px Inter, sans-serif';
+                            ctx.textBaseline = 'top';
+                            ctx.fillText(`${percentage}%`, textX, y2 + 2);
+                            
+                            ctx.restore();
+                            
+                            currentAngle += segmentAngle + gapAngle;
+                        });
+                    }
+                };
+                
+                // Distribution Chart with Depth Effects (similar to Trends)
+                const distributionDepthPlugin = {
+                    id: 'distributionDepth',
+                    beforeDraw: (chart) => {
+                        const ctx = chart.ctx;
+                        const chartArea = chart.chartArea;
+                        const centerX = (chartArea.left + chartArea.right) / 2;
+                        const centerY = (chartArea.top + chartArea.bottom) / 2;
+                        const radius = Math.min(chartArea.right - chartArea.left, chartArea.bottom - chartArea.top) / 2;
+                        const innerRadius = radius * 0.80; // Increased from 0.75 to 0.80 for thinner ring
+                        
+                        // Draw inner shadow for depth
+                        ctx.save();
+                        const shadowGradient = ctx.createRadialGradient(centerX, centerY, innerRadius * 0.5, centerX, centerY, innerRadius);
+                        shadowGradient.addColorStop(0, 'rgba(0, 0, 0, 0.4)');
+                        shadowGradient.addColorStop(0.7, 'rgba(0, 0, 0, 0.2)');
+                        shadowGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                        ctx.fillStyle = shadowGradient;
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY, innerRadius, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    },
+                    afterDraw: (chart) => {
+                        const ctx = chart.ctx;
+                        const chartArea = chart.chartArea;
+                        const centerX = (chartArea.left + chartArea.right) / 2;
+                        const centerY = (chartArea.top + chartArea.bottom) / 2;
+                        const radius = Math.min(chartArea.right - chartArea.left, chartArea.bottom - chartArea.top) / 2;
+                        const outerRadius = radius;
+                        const innerRadius = radius * 0.80; // Increased from 0.75 to 0.80 for thinner ring
+                        
+                        const chartData = chart.data.datasets[0].data;
+                        const total = chartData.reduce((a, b) => a + b, 0);
+                        let currentAngle = -Math.PI / 2;
+                        const gapAngle = (Math.PI * 2) * 0.01;
+                        
+                        const glowColors = [
+                            'rgba(6, 182, 212, 0.4)',   // Cyan for Passed
+                            'rgba(249, 115, 22, 0.4)',  // Coral Orange for Failed
+                            'rgba(251, 191, 36, 0.4)',  // Golden Yellow for Skipped
+                            'rgba(168, 85, 247, 0.4)'   // Purple for Running
+                        ];
+                        
+                        // Draw shadow arcs behind segments for depth
+                        chartData.forEach((value, index) => {
+                            if (value === 0) return;
+                            
+                            const segmentAngle = (value / total) * (Math.PI * 2 - gapAngle * chartData.filter(d => d > 0).length);
+                            const glowColor = glowColors[index];
+                            
+                            // Draw shadow arc (offset for depth effect)
+                            ctx.save();
+                            ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+                            ctx.lineWidth = (outerRadius - innerRadius) * 0.9;
+                            ctx.lineCap = 'round';
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                            ctx.shadowBlur = 12;
+                            ctx.shadowOffsetX = 3;
+                            ctx.shadowOffsetY = 4;
+                            ctx.beginPath();
+                            const shadowRadius = (innerRadius + outerRadius) / 2;
+                            ctx.arc(centerX + 2, centerY + 3, shadowRadius, currentAngle, currentAngle + segmentAngle);
+                            ctx.stroke();
+                            ctx.restore();
+                            
+                            // Draw outer glow for depth
+                            ctx.save();
+                            ctx.strokeStyle = glowColor;
+                            ctx.lineWidth = (outerRadius - innerRadius) * 0.3;
+                            ctx.lineCap = 'round';
+                            ctx.shadowColor = glowColor;
+                            ctx.shadowBlur = 20;
+                            ctx.shadowOffsetX = 0;
+                            ctx.shadowOffsetY = 0;
+                            ctx.beginPath();
+                            ctx.arc(centerX, centerY, outerRadius - 2, currentAngle, currentAngle + segmentAngle);
+                            ctx.stroke();
+                            ctx.restore();
+                            
+                            // Draw inner highlight
+                            ctx.save();
+                            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                            ctx.lineWidth = (outerRadius - innerRadius) * 0.2;
+                            ctx.lineCap = 'round';
+                            ctx.beginPath();
+                            ctx.arc(centerX, centerY, innerRadius + 4, currentAngle, currentAngle + segmentAngle);
+                            ctx.stroke();
+                            ctx.restore();
+                            
+                            currentAngle += segmentAngle + gapAngle;
+                        });
+                        
+                        // Subtle inner circle border
+                        ctx.save();
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY, innerRadius, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                };
+                
+                const distData = {
+                    labels: ['Passed', 'Failed', 'Skipped', 'Running'],
+                    datasets: [{
+                        data: [overview.passedTests, overview.failedTests, overview.skippedTests, overview.runningTests],
+                        backgroundColor: [
+                            distPassedGradient,
+                            distFailedGradient,
+                            distSkippedGradient,
+                            distRunningGradient
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4,
+                        spacing: 2
+                    }]
+                };
+                
+                if (testDistributionChart) {
+                    // Update existing chart data
+                    testDistributionChart.data = distData;
+                    // Ensure spider label plugin is registered
+                    if (!testDistributionChart.config.plugins.find(p => p.id === 'spiderLabels')) {
+                        testDistributionChart.config.plugins.push(spiderLabelPlugin);
+                    }
+                    // Ensure layout padding is set for spider labels
+                    if (!testDistributionChart.options.layout) {
+                        testDistributionChart.options.layout = {};
+                    }
+                    if (!testDistributionChart.options.layout.padding) {
+                        testDistributionChart.options.layout.padding = { top: 50, bottom: 50, left: 80, right: 80 };
+                    }
+                    testDistributionChart.update('none');
+                } else if (typeof Chart !== 'undefined') {
+                    // Initialize chart with 3D depth plugin and spider labels
+                    testDistributionChart = new Chart(ctxDist, {
+                        type: 'doughnut',
+                        plugins: [distributionDepthPlugin, spiderLabelPlugin],
+                        data: distData,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '80%', // Increased from 78% to 80% for thinner ring
+                            rotation: -90,
+                            circumference: 360,
+                            layout: {
+                                padding: {
+                                    top: 60,
+                                    bottom: 60,
+                                    left: 90,
+                                    right: 90
+                                }
+                            },
+                            animation: isFirstChartLoad ? {
+                                animateRotate: true,
+                                animateScale: false,
+                                duration: 1200,
+                                easing: 'easeOutCubic'
+                            } : false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    enabled: false
+                                }
+                            },
+                            interaction: {
+                                intersect: false,
+                                mode: null
+                            },
+                            onHover: (event, activeElements) => {
+                                // Prevent hover cursor change
+                                event.native.target.style.cursor = 'default';
+                            }
+                        }
+                    });
+                }
+            }
+
+            // --- 2. Update Trends Chart (THE FIX) ---
+            
+            // Data Prep - Always use last 7 days for trends chart
+            const trends = trendsData || {};
+            let labelsArray = trends.labels || [];
+            let passedData = trends.passedData || [];
+            let failedData = trends.failedData || [];
+            let skippedData = trends.skippedData || [];
+            
+            // Ensure we only use the last 7 days of data (trends chart is always 7 days)
+            if (labelsArray.length > 7) {
+                labelsArray = labelsArray.slice(-7);
+            }
+            if (passedData.length > 7) {
+                passedData = passedData.slice(-7);
+            }
+            if (failedData.length > 7) {
+                failedData = failedData.slice(-7);
+            }
+            if (skippedData.length > 7) {
+                skippedData = skippedData.slice(-7);
+            }
+            
+            // Pad with zeros if data is shorter than 7 days
+            while (labelsArray.length < 7) {
+                labelsArray.push('');
+            }
+            while (passedData.length < 7) {
+                passedData.push(0);
+            }
+            while (failedData.length < 7) {
+                failedData.push(0);
+            }
+            while (skippedData.length < 7) {
+                skippedData.push(0);
+            }
+            const ctxTrends = document.getElementById('executionTrendsChart');
+            if (!ctxTrends || typeof Chart === 'undefined') return;
+            
+            // Helper to generate gradients dynamically based on Chart Area
+            // Use imported createTrendsGradients function
+            
+            // Custom plugin for 3D shadow and glow effects
+            // CRITICAL: This plugin must use chart.data (latest data) not cached meta.data
+            const shadow3DPlugin = {
+                id: 'shadow3D',
+                beforeDatasetsDraw: (chart) => {
+                    const ctx = chart.ctx;
+                    ctx.save();
+                    
+                    // Draw glow for points (behind the actual points)
+                    // Use chart.data to ensure we're using the latest data
+                    chart.data.datasets.forEach((dataset, datasetIndex) => {
+                        const meta = chart.getDatasetMeta(datasetIndex);
+                        // CRITICAL: Only draw if meta has been updated with current data
+                        if (meta.hidden || !meta.data || meta.data.length === 0) return;
+                        
+                        const glowColor = datasetIndex === 0 
+                            ? 'rgba(16, 185, 129, 0.3)' 
+                            : datasetIndex === 1
+                                ? 'rgba(239, 68, 68, 0.3)'
+                                : 'rgba(245, 158, 11, 0.3)';
+                        
+                        meta.data.forEach((point) => {
+                            if (!point || point.skip || point.x == null || isNaN(point.x) || point.y == null || isNaN(point.y)) return;
+                            
+                            // Outer glow ring
+                            const gradient = ctx.createRadialGradient(point.x, point.y, 0, point.x, point.y, 12);
+                            gradient.addColorStop(0, glowColor);
+                            gradient.addColorStop(1, 'transparent');
+                            ctx.fillStyle = gradient;
+                            ctx.beginPath();
+                            ctx.arc(point.x, point.y, 12, 0, Math.PI * 2);
+                            ctx.fill();
+                        });
+                    });
+                    ctx.restore();
+                },
+                afterDatasetsDraw: (chart) => {
+                    const ctx = chart.ctx;
+                    ctx.save();
+                    
+                    // Draw shadow lines for depth effect
+                    // Use chart.data to ensure we're using the latest data
+                    chart.data.datasets.forEach((dataset, datasetIndex) => {
+                        const meta = chart.getDatasetMeta(datasetIndex);
+                        // CRITICAL: Only draw if meta has been updated with current data
+                        if (meta.hidden || !meta.data || meta.data.length === 0) return;
+                        
+                        const shadowColor = datasetIndex === 0 
+                            ? 'rgba(16, 185, 129, 0.25)' 
+                            : datasetIndex === 1
+                                ? 'rgba(239, 68, 68, 0.25)'
+                                : 'rgba(245, 158, 11, 0.25)';
+                        
+                        ctx.strokeStyle = shadowColor;
+                        ctx.lineWidth = 4;
+                        ctx.lineCap = 'round';
+                        ctx.lineJoin = 'round';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+                        ctx.shadowBlur = 10;
+                        ctx.shadowOffsetX = 2;
+                        ctx.shadowOffsetY = 4;
+                        
+                        ctx.beginPath();
+                        const firstPoint = meta.data[0];
+                        if (firstPoint && firstPoint.x != null && !isNaN(firstPoint.x) && firstPoint.y != null && !isNaN(firstPoint.y)) {
+                            ctx.moveTo(firstPoint.x + 2, firstPoint.y + 4);
+                            for (let i = 1; i < meta.data.length; i++) {
+                                const point = meta.data[i];
+                                if (!point || point.skip || point.x == null || isNaN(point.x) || point.y == null || isNaN(point.y)) continue;
+                                ctx.lineTo(point.x + 2, point.y + 4);
+                            }
+                            ctx.stroke();
+                        }
+                        
+                        // Draw shadow for points
+                        meta.data.forEach((point) => {
+                            if (!point || point.skip || point.x == null || isNaN(point.x) || point.y == null || isNaN(point.y)) return;
+                            
+                            ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                            ctx.shadowBlur = 8;
+                            ctx.shadowOffsetX = 2;
+                            ctx.shadowOffsetY = 3;
+                            ctx.beginPath();
+                            ctx.arc(point.x + 2, point.y + 3, 6, 0, Math.PI * 2);
+                            ctx.fill();
+                        });
+                    });
+                    ctx.restore();
+                }
+            };
+            
+            if (executionTrendsChart) {
+                // CRITICAL FIX: Create completely new arrays to force Chart.js to detect changes
+                // Direct array modification causes Chart.js to show old + new states simultaneously
+                const newLabels = Array.from(labelsArray);
+                const newPassedData = Array.from(passedData);
+                const newFailedData = Array.from(failedData);
+                const newSkippedData = Array.from(skippedData);
+                
+                // Update chart data with completely new arrays (Chart.js will detect the change)
+                executionTrendsChart.data.labels = newLabels;
+                executionTrendsChart.data.datasets[0].data = newPassedData;
+                executionTrendsChart.data.datasets[1].data = newFailedData;
+                executionTrendsChart.data.datasets[2].data = newSkippedData;
+                
+                // Always recalculate gradients to match current data
+                if (executionTrendsChart.chartArea) {
+                    const gradients = createTrendsGradients(executionTrendsChart.ctx, executionTrendsChart.chartArea, 'executionTrendsChart');
+                    executionTrendsChart.data.datasets[0].backgroundColor = gradients.passed;
+                    executionTrendsChart.data.datasets[0].borderColor = gradients.passedBorder;
+                    executionTrendsChart.data.datasets[1].backgroundColor = gradients.failed;
+                    executionTrendsChart.data.datasets[1].borderColor = gradients.failedBorder;
+                    executionTrendsChart.data.datasets[2].backgroundColor = gradients.skipped;
+                    executionTrendsChart.data.datasets[2].borderColor = gradients.skippedBorder;
+                }
+                
+                // CRITICAL: Use 'none' mode to prevent animation, but ensure proper redraw
+                // Chart.js will automatically clear and redraw when data arrays are replaced
+                executionTrendsChart.update('none');
+            } else {
+                // Initialize Chart with full 3D effects
+                executionTrendsChart = new Chart(ctxTrends, {
+                    type: 'line',
+                    data: {
+                        labels: labelsArray,
+                        datasets: [
+                            { 
+                                label: 'Passed', 
+                                data: passedData, 
+                                fill: true, 
+                                tension: 0.5, 
+                                pointRadius: 6,
+                                pointHoverRadius: 10,
+                                pointBackgroundColor: '#10b981',
+                                pointBorderColor: '#ffffff',
+                                pointBorderWidth: 3,
+                                borderWidth: 3,
+                                borderJoinStyle: 'round',
+                                borderCapStyle: 'round',
+                                // Initial solid colors fallback until layout is computed
+                                backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                                borderColor: '#10b981'
+                            },
+                            { 
+                                label: 'Failed', 
+                                data: failedData, 
+                                fill: true, 
+                                tension: 0.5, 
+                                pointRadius: 6,
+                                pointHoverRadius: 10,
+                                pointBackgroundColor: '#ef4444',
+                                pointBorderColor: '#ffffff',
+                                pointBorderWidth: 3,
+                                borderWidth: 3,
+                                borderJoinStyle: 'round',
+                                borderCapStyle: 'round',
+                                backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                                borderColor: '#ef4444'
+                            },
+                            { 
+                                label: 'Skipped', 
+                                data: skippedData, 
+                                fill: true, 
+                                tension: 0.5, 
+                                pointRadius: 6,
+                                pointHoverRadius: 10,
+                                pointBackgroundColor: '#f59e0b',
+                                pointBorderColor: '#ffffff',
+                                pointBorderWidth: 3,
+                                borderWidth: 3,
+                                borderJoinStyle: 'round',
+                                borderCapStyle: 'round',
+                                backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                                borderColor: '#f59e0b'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        layout: {
+                            padding: {
+                                top: 0,
+                                bottom: 0,
+                                left: 0,
+                                right: 0
+                            }
+                        },
+                        animation: isFirstChartLoad ? {
+                            duration: 1000,
+                            easing: 'easeOutQuart'
+                        } : false,
+                        scales: {
+                            y: { 
+                                beginAtZero: true, 
+                                grid: { 
+                                    color: 'rgba(255, 255, 255, 0.05)',
+                                    lineWidth: 1,
+                                    drawBorder: false
+                                },
+                                ticks: { 
+                                    color: '#71717a', 
+                                    font: { family: 'Inter', size: 11 },
+                                    padding: 8
+                                }
+                            },
+                            x: { 
+                                grid: { 
+                                    display: false,
+                                    drawBorder: false
+                                },
+                                ticks: { 
+                                    color: '#71717a', 
+                                    font: { family: 'Inter', size: 11 },
+                                    padding: 8
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    color: '#a1a1aa', 
+                                    font: { family: 'Inter', size: 11, weight: '500' },
+                                    padding: 20, // Increased from 8 to 20 for more spacing between legend items
+                                    boxWidth: 12,
+                                    boxHeight: 12,
+                                    usePointStyle: true,
+                                    pointStyle: 'circle'
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                                titleColor: '#ffffff',
+                                bodyColor: '#e2e8f0',
+                                borderColor: 'rgba(255, 255, 255, 0.1)',
+                                borderWidth: 1,
+                                padding: 12,
+                                cornerRadius: 8,
+                                displayColors: true,
+                                boxPadding: 6,
+                                titleFont: { family: 'Inter', size: 13, weight: '600' },
+                                bodyFont: { family: 'Inter', size: 12 },
+                                shadowOffsetX: 0,
+                                shadowOffsetY: 4,
+                                shadowBlur: 12,
+                                shadowColor: 'rgba(0, 0, 0, 0.3)'
+                            }
+                        },
+                        elements: {
+                            point: {
+                                hoverRadius: 8,
+                                hoverBorderWidth: 3
+                            }
+                        }
+                    },
+                    plugins: [shadow3DPlugin, {
+                        id: 'dynamicGradients',
+                        beforeLayout: (chart) => {
+                            // Create gradients only when layout is ready
+                            if (!chart.chartArea) return;
+                            const gradients = createTrendsGradients(chart.ctx, chart.chartArea, 'executionTrendsChart');
+                            
+                            chart.data.datasets[0].backgroundColor = gradients.passed;
+                            chart.data.datasets[0].borderColor = gradients.passedBorder;
+                            chart.data.datasets[1].backgroundColor = gradients.failed;
+                            chart.data.datasets[1].borderColor = gradients.failedBorder;
+                        }
+                    }]
+                });
+            }
+            
+            chartsInitialized = true;
+            isFirstChartLoad = false;
         }
 
         async function loadRecentExecutions() {
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 8000);
-                
-                const response = await fetch('/api/v1/test-execution/dashboard/recent?limit=100&' + new URLSearchParams({
-                    _t: Date.now()
-                }), {
-                    signal: controller.signal,
-                    headers: {
-                        'Cache-Control': 'no-cache',
-                        'Pragma': 'no-cache'
-                    }
-                });
-                
-                clearTimeout(timeoutId);
-                
-                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-
-                const data = await response.json();
-                allExecutions = Array.isArray(data) ? data : []; // Store all executions
-                applyFilters(); // Apply filters to display
-            } catch (error) {
-                if (error.name === 'AbortError') {
-                    console.error('Recent executions request timed out');
-                } else {
-                    console.error('Error loading recent executions:', error);
-                }
-                const tbody = document.querySelector('#recent-executions tbody');
-                if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="7"><div class="error-message">Failed to load recent executions</div></td></tr>';
-                }
+            const res = await authenticatedFetch('/api/v1/test-execution/dashboard/recent?limit=100&_t=' + Date.now());
+            if(res.ok) {
+                allExecutions = await parseJsonResponse(res);
+                applyFilters();
             }
         }
 
+        function selectFilterOption(type, value) {
+            const texts = {
+                'status': { '': 'All Statuses', 'PASSED': 'Passed', 'FAILED': 'Failed', 'RUNNING': 'Running' },
+                'environment': { '': 'All Envs', 'dev': 'Dev', 'stage': 'Stage', 'prod': 'Prod' }
+            };
+            const select = document.getElementById(`filter-${type}`);
+            const trigger = document.getElementById(`filter-${type}-trigger`);
+            const menu = document.getElementById(`filter-${type}-menu`);
+            const textElement = document.getElementById(`filter-${type}-text`);
+            const options = menu ? menu.querySelectorAll('.dropdown-option') : [];
+            
+            if (select) {
+                select.value = value || '';
+            }
+            
+            options.forEach(opt => opt.classList.remove('selected'));
+            const selectedOption = Array.from(options).find(opt => opt.dataset.value === (value || ''));
+            if (selectedOption) {
+                selectedOption.classList.add('selected');
+                const text = selectedOption.textContent.trim();
+                if (textElement) {
+                    textElement.textContent = text;
+                }
+            }
+            
+            applyFilters();
+            
+            document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+            document.querySelectorAll('.dropdown-trigger.active').forEach(t => t.classList.remove('active'));
+        }
+
         function applyFilters() {
-            const suiteFilter = document.getElementById('filter-suite').value.toLowerCase();
-            const statusFilter = document.getElementById('filter-status').value;
-            const envFilter = document.getElementById('filter-environment').value;
+            const suite = document.getElementById('filter-suite').value.trim().toLowerCase();
+            const status = document.getElementById('filter-status').value;
+            const env = document.getElementById('filter-environment').value;
 
-            let filtered = allExecutions.filter(exec => {
-                const suiteMatch = !suiteFilter || (exec.suiteName || '').toLowerCase().includes(suiteFilter);
-                const statusMatch = !statusFilter || exec.status === statusFilter;
-                const envMatch = !envFilter || (exec.environment || '').toLowerCase() === envFilter.toLowerCase();
-                return suiteMatch && statusMatch && envMatch;
+            const filtered = allExecutions.filter(e => 
+                (!suite || (e.suiteName||'').toLowerCase().includes(suite)) &&
+                (!status || e.status === status) &&
+                (!env || (e.environment||'').toLowerCase() === env)
+            );
+            renderTable(filtered.slice(0, 10));
+        }
+
+        // Optimized Render Table Logic with Efficient DOM Diffing
+        function renderTable(data) {
+            const tbody = document.querySelector('#recent-executions tbody');
+            if (!tbody) return;
+            
+            // Create a map of existing rows by unique key (suiteName + startTime)
+            const existingRows = Array.from(tbody.rows);
+            const rowMap = new Map();
+            existingRows.forEach((row, index) => {
+                const key = row.dataset.rowKey || `row-${index}`;
+                rowMap.set(key, row);
             });
+            
+            // Helper to create unique key for each data item
+            const getRowKey = (item) => {
+                return `${escapeHtml(item.suiteName || '')}-${item.startTime || ''}`;
+            };
+            
+            // Helper to update cell content efficiently
+            const updateCell = (row, idx, html) => {
+                if (!row.cells[idx]) {
+                    row.insertCell(idx);
+                }
+                if (row.cells[idx].innerHTML !== html) {
+                    row.cells[idx].innerHTML = html;
+                }
+            };
+            
+            if (!data.length) {
+                // Clear all rows and show empty message
+                tbody.innerHTML = '<tr><td colspan="7" class="table-empty">No executions found</td></tr>';
+            } else {
+                // Process each data item
+                data.forEach((e, index) => {
+                    const rowKey = getRowKey(e);
+                    let row = rowMap.get(rowKey);
+                    
+                    // If row doesn't exist, create it
+                    if (!row) {
+                        row = tbody.insertRow();
+                        row.dataset.rowKey = rowKey;
+                    } else {
+                        // Remove from map so we know it's still needed
+                        rowMap.delete(rowKey);
+                    }
+                    
+                    // Update cells efficiently (only touches DOM if content changed)
+                    const statusBadge = getStatusBadge(e.status);
+                    const progress = Math.min(100, Math.max(0, e.progress || 0));
+                    const progressHtml = `<div class="progress-track"><div class="progress-fill" style="width:${progress}%"></div></div><span class="progress-percent">${progress.toFixed(0)}%</span>`;
+                    const testsHtml = `<span class="text-success">${e.passedTests || 0}</span> / <span class="text-danger">${e.failedTests || 0}</span> / <span class="text-warning">${e.skippedTests || 0}</span>`;
+                    
+                    updateCell(row, 0, `<td class="table-cell-name">${escapeHtml(e.suiteName || '-')}</td>`);
+                    updateCell(row, 1, `<td>${escapeHtml(e.environment || '-')}</td>`);
+                    updateCell(row, 2, `<td>${statusBadge}</td>`);
+                    updateCell(row, 3, `<td>${progressHtml}</td>`);
+                    updateCell(row, 4, `<td class="table-cell-mono">${testsHtml}</td>`);
+                    updateCell(row, 5, `<td class="table-cell-mono">${escapeHtml(e.duration || '-')}</td>`);
+                    updateCell(row, 6, `<td class="table-cell-time">${formatTimeWithTimezone(e.startTime)}</td>`);
+                });
+                
+                // Remove excess rows if data length shrank
+                rowMap.forEach((row) => {
+                    tbody.removeChild(row);
+                });
+            }
+        }
+        
+        function formatTimeWithTimezone(timestamp) {
+            if (!timestamp) return '-';
+            const date = new Date(timestamp);
+            return date.toLocaleString([], { 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit',
+                hour: '2-digit', 
+                minute: '2-digit',
+                timeZoneName: 'short'
+            });
+        }
 
-            updateRecentExecutions(filtered);
+        function getStatusBadge(status) {
+            if (!status) return '<span class="badge-enhanced status-unknown">UNKNOWN</span>';
+            const s = status.toUpperCase();
+            if (s === 'PASSED') return '<span class="badge-enhanced status-passed">PASSED</span>';
+            if (s === 'FAILED') return '<span class="badge-enhanced status-failed">FAILED</span>';
+            if (s === 'RUNNING') return '<span class="badge-enhanced status-running">RUNNING</span>';
+            if (s === 'SKIPPED') return '<span class="badge-enhanced status-skipped">SKIPPED</span>';
+            return `<span class="badge-enhanced status-unknown">${s}</span>`;
         }
 
         function clearFilters() {
             document.getElementById('filter-suite').value = '';
             document.getElementById('filter-status').value = '';
             document.getElementById('filter-environment').value = '';
-            applyFilters();
+            selectFilterOption('status', '');
+            selectFilterOption('environment', '');
         }
 
-        function updateRecentExecutions(executions) {
-            const tbody = document.querySelector('#recent-executions tbody');
-
-            if (executions.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7" style="text-align: center; color: #64748b; padding: 48px;">
-                            No test executions found
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            // Show only first 10 filtered results for display
-            const displayExecutions = executions.slice(0, 10);
-
-            tbody.innerHTML = displayExecutions.map(exec => `
-                <tr>
-                    <td class="suite-name">${exec.suiteName || 'Unknown'}</td>
-                    <td>${exec.environment || 'N/A'}</td>
-                    <td><span class="status-badge ${exec.status.toLowerCase()}">${exec.status}</span></td>
-                    <td>
-                        <div class="progress-container">
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: ${exec.progress}%"></div>
-                            </div>
-                            <span class="progress-text">${exec.progress.toFixed(1)}%</span>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="test-results">
-                            <span class="test-passed">${exec.passedTests}</span> /
-                            <span class="test-failed">${exec.failedTests}</span> /
-                            <span class="test-skipped">${exec.skippedTests}</span>
-                            <br>
-                            <span class="test-total">Total: ${exec.totalTests}</span>
-                        </div>
-                    </td>
-                    <td>${exec.duration || 'N/A'}</td>
-                    <td>${formatDateTime(exec.startTime)}</td>
-                </tr>
-            `).join('');
-
-            // Show count if filtered
-            if (executions.length > 10) {
-                tbody.innerHTML += `
-                    <tr>
-                        <td colspan="7" style="text-align: center; color: #94a3b8; padding: 16px; font-size: 12px;">
-                            Showing 10 of ${executions.length} results
-                        </td>
-                    </tr>
-                `;
-            }
-        }
-
-        async function loadDatabaseHealth() {
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 8000);
-                
-                const response = await fetch('/api/v1/test-execution/dashboard/database-health?' + new URLSearchParams({
-                    _t: Date.now()
-                }), {
-                    signal: controller.signal,
-                    headers: {
-                        'Cache-Control': 'no-cache',
-                        'Pragma': 'no-cache'
-                    }
-                });
-                
-                clearTimeout(timeoutId);
-                
-                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-
-                const data = await response.json();
-                updateDatabaseHealth(data);
-            } catch (error) {
-                if (error.name === 'AbortError') {
-                    console.error('Database health request timed out');
-                } else {
-                    console.error('Error loading database health:', error);
-                }
-                const container = document.getElementById('database-health');
-                if (container) {
-                    container.innerHTML =
-                        '<div class="error-message">Failed to load database health</div>';
-                }
-            }
-        }
-
-        function updateDatabaseHealth(data) {
-            const container = document.getElementById('database-health');
-            
-            const connectionStatus = data.connectionStatus || 'UNKNOWN';
-            const statusClass = connectionStatus === 'HEALTHY' ? 'healthy' : 
-                               connectionStatus === 'WARNING' ? 'warning' : 'error';
-            
-            const tableStats = data.tableStatistics || [];
-            const totalRecords = tableStats.reduce((sum, table) => sum + (table.recordCount || 0), 0);
-            
-            container.innerHTML = `
-                <div class="db-health-metric ${statusClass}">
-                    <div class="db-health-value">${connectionStatus}</div>
-                    <div class="db-health-label">Connection</div>
-                </div>
-                <div class="db-health-metric info">
-                    <div class="db-health-value">${totalRecords.toLocaleString()}</div>
-                    <div class="db-health-label">Total Records</div>
-                </div>
-                <div class="db-health-metric info">
-                    <div class="db-health-value">${tableStats.length}</div>
-                    <div class="db-health-label">Tables</div>
-                </div>
-                <div class="db-health-metric healthy">
-                    <div class="db-health-value">${data.performanceMetrics?.cacheHitRatio || 0}%</div>
-                    <div class="db-health-label">Cache Hit</div>
-                </div>
-                <div class="db-health-metric info">
-                    <div class="db-health-value">${data.performanceMetrics?.averageQueryTime || 'N/A'}</div>
-                    <div class="db-health-label">Avg Query</div>
-                </div>
-                <div class="db-health-metric ${data.connectionPoolStatus?.status === 'ACTIVE' ? 'healthy' : 'warning'}">
-                    <div class="db-health-value">${data.connectionPoolStatus?.activeConnections || 0}</div>
-                    <div class="db-health-label">Active Conn</div>
-                </div>
-            `;
-        }
-
-        async function loadDatabaseOperations() {
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 8000);
-                
-                const response = await fetch('/api/v1/test-execution/dashboard/database-operations?' + new URLSearchParams({
-                    _t: Date.now()
-                }), {
-                    signal: controller.signal,
-                    headers: {
-                        'Cache-Control': 'no-cache',
-                        'Pragma': 'no-cache'
-                    }
-                });
-                
-                clearTimeout(timeoutId);
-                
-                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-
-                const data = await response.json();
-                updateDatabaseOperations(data);
-            } catch (error) {
-                if (error.name === 'AbortError') {
-                    console.error('Database operations request timed out');
-                } else {
-                    console.error('Error loading database operations:', error);
-                }
-                const container = document.getElementById('database-operations');
-                if (container) {
-                    container.innerHTML =
-                        '<div class="error-message">Failed to load database operations</div>';
-                }
-            }
-        }
-
-        function updateDatabaseOperations(data) {
-            const container = document.getElementById('database-operations');
-            
-            container.innerHTML = `
-                <div class="db-health-metric info">
-                    <div class="db-health-value">${data.totalInserts?.toLocaleString() || 0}</div>
-                    <div class="db-health-label">Inserts</div>
-                </div>
-                <div class="db-health-metric info">
-                    <div class="db-health-value">${data.totalUpdates?.toLocaleString() || 0}</div>
-                    <div class="db-health-label">Updates</div>
-                </div>
-                <div class="db-health-metric warning">
-                    <div class="db-health-value">${data.totalDeletes?.toLocaleString() || 0}</div>
-                    <div class="db-health-label">Deletes</div>
-                </div>
-                <div class="db-health-metric healthy">
-                    <div class="db-health-value">${data.totalSelects?.toLocaleString() || 0}</div>
-                    <div class="db-health-label">Selects</div>
-                </div>
-                <div class="db-health-metric info">
-                    <div class="db-health-value">${data.totalOperations?.toLocaleString() || 0}</div>
-                    <div class="db-health-label">Total Ops</div>
-                </div>
-            `;
-        }
-
-        async function updateCharts() {
-            try {
-                const controller1 = new AbortController();
-                const controller2 = new AbortController();
-                const timeout1 = setTimeout(() => controller1.abort(), 8000);
-                const timeout2 = setTimeout(() => controller2.abort(), 8000);
-                
-                const [overviewResponse, trendsResponse] = await Promise.allSettled([
-                    fetch('/api/v1/test-execution/dashboard/overview?' + new URLSearchParams({
-                        _t: Date.now()
-                    }), {
-                        signal: controller1.signal,
-                        headers: {
-                            'Cache-Control': 'no-cache',
-                            'Pragma': 'no-cache'
-                        }
-                    }),
-                    fetch('/api/v1/test-execution/dashboard/execution-trends?days=7&' + new URLSearchParams({
-                        _t: Date.now()
-                    }), {
-                        signal: controller2.signal,
-                        headers: {
-                            'Cache-Control': 'no-cache',
-                            'Pragma': 'no-cache'
-                        }
-                    })
-                ]);
-                
-                clearTimeout(timeout1);
-                clearTimeout(timeout2);
-                
-                // Handle overview response
-                if (overviewResponse.status === 'fulfilled' && overviewResponse.value.ok) {
-                    const overviewData = await overviewResponse.value.json();
-                    updateTestDistributionChart(overviewData);
-                } else {
-                    console.warn('Failed to fetch overview for charts');
-                }
-                
-                // Handle trends response
-                if (trendsResponse.status === 'fulfilled' && trendsResponse.value.ok) {
-                    const trendsData = await trendsResponse.value.json();
-                    updateExecutionTrendsChart(trendsData);
-                } else {
-                    console.warn('Failed to fetch trends, showing empty chart');
-                    updateExecutionTrendsChart({ labels: [], passedData: [], failedData: [], skippedData: [] });
-                }
-            } catch (error) {
-                console.error('Error updating charts:', error);
-                // Show empty charts on error
-                updateExecutionTrendsChart({ labels: [], passedData: [], failedData: [], skippedData: [] });
-            }
-        }
-
-        function updateTestDistributionChart(data) {
-            const ctx = document.getElementById('testDistributionChart').getContext('2d');
-
-            if (testDistributionChart) {
-                testDistributionChart.destroy();
-            }
-
-            testDistributionChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Passed', 'Failed', 'Skipped', 'Running'],
-                    datasets: [{
-                        data: [data.passedTests, data.failedTests, data.skippedTests, data.runningTests],
-                        backgroundColor: [
-                            '#22c55e',
-                            '#ef4444',
-                            '#f59e0b',
-                            '#3b82f6'
-                        ],
-                        borderWidth: 0,
-                        hoverBorderWidth: 3,
-                        hoverBorderColor: '#ffffff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 20,
-                                usePointStyle: true,
-                                font: {
-                                    size: 13,
-                                    weight: '600'
-                                },
-                                color: '#e4e4e7'
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(15, 15, 35, 0.95)',
-                            titleColor: '#ffffff',
-                            bodyColor: '#e4e4e7',
-                            borderColor: 'rgba(59, 130, 246, 0.5)',
-                            borderWidth: 1,
-                            padding: 12,
-                            cornerRadius: 8,
-                            displayColors: true,
-                            callbacks: {
-                                label: function(context) {
-                                    const label = context.label || '';
-                                    const value = context.parsed || 0;
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = ((value / total) * 100).toFixed(1);
-                                    return `${label}: ${value.toLocaleString()} (${percentage}%)`;
-                                }
-                            }
-                        }
-                    },
-                    cutout: '70%'
-                }
-            });
-        }
-
-
-        function updateExecutionTrendsChart(data) {
-            const ctx = document.getElementById('executionTrendsChart').getContext('2d');
-
-            if (executionTrendsChart) {
-                executionTrendsChart.destroy();
-            }
-
-            // Use real data from the API
-            const labels = data.labels || [];
-            const passedData = data.passedData || [];
-            const failedData = data.failedData || [];
-            const skippedData = data.skippedData || [];
-            
-
-            executionTrendsChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Passed Tests',
-                        data: passedData,
-                        borderColor: '#22c55e',
-                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#22c55e',
-                        pointBorderColor: '#0f0f23',
-                        pointBorderWidth: 3,
-                        pointRadius: 5,
-                        pointHoverRadius: 7
-                    }, {
-                        label: 'Failed Tests',
-                        data: failedData,
-                        borderColor: '#ef4444',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#ef4444',
-                        pointBorderColor: '#0f0f23',
-                        pointBorderWidth: 3,
-                        pointRadius: 5,
-                        pointHoverRadius: 7
-                    }, {
-                        label: 'Skipped Tests',
-                        data: skippedData,
-                        borderColor: '#f59e0b',
-                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#f59e0b',
-                        pointBorderColor: '#0f0f23',
-                        pointBorderWidth: 3,
-                        pointRadius: 5,
-                        pointHoverRadius: 7
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        intersect: false,
-                        mode: 'index'
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 20,
-                                font: {
-                                    size: 13,
-                                    weight: '600'
-                                },
-                                color: '#e4e4e7'
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(15, 15, 35, 0.95)',
-                            titleColor: '#ffffff',
-                            bodyColor: '#e4e4e7',
-                            borderColor: 'rgba(59, 130, 246, 0.5)',
-                            borderWidth: 1,
-                            padding: 12,
-                            cornerRadius: 8
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.05)',
-                                drawBorder: false
-                            },
-                            ticks: {
-                                color: '#94a3b8',
-                                font: {
-                                    size: 12,
-                                    weight: '600'
-                                }
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false,
-                                drawBorder: false
-                            },
-                            ticks: {
-                                color: '#94a3b8',
-                                font: {
-                                    size: 12,
-                                    weight: '600'
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function updateSystemStatus(isOnline) {
-            const statusIndicator = document.querySelector('.system-status');
-            if (isOnline) {
-                statusIndicator.style.background = 'rgba(34, 197, 94, 0.1)';
-                statusIndicator.style.borderColor = 'rgba(34, 197, 94, 0.3)';
-                statusIndicator.style.color = '#22c55e';
-                statusIndicator.innerHTML = '<div class="status-dot"></div><span>System Online</span>';
-            } else {
-                statusIndicator.style.background = 'rgba(239, 68, 68, 0.1)';
-                statusIndicator.style.borderColor = 'rgba(239, 68, 68, 0.3)';
-                statusIndicator.style.color = '#ef4444';
-                statusIndicator.innerHTML = '<div class="status-dot"></div><span>System Offline</span>';
-            }
-        }
-
-        function showError(message) {
-            const container = document.querySelector('.container');
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error-message';
-            errorDiv.textContent = message;
-            container.insertBefore(errorDiv, container.children[1]);
-
-            setTimeout(() => {
-                errorDiv.remove();
-            }, 5000);
-        }
-
-        function formatDateTime(dateString) {
-            if (!dateString) return 'N/A';
-            const date = new Date(dateString);
-            return date.toLocaleString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-
-        window.addEventListener('beforeunload', function() {
-            if (refreshInterval) {
-                clearInterval(refreshInterval);
-            }
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
-            }
-            if (activeExecutionsEventSource) {
-                activeExecutionsEventSource.close();
-                activeExecutionsEventSource = null;
-            }
-            if (activeExecutionsPollInterval) {
-                clearInterval(activeExecutionsPollInterval);
-                activeExecutionsPollInterval = null;
-            }
-        });
-
-        // Handle visibility change to reconnect SSE when tab becomes visible
-        document.addEventListener('visibilitychange', function() {
-            if (!document.hidden) {
-                // Check connection state and reconnect if needed
-                if (!activeExecutionsEventSource || activeExecutionsEventSource.readyState === EventSource.CLOSED) {
-                    connectActiveExecutionsSSE();
-                }
-            }
-        });
-
-        // Handle online/offline events to reconnect when network is restored
-        window.addEventListener('online', function() {
-            console.log('Network connection restored, reconnecting SSE...');
-            if (!activeExecutionsEventSource || activeExecutionsEventSource.readyState === EventSource.CLOSED) {
-                connectActiveExecutionsSSE();
-            }
-        });
-
-        window.addEventListener('offline', function() {
-            console.warn('Network connection lost');
-        });
+        // Expose dropdown functions to global scope for inline onclick handlers
+        window.toggleDropdown = toggleDropdown;
+        window.selectRefreshOption = selectRefreshOption;
+        window.selectFilterOption = selectFilterOption;
+        window.handleDropdownKeydown = handleDropdownKeydown;
+        window.handleDropdownOptionKeydown = handleDropdownOptionKeydown;
+        window.clearFilters = clearFilters;
+        window.updateAutoRefresh = updateAutoRefresh;
     </script>
 </body>
 </html>
