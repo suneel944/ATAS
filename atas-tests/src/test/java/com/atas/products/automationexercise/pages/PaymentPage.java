@@ -1,7 +1,7 @@
 package com.atas.products.automationexercise.pages;
-import com.atas.shared.utility.BaseUrlResolver;
 
 import com.atas.shared.pages.BasePage;
+import com.atas.shared.utility.BaseUrlResolver;
 import com.microsoft.playwright.Page;
 
 public class PaymentPage extends BasePage<PaymentPage> {
