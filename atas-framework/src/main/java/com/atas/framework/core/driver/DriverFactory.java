@@ -1,5 +1,6 @@
 package com.atas.framework.core.driver;
 
+import com.microsoft.playwright.APIRequestContext;
 import com.microsoft.playwright.Page;
 
 /**
@@ -18,6 +19,14 @@ public interface DriverFactory {
    * @return a ready-to-use Playwright page
    */
   Page createPage(BrowserType browserType, DriverConfig config);
+
+  /**
+   * Create a new {@link APIRequestContext} for making HTTP requests.
+   *
+   * @param baseUrl Base URL for API requests
+   * @return APIRequestContext instance
+   */
+  APIRequestContext createApiRequestContext(String baseUrl);
 
   /**
    * Shut down all browsers and cleanup resources. This method should be invoked when the JVM is

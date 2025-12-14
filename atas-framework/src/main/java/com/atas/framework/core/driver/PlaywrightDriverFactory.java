@@ -1,5 +1,7 @@
 package com.atas.framework.core.driver;
 
+import com.microsoft.playwright.APIRequest;
+import com.microsoft.playwright.APIRequestContext;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Page;
@@ -7,6 +9,7 @@ import com.microsoft.playwright.Playwright;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -47,6 +50,11 @@ public class PlaywrightDriverFactory implements DriverFactory {
 
               switch (type) {
                 case CHROMIUM:
+                  // Use system Chromium if CHROMIUM_PATH is set (when browser download is skipped)
+                  Optional.ofNullable(System.getenv("CHROMIUM_PATH"))
+                      .or(() -> Optional.ofNullable(System.getProperty("CHROMIUM_PATH")))
+                      .filter(path -> !path.isBlank())
+                      .ifPresent(path -> options.setExecutablePath(Paths.get(path)));
                   return playwright.chromium().launch(options);
                 case FIREFOX:
                   return playwright.firefox().launch(options);
@@ -71,6 +79,15 @@ public class PlaywrightDriverFactory implements DriverFactory {
 
     BrowserContext context = browser.newContext(contextOptions);
     return context.newPage();
+  }
+
+  @Override
+  public synchronized APIRequestContext createApiRequestContext(String baseUrl) {
+    if (playwright == null) {
+      playwright = Playwright.create();
+      log.info("Playwright initialised");
+    }
+    return playwright.request().newContext(new APIRequest.NewContextOptions().setBaseURL(baseUrl));
   }
 
   @Override

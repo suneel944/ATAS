@@ -11,5 +11,6 @@ public enum TestStatus {
   FAILED,
   SKIPPED,
   RUNNING,
-  ERROR;
+  ERROR,
+  TIMEOUT;
 }

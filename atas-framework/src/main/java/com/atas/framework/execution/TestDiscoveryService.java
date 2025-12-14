@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class TestDiscoveryService {
 
-  @Value("${atas.test.base-path:atas-tests/src/test/java/com/atas}")
+  @Value("${atas.test.base.path:atas-tests/src/test/java/com/atas}")
   private String testBasePath;
 
   private static final Pattern TEST_METHOD_PATTERN =

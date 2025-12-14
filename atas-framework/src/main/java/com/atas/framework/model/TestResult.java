@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * Entity representing the outcome of a single test. Each result belongs to a {@link TestExecution}
@@ -38,6 +40,10 @@ public class TestResult {
   @Column(name = "test_name")
   String testName;
 
+  /** Detailed description of what the test verifies */
+  @Column(name = "description", columnDefinition = "TEXT")
+  String description;
+
   /** Status of this individual test */
   @Enumerated(EnumType.STRING)
   TestStatus status;
@@ -49,6 +55,28 @@ public class TestResult {
   /** When the test ended */
   @Column(name = "end_time")
   LocalDateTime endTime;
+
+  /** Array of tags associated with the test (e.g., API, REGRESSION, PAYMENTS) */
+  @Column(name = "tags", columnDefinition = "JSONB")
+  @JdbcTypeCode(SqlTypes.JSON)
+  List<String> tags;
+
+  /** Test priority level (e.g., P0_CRITICAL, P1_HIGH, P2_MEDIUM, P3_LOW) */
+  @Column(name = "priority")
+  String priority;
+
+  /** Testing framework used (e.g., JUnit, Playwright, TestNG) */
+  @Column(name = "framework")
+  String framework;
+
+  /** JSON object containing environment-specific details */
+  @Column(name = "environment_details", columnDefinition = "JSONB")
+  @JdbcTypeCode(SqlTypes.JSON)
+  String environmentDetails;
+
+  /** Team or individual responsible for the test */
+  @Column(name = "owner")
+  String owner;
 
   /** Steps that comprise this test execution */
   @OneToMany(mappedBy = "result", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -64,6 +92,11 @@ public class TestResult {
   @OneToMany(mappedBy = "result", cascade = CascadeType.ALL, orphanRemoval = true)
   @Builder.Default
   List<TestMetric> metrics = new ArrayList<>();
+
+  /** Assertions made during test execution */
+  @OneToMany(mappedBy = "result", cascade = CascadeType.ALL, orphanRemoval = true)
+  @Builder.Default
+  List<TestAssertion> assertions = new ArrayList<>();
 
   /** Fluent helper to update status immutably. */
   public TestResult withStatus(TestStatus newStatus) {

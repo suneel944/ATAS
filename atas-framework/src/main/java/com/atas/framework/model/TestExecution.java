@@ -54,6 +54,19 @@ public class TestExecution {
   @Column(name = "video_url")
   String videoUrl;
 
+  /** Standard output from test execution */
+  @Column(name = "stdout_output", columnDefinition = "TEXT")
+  String stdoutOutput;
+
+  /** Standard error output from test execution */
+  @Column(name = "stderr_output", columnDefinition = "TEXT")
+  String stderrOutput;
+
+  /** Whether output capture is complete */
+  @Column(name = "output_complete")
+  @Builder.Default
+  Boolean outputComplete = false;
+
   /**
    * Test results belonging to this execution. Cascade on persist to ensure results are stored
    * automatically when execution is saved.
