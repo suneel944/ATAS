@@ -55,3 +55,4 @@ jobs:
           else
             mvn ${{ inputs.maven-goals }} -Dspring.profiles.active=${{ inputs.test-profile }}
           fi
+
