@@ -48,9 +48,16 @@ make dev
 # Check health
 curl http://localhost:8080/actuator/health
 
-# Or visit in browser
-open http://localhost:8080
+# Access monitoring dashboard (requires authentication)
+open http://localhost:8080/monitoring/dashboard
+
+# Login page
+open http://localhost:8080/login
 ```
+
+**Default Credentials:**
+- Username: `admin`
+- Password: `admin123` (change on first login)
 
 **When to use:** Every time you start working on the project.
 

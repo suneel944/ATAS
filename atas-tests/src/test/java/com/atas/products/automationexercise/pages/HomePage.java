@@ -21,7 +21,7 @@ public class HomePage extends BasePage<HomePage> {
                   .setName("Test Cases")
                   .setExact(true))
           .first();
-  private final Locator apiTestingLink = page.locator("a[href='/api_list']");
+  private final Locator apiTestingLink = page.locator("a[href='/api_list']").first();
   private final Locator contactUsLink = page.locator("a[href='/contact_us']");
   private final Locator carouselContainer = page.locator(".carousel-inner").first();
 

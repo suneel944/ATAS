@@ -83,8 +83,6 @@ Tests are organized by product and feature:
 
 ```
 atas-tests/src/test/java/com/atas/
-├── config/
-│   └── TestConfiguration.java          # Environment-agnostic test config
 ├── products/
 │   └── automationexercise/
 │       ├── features/                   # Feature-based organization
@@ -99,8 +97,22 @@ atas-tests/src/test/java/com/atas/
     │   ├── TestTags.java              # Standardized test tags
     │   ├── ApiTestHooks.java          # API test lifecycle hooks
     │   └── UiTestHooks.java           # UI test lifecycle hooks
-    └── utils/
-        └── TestUtils.java             # Common test utilities
+    └── utility/
+        ├── TestUtils.java             # Common test utilities
+        ├── TestDataUtility.java       # Configuration loading (.env, properties)
+        ├── BaseUrlResolver.java       # URL resolution for services/gateways
+        └── FakerUtils.java           # Test data generation (JavaFaker wrapper)
+    ├── api/
+        ├── ApiRequestHelper.java     # API request utilities
+        ├── FluentApiRequest.java     # Fluent API request builder
+        └── FrameworkApiRequestContextHelper.java  # Framework API context
+    ├── assertions/
+        └── CommonAssertions.java     # Common assertion utilities
+    ├── auth/
+        ├── BrowserHelper.java        # Browser authentication helpers
+        └── InternalApiTokenHelper.java  # Internal API token management
+    └── email/
+        └── GuerrillaMailHelper.java  # Email testing utilities
 ```
 
 ### UI Test Example

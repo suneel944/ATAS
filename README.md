@@ -35,10 +35,12 @@ make dev      # Start development environment
 
 **Available Services:**
 - 🧠 **ATAS Framework**: http://localhost:8080
-- 📈 **Monitoring Dashboard**: http://localhost:8080/monitoring/dashboard
-- 🗄️ **Database Dashboard**: http://localhost:8080/monitoring/database
-- 📊 **Health Check**: http://localhost:8080/actuator/health
+- 🔐 **Login Page**: http://localhost:8080/login (Default: admin/admin123)
+- 📈 **Monitoring Dashboard**: http://localhost:8080/monitoring/dashboard (Requires authentication)
+- 🗄️ **Database Dashboard**: http://localhost:8080/monitoring/database (Requires authentication)
+- 📊 **Health Check**: http://localhost:8080/actuator/health (Public)
 - 🐘 **PostgreSQL**: localhost:5433
+- 🔴 **Redis**: localhost:6379 (for caching and real-time updates)
 
 **Prerequisites:** Java 21+, Maven 3.9+, Docker & Docker Compose  
 See [Getting Started Guide](docs/GETTING_STARTED.md) for detailed setup.

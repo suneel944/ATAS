@@ -9,23 +9,42 @@ import com.atas.framework.execution.dto.TestExecutionResponse;
 import com.atas.framework.model.TestExecution;
 import com.atas.framework.model.TestStatus;
 import com.atas.framework.repository.TestExecutionRepository;
+import com.atas.framework.repository.TestResultRepository;
+import com.atas.framework.security.AuditService;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.RedisTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class TestExecutionServiceTest {
 
   @Mock private TestExecutionRepository testExecutionRepository;
 
+  @Mock private TestResultRepository testResultRepository;
+
   @Mock private TestDiscoveryService testDiscoveryService;
 
-  @InjectMocks private TestExecutionService testExecutionService;
+  @Mock private TestInputValidator testInputValidator;
+
+  @Mock private AuditService auditService;
+
+  @Mock private RedisTemplate<String, Object> redisTemplate;
+
+  @Mock
+  @org.springframework.beans.factory.annotation.Qualifier("testExecutionExecutor")
+  private ExecutorService executorService;
+
+  @Mock
+  @org.springframework.beans.factory.annotation.Qualifier("outputCaptureExecutor")
+  private ExecutorService outputCaptureExecutor;
+
+  private TestExecutionService testExecutionService;
 
   private TestExecution testExecution;
   private TestExecutionRequest testExecutionRequest;
@@ -52,6 +71,18 @@ class TestExecutionServiceTest {
             .captureScreenshots(true)
             .timeoutMinutes(30)
             .build();
+
+    // Manually construct TestExecutionService since @InjectMocks can't handle @Qualifier
+    testExecutionService =
+        new TestExecutionService(
+            testExecutionRepository,
+            testResultRepository,
+            testDiscoveryService,
+            testInputValidator,
+            auditService,
+            redisTemplate,
+            executorService,
+            outputCaptureExecutor);
   }
 
   @Test
