@@ -342,7 +342,108 @@ Currently, there are no rate limits imposed on the API endpoints. However, test 
 
 ## Authentication
 
-Currently, the APIs do not require authentication. In a production environment, you should implement proper authentication and authorization mechanisms.
+The ATAS framework implements JWT-based authentication and authorization. Most API endpoints require authentication, except for public endpoints like health checks and authentication endpoints.
+
+### Authentication Endpoints
+
+#### Login
+
+**Endpoint:** `POST /api/v1/auth/login`
+
+**Description:** Authenticates a user and returns JWT access and refresh tokens.
+
+**Request Body:**
+```json
+{
+  "username": "admin",
+  "password": "admin123"
+}
+```
+
+**Response:**
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "tokenType": "Bearer",
+  "expiresIn": 86400000
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}'
+```
+
+#### Refresh Token
+
+**Endpoint:** `POST /api/v1/auth/refresh`
+
+**Description:** Refreshes an access token using a valid refresh token.
+
+**Request Body:**
+```json
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+#### Get User Profile
+
+**Endpoint:** `GET /api/v1/auth/profile`
+
+**Description:** Returns the authenticated user's profile information.
+
+**Headers:**
+- `Authorization: Bearer <accessToken>`
+
+**Example:**
+```bash
+curl -X GET http://localhost:8080/api/v1/auth/profile \
+  -H "Authorization: Bearer <accessToken>"
+```
+
+### Internal API Authentication
+
+For internal API access, use the internal API authentication endpoint:
+
+**Endpoint:** `POST /api/v1/internal/auth/token`
+
+**Description:** Generates an internal API token using an API key.
+
+**Headers:**
+- `X-API-Key: <internal-api-key>`
+
+**Example:**
+```bash
+curl -X POST http://localhost:8080/api/v1/internal/auth/token \
+  -H "X-API-Key: internal-api-key-change-this-in-production"
+```
+
+### Using Authentication in API Calls
+
+Include the JWT token in the Authorization header:
+
+```bash
+# Get access token
+TOKEN=$(curl -s -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}' | jq -r '.accessToken')
+
+# Use token in API calls
+curl -X GET http://localhost:8080/api/v1/test-execution/status?executionId=<id> \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Default Credentials
+
+The framework includes a default admin user:
+- **Username:** `admin`
+- **Password:** `admin123` (should be changed on first login)
+
+**Security Note:** Change the default password immediately in production environments.
 
 ## Test Discovery Behavior
 
