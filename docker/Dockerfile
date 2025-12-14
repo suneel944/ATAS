@@ -1,78 +1,122 @@
 # ---------- build stage ----------
-FROM maven:3.9.5-eclipse-temurin-21 AS build
-WORKDIR /build
-
-# Install Node.js for Playwright CLI
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs
-
-# Copy only the necessary files for dependency resolution first (better layer caching)
-COPY pom.xml ./
-COPY atas-framework/pom.xml ./atas-framework/
-COPY atas-tests/pom.xml ./atas-tests/
-COPY mvnw ./
-COPY .mvn ./.mvn
-
-# Pre-download external dependencies for faster builds (much faster than go-offline)
-# Only resolve dependencies for framework module (which has no local SNAPSHOT dependencies)
-# atas-tests depends on atas-framework SNAPSHOT, so we skip it here to avoid resolution errors
-# Using 'dependency:resolve' is 3-5x faster than 'go-offline' since it skips plugin dependencies
-# The Maven local repo (~/.m2/repository) will be cached in this layer, speeding up subsequent builds
-RUN cd atas-framework && mvn -B -q dependency:resolve || echo "Note: Some dependencies will be downloaded during build"
-
-# Copy source code
-COPY atas-framework/src ./atas-framework/src
-COPY atas-tests/src ./atas-tests/src
-
-# Build the framework module (fat jar via spring-boot-maven-plugin)
-RUN mvn -q -pl atas-framework -am -DskipTests clean package
-
-# Install only Chromium browser (smallest option for Playwright)
-RUN mvn -q -pl atas-framework exec:java \
-  -Dexec.mainClass=com.microsoft.playwright.CLI \
-  -Dexec.args="install chromium"
-
-# ---------- runtime stage ----------
-FROM maven:3.9.5-eclipse-temurin-21-alpine AS runtime
-WORKDIR /app
-
-# Install minimal dependencies for Playwright
-RUN apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    freetype-dev \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont \
-    bash \
-    && rm -rf /var/cache/apk/*
-
-# Copy the Spring Boot fat jar
-COPY --from=build /build/atas-framework/target/atas-framework-exec.jar /app/app.jar
-
-# Copy Maven wrapper from build stage
-COPY --from=build /build/mvnw /app/mvnw
-RUN chmod +x /app/mvnw
-
-# Copy project structure for test execution
-COPY --from=build /build/pom.xml /app/pom.xml
-COPY --from=build /build/atas-tests /app/atas-tests
-COPY --from=build /build/atas-framework/pom.xml /app/atas-framework/pom.xml
-COPY --from=build /build/.mvn /app/.mvn
-
-# Copy only Chromium browser from build stage
-COPY --from=build /root/.cache/ms-playwright/chromium-* /ms-playwright/chromium-*/
-ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-ENV PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1
-
-# Create non-root user for security
-RUN addgroup -g 1001 -S atas && \
-    adduser -u 1001 -S atas -G atas && \
-    chown -R atas:atas /app
-USER atas
-
-EXPOSE 8080
-ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "/app/app.jar"]
-  
+    FROM maven:3.9.5-eclipse-temurin-21 AS build
+    WORKDIR /build
+    
+    # Install Node.js for Playwright (required for Playwright Java library during build)
+    # Using NodeSource repository for Node.js 20.x
+    RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+        apt-get update && \
+        apt-get install -y --no-install-recommends nodejs && \
+        rm -rf /var/lib/apt/lists/* && \
+        apt-get clean
+    
+    # Copy only the necessary files for dependency resolution first (better layer caching)
+    COPY pom.xml ./
+    COPY atas-framework/pom.xml ./atas-framework/
+    COPY atas-tests/pom.xml ./atas-tests/
+    COPY mvnw ./
+    COPY .mvn ./.mvn
+    
+    # Pre-download external dependencies for faster builds
+    # Retry up to 3 times on network failures (handles temporary Maven Central outages)
+    RUN cd atas-framework && \
+        (mvn -B -q dependency:resolve || \
+         (sleep 5 && mvn -B -q dependency:resolve) || \
+         (sleep 10 && mvn -B -q dependency:resolve) || \
+         echo "Note: Some dependencies will be downloaded during build")
+    
+    # Copy source code
+    COPY atas-framework/src ./atas-framework/src
+    COPY atas-tests/src ./atas-tests/src
+    
+    # Build the framework module (fat jar via spring-boot-maven-plugin)
+    # Use 'install' instead of 'package' to install to local Maven repo
+    # This is required so atas-tests can resolve atas-framework:1.0.0-SNAPSHOT dependency
+    # Retry up to 3 times on network failures (502, 503, timeout errors)
+    RUN cd /build && \
+        (mvn -q -pl atas-framework -am -DskipTests clean install || \
+         (echo "Build failed, retrying in 5 seconds..." && sleep 5 && \
+          mvn -q -pl atas-framework -am -DskipTests clean install) || \
+         (echo "Build failed again, retrying in 10 seconds..." && sleep 10 && \
+          mvn -q -pl atas-framework -am -DskipTests clean install) || \
+         (echo "Build failed after 3 attempts. This may be a network issue with Maven Central." && \
+          echo "Please try again later or check your network connection." && exit 1))
+    
+    # ---------- runtime stage ----------
+    # Use JDK base image (needed for Maven to compile tests at runtime)
+    # Note: We need JDK because tests are compiled at runtime, not pre-compiled
+    FROM eclipse-temurin:21-jdk-alpine AS runtime
+    WORKDIR /app
+    
+    # Install Chromium and all required dependencies via Alpine package manager
+    # This ensures all libraries (ICU, GBM, DRM, etc.) are properly installed
+    RUN apk add --no-cache \
+        chromium \
+        chromium-chromedriver \
+        nodejs \
+        nss \
+        freetype \
+        harfbuzz \
+        ca-certificates \
+        ttf-freefont \
+        curl \
+        bash \
+        && rm -rf /var/cache/apk/* \
+        && find /usr/lib -name "*.a" -delete \
+        && find /usr/lib -name "*.la" -delete
+    
+    # Copy only the Spring Boot fat jar (minimal runtime)
+    COPY --from=build --chown=atas:atas \
+        /build/atas-framework/target/atas-framework-exec.jar \
+        /app/app.jar
+    
+    # Copy Maven wrapper and test source for test execution
+    COPY --from=build --chown=atas:atas \
+        /build/mvnw \
+        /app/mvnw
+    COPY --from=build --chown=atas:atas \
+        /build/.mvn \
+        /app/.mvn
+    
+    # Copy test project source and pom files for test execution
+    COPY --from=build --chown=atas:atas \
+        /build/pom.xml \
+        /app/pom.xml
+    COPY --from=build --chown=atas:atas \
+        /build/atas-tests \
+        /app/atas-tests
+    COPY --from=build --chown=atas:atas \
+        /build/atas-framework/pom.xml \
+        /app/atas-framework/pom.xml
+    
+    # Create non-root user for security (before copying Maven repo)
+    RUN addgroup -g 1001 -S atas && \
+        adduser -u 1001 -S atas -G atas
+    
+    # Copy Maven local repository from build stage (contains installed atas-framework)
+    # This is needed because atas-tests depends on atas-framework:1.0.0-SNAPSHOT
+    # The framework was installed to local repo during build stage with 'mvn install'
+    RUN mkdir -p /home/atas/.m2/repository && \
+        chown -R atas:atas /home/atas/.m2
+    COPY --from=build --chown=atas:atas \
+        /root/.m2/repository/com/atas \
+        /home/atas/.m2/repository/com/atas
+    
+    # Make mvnw executable and ensure app directory is owned by atas
+    RUN chmod +x /app/mvnw && \
+        chown -R atas:atas /app
+    
+    # Configure Playwright to use system Chromium
+    # Alpine's chromium package installs to /usr/bin/chromium-browser
+    ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin
+    ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+    ENV PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1
+    ENV PLAYWRIGHT_NODEJS_PATH=/usr/bin/node
+    ENV CHROMIUM_PATH=/usr/bin/chromium-browser
+    
+    # Switch to non-root user
+    USER atas
+    
+    EXPOSE 8080
+    ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "/app/app.jar"]
+    

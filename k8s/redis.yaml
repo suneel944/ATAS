@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: atas-redis
+  namespace: atas
+  labels:
+    app: atas-redis
+spec:
+  replicas: 1  # Redis can be scaled with Redis Sentinel/Cluster for HA
+  selector:
+    matchLabels:
+      app: atas-redis
+  template:
+    metadata:
+      labels:
+        app: atas-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:8.4-alpine
+        ports:
+        - containerPort: 6379
+          name: redis
+          protocol: TCP
+        command:
+        - redis-server
+        - --appendonly
+        - "yes"
+        - --maxmemory
+        - "512mb"
+        - --maxmemory-policy
+        - "allkeys-lru"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+      volumes:
+      - name: redis-data
+        emptyDir: {}  # Use emptyDir for local testing (kind/minikube) - no persistence
+        # For production, use PVC:
+        # persistentVolumeClaim:
+        #   claimName: redis-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: atas-redis
+  namespace: atas
+  labels:
+    app: atas-redis
+spec:
+  type: ClusterIP
+  ports:
+  - port: 6379
+    targetPort: 6379
+    protocol: TCP
+    name: redis
+  selector:
+    app: atas-redis
+---
+# PersistentVolumeClaim - Uncomment for production deployments with proper storage
+# For local testing (kind/minikube), Redis uses emptyDir volume (no persistence)
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: redis-pvc
+#   namespace: atas
+# spec:
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 2Gi

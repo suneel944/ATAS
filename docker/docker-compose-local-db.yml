@@ -25,6 +25,28 @@ services:
         reservations:
           memory: 256M
 
+  # Redis for caching and Pub/Sub (SSE scaling)
+  atas-redis:
+    image: redis:8.4-alpine
+    container_name: atas-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
   # Core ATAS framework service built from the Dockerfile
   atas-service:
     build:
@@ -36,6 +58,8 @@ services:
     depends_on:
       atas-db:
         condition: service_healthy
+      atas-redis:
+        condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
       DB_URL: jdbc:postgresql://atas-db:5432/atasdb
@@ -45,6 +69,44 @@ services:
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_VIDEO_FOLDER: ${S3_VIDEO_FOLDER:-videos}
       S3_SCREENSHOT_FOLDER: ${S3_SCREENSHOT_FOLDER:-screenshots}
+      # Redis configuration for caching and Pub/Sub
+      REDIS_HOST: ${REDIS_HOST:-atas-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_TIMEOUT: ${REDIS_TIMEOUT:-2000ms}
+      # Test discovery configuration
+      # Path must point to the base directory containing 'features' subdirectory
+      # In container: /app/atas-tests/src/test/java/com/atas/products/mezepay
+      # CRITICAL: This MUST be set in .env file (project root) - NO DEFAULTS
+      ATAS_TEST_BASE_PATH: ${ATAS_TEST_BASE_PATH}
+      # Test execution environment variables (required for tests running inside Docker)
+      # These are inherited by test processes spawned by TestExecutionService
+      # 
+      # IMPORTANT: Docker Compose reads .env file from the CURRENT WORKING DIRECTORY where you run
+      # the docker compose command (project root), NOT from the docker-compose.yml file location.
+      # When running: "docker compose -f docker/docker-compose-local-db.yml up"
+      # Docker Compose looks for .env in the project root (where you run the command).
+      #
+      # CRITICAL: These variables MUST be set in .env file (project root) - NO DEFAULTS
+      # Empty values will cause test failures, ensuring missing configuration is detected immediately
+      ATAS_FRAMEWORK_URL: ${ATAS_FRAMEWORK_URL}
+      # Framework internal API authentication (required for test execution)
+      ATAS_INTERNAL_API_KEY: ${ATAS_INTERNAL_API_KEY}
+      # Test password for user creation in onboarding tests
+      TEST_PASSWORD: ${TEST_PASSWORD}
+      # Test recording configuration (optional)
+      ATAS_RECORD_LOCAL: ${ATAS_RECORD_LOCAL:-false}
+      # GuerrillaMail configuration (optional - for email testing)
+      CLIENT_IP_ADDRESS: ${CLIENT_IP_ADDRESS}
+      # Playwright/Chromium configuration (required for browser automation in tests)
+      # These ensure Playwright can use system Chromium installed in Docker image
+      CHROMIUM_PATH: ${CHROMIUM_PATH:-/usr/bin/chromium-browser}
+      PLAYWRIGHT_BROWSERS_PATH: ${PLAYWRIGHT_BROWSERS_PATH:-/usr/bin}
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: ${PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD:-1}
+      PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: ${PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS:-1}
+      PLAYWRIGHT_NODEJS_PATH: ${PLAYWRIGHT_NODEJS_PATH:-/usr/bin/node}
+      # Browser automation settings
+      HEADLESS: ${HEADLESS:-true}
       # JVM optimizations for containers
       JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseG1GC"
     ports:
@@ -54,10 +116,11 @@ services:
       - screenshots:/screenshots
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
     deploy:
       resources:
         limits:
@@ -67,6 +130,8 @@ services:
 
 volumes:
   postgres-data:
+    driver: local
+  redis-data:
     driver: local
   videos:
     driver: local

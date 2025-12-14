@@ -1,0 +1,36 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: atas-ingress
+  namespace: atas
+  annotations:
+    # NGINX Ingress Controller
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/websocket-services: "atas-service"
+    # Load balancing
+    nginx.ingress.kubernetes.io/upstream-hash-by: "$request_uri"  # Optional: for sticky sessions
+    # AWS ALB (if using AWS)
+    # alb.ingress.kubernetes.io/scheme: internet-facing
+    # alb.ingress.kubernetes.io/target-type: ip
+    # alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=300
+spec:
+  ingressClassName: nginx  # or alb, gce, etc. based on your cloud provider
+  tls:
+  - hosts:
+    - atas.yourdomain.com
+    secretName: atas-tls-secret
+  rules:
+  - host: atas.yourdomain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: atas-service
+            port:
+              number: 8080

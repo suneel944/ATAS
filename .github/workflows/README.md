@@ -226,8 +226,12 @@ atas-tests/src/test/java/com/atas/
     │   ├── TestTags.java              # Standardized test tags
     │   ├── ApiTestHooks.java          # API test lifecycle hooks
     │   └── UiTestHooks.java           # UI test lifecycle hooks
-    └── utils/
-        └── TestUtils.java             # Common test utilities
+    └── utility/
+        ├── TestUtils.java             # Common test utilities (test ID generation, waits)
+        ├── TestDataUtility.java      # Configuration loading (.env, properties)
+        ├── BaseUrlResolver.java       # URL resolution for services/gateways
+        ├── FakerUtils.java           # Test data generation (JavaFaker wrapper)
+        └── ApiResponseUtils.java     # API response parsing and validation
 ```
 
 ## Best Practices
