@@ -2,9 +2,10 @@ package com.atas.products.automationexercise.features.cart_checkout_and_payment.
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.atas.shared.api.FluentApiRequest;
 import com.atas.shared.testing.ApiTestHooks;
 import com.atas.shared.testing.TestTags;
-import com.microsoft.playwright.APIResponse;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -16,8 +17,10 @@ import org.junit.jupiter.api.Test;
 public class GetCartContentsApiTest extends ApiTestHooks {
 
   @Test
+  @DisplayName("Verify get cart contents API returns 200 OK")
   void getCartEndpointReachable() {
-    APIResponse response = request.get("/api/cart");
-    assertTrue(response.status() >= 200 && response.status() < 500);
+    FluentApiRequest api = apiForService("automationexercise");
+    int status = api.endpoint("/api/cart").get().expectStatus(200).getStatus();
+    assertEquals(200, status, "Get cart API should return 200 OK");
   }
 }

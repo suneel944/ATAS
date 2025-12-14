@@ -1,13 +1,14 @@
 package com.atas.products.automationexercise.pages;
 
 import com.atas.shared.pages.BasePage;
+import com.atas.shared.utility.BaseUrlResolver;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
 
 public class HomePage extends BasePage<HomePage> {
 
-  private static final String BASE_URL = "https://automationexercise.com";
+  private static final String BASE_URL = BaseUrlResolver.resolveService("automationexercise");
 
   private final Locator homeLink = page.locator("a[href='/' ]");
   private final Locator productsLink = page.locator("a[href='/products']");
