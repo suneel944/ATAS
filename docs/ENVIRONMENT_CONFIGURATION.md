@@ -38,6 +38,24 @@ ATAS supports three main environment profiles:
 | `DB_USERNAME` | Database username | `atas` | `atas_prod` |
 | `DB_PASSWORD` | Database password | `ataspass` | `secure_password` |
 
+### Authentication Configuration
+
+| Variable | Description | Default | Example |
+|----------|-------------|---------|---------|
+| `ATAS_JWT_SECRET` | JWT secret key for token signing (minimum 32 characters) | `your-256-bit-secret-key-change-this-in-production-minimum-32-characters` | `your-secure-random-secret-key-here` |
+| `ATAS_JWT_EXPIRATION_MS` | Access token expiration time in milliseconds | `86400000` (24 hours) | `3600000` (1 hour) |
+| `ATAS_JWT_REFRESH_EXPIRATION_MS` | Refresh token expiration time in milliseconds | `604800000` (7 days) | `2592000000` (30 days) |
+| `ATAS_INTERNAL_API_KEY` | Internal API key for service-to-service authentication | `internal-api-key-change-this-in-production` | `your-secure-internal-api-key` |
+
+### Redis Configuration
+
+| Variable | Description | Default | Example |
+|----------|-------------|---------|---------|
+| `REDIS_HOST` | Redis server hostname | `localhost` | `redis.example.com` |
+| `REDIS_PORT` | Redis server port | `6379` | `6380` |
+| `REDIS_PASSWORD` | Redis server password (optional) | (empty) | `redis_password` |
+| `REDIS_TIMEOUT` | Redis connection timeout | `2000ms` | `5000ms` |
+
 ### 🔍 Database Connection Detection
 
 ATAS features **environment-aware database connection detection** that automatically selects the correct database based on your active environment. This ensures seamless integration with different Docker Compose setups (`make dev`, `make dev-stage`, `make dev-prod`).
