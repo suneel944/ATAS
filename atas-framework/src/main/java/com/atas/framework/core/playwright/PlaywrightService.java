@@ -1,7 +1,5 @@
 package com.atas.framework.core.playwright;
 
-import com.microsoft.playwright.APIRequestContext;
-import com.microsoft.playwright.Page;
 import com.atas.framework.core.driver.BrowserType;
 import com.atas.framework.core.driver.DriverConfig;
 import com.atas.framework.core.driver.DriverFactory;
@@ -9,6 +7,8 @@ import com.atas.framework.model.AttachmentType;
 import com.atas.framework.model.TestAttachment;
 import com.atas.framework.model.TestResult;
 import com.atas.framework.repository.TestAttachmentRepository;
+import com.microsoft.playwright.APIRequestContext;
+import com.microsoft.playwright.Page;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
