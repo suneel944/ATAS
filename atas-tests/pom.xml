@@ -2,7 +2,7 @@
 <!--
   ATAS Test Implementations Module
   UI/API/DB tests built on top of the ATAS framework.
-  Uses Playwright (Java), JUnit 5 (via Spring Boot starter), and Allure.
+  Uses Playwright (Java), JUnit 5, and Allure.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -44,10 +44,10 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- Spring Boot test starter brings JUnit Jupiter + Mockito, etc. -->
+    <!-- JUnit 5 Jupiter (API + Engine) -->
     <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-test</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
 
@@ -92,6 +92,22 @@
     <dependency>
       <groupId>org.junit.platform</groupId>
       <artifactId>junit-platform-suite</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Dotenv for .env file support -->
+    <dependency>
+      <groupId>io.github.cdimascio</groupId>
+      <artifactId>dotenv-java</artifactId>
+      <version>3.0.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- JavaFaker for generating random test data -->
+    <dependency>
+      <groupId>com.github.javafaker</groupId>
+      <artifactId>javafaker</artifactId>
+      <version>1.0.2</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -144,33 +160,15 @@
           <!-- Put results exactly where the Allure Maven plugin expects -->
           <systemPropertyVariables>
             <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
-            <!-- Activate profile: default to 'dev', allow overrides like 'stage' or 'prod' -->
-            <spring.profiles.active>${env.SPRING_PROFILES_ACTIVE:dev}</spring.profiles.active>
-            <!-- Environment-agnostic database configuration -->
-            <spring.datasource.url>${DB_URL:jdbc:postgresql://localhost:5432/atas_test}</spring.datasource.url>
-            <spring.datasource.username>${DB_USERNAME:atas}</spring.datasource.username>
-            <spring.datasource.password>${DB_PASSWORD:ataspass}</spring.datasource.password>
-            <!-- Environment-agnostic S3 configuration -->
-            <atas.storage.bucket>${S3_BUCKET:test-bucket}</atas.storage.bucket>
-            <atas.storage.region>${S3_REGION:us-east-1}</atas.storage.region>
-            <atas.storage.video-folder>${S3_VIDEO_FOLDER:test-videos}</atas.storage.video-folder>
-            <atas.storage.screenshot-folder>${S3_SCREENSHOT_FOLDER:test-screenshots}</atas.storage.screenshot-folder>
           </systemPropertyVariables>
-          <!-- Pass environment variables to the test JVM -->
-          <environmentVariables>
-            <DB_URL>${env.DB_URL}</DB_URL>
-            <DB_USERNAME>${env.DB_USERNAME}</DB_USERNAME>
-            <DB_PASSWORD>${env.DB_PASSWORD}</DB_PASSWORD>
-            <S3_BUCKET>${env.S3_BUCKET}</S3_BUCKET>
-            <S3_REGION>${env.S3_REGION}</S3_REGION>
-            <S3_VIDEO_FOLDER>${env.S3_VIDEO_FOLDER}</S3_VIDEO_FOLDER>
-            <S3_SCREENSHOT_FOLDER>${env.S3_SCREENSHOT_FOLDER}</S3_SCREENSHOT_FOLDER>
-            <!-- ATAS test execution recording variables -->
-            <!-- Only pass if environment variable is set (avoid passing literal "null" string) -->
-            <ATAS_EXECUTION_ID>${env.ATAS_EXECUTION_ID}</ATAS_EXECUTION_ID>
-            <ATAS_RECORD_LOCAL>${env.ATAS_RECORD_LOCAL}</ATAS_RECORD_LOCAL>
-            <SPRING_PROFILES_ACTIVE>${env.SPRING_PROFILES_ACTIVE}</SPRING_PROFILES_ACTIVE>
-          </environmentVariables>
+          <!-- 
+            Environment variables are automatically inherited from the parent process.
+            No need to explicitly list them - just set them in your shell/IDE before running tests.
+            Examples:
+            - export AUTH0_DOMAIN=your-domain.us.auth0.com
+            - export ATAS_FRAMEWORK_URL=http://localhost:8080
+            - etc.
+          -->
         </configuration>
       </plugin>
 

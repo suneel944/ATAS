@@ -2,9 +2,10 @@ package com.atas.products.automationexercise.features.product_catalog_and_filter
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.atas.shared.api.FluentApiRequest;
 import com.atas.shared.testing.ApiTestHooks;
 import com.atas.shared.testing.TestTags;
-import com.microsoft.playwright.APIResponse;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -16,8 +17,10 @@ import org.junit.jupiter.api.Test;
 public class ListProductsApiTest extends ApiTestHooks {
 
   @Test
+  @DisplayName("Verify products list API returns 200 OK")
   void listProductsReturns200() {
-    APIResponse response = request.get("/api/productsList");
-    assertEquals(200, response.status());
+    FluentApiRequest api = apiForService("automationexercise");
+    int status = api.endpoint("/api/productsList").get().expectStatus(200).getStatus();
+    assertEquals(200, status, "Products list API should return 200 OK");
   }
 }

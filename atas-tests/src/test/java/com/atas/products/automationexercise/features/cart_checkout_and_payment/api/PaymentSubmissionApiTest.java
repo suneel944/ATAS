@@ -2,10 +2,10 @@ package com.atas.products.automationexercise.features.cart_checkout_and_payment.
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.atas.shared.api.FluentApiRequest;
 import com.atas.shared.testing.ApiTestHooks;
 import com.atas.shared.testing.TestTags;
-import com.microsoft.playwright.APIResponse;
-import com.microsoft.playwright.options.RequestOptions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -17,8 +17,15 @@ import org.junit.jupiter.api.Test;
 public class PaymentSubmissionApiTest extends ApiTestHooks {
 
   @Test
+  @DisplayName("Verify payment submission API endpoint is reachable")
   void paymentEndpointReachable() {
-    APIResponse response = request.post("/api/payment", RequestOptions.create());
-    assertTrue(response.status() >= 200 && response.status() < 500);
+    FluentApiRequest api = apiForService("automationexercise");
+    int status =
+        api.endpoint("/api/payment")
+            .withHeader("Content-Type", "application/json")
+            .post()
+            .getStatus();
+
+    assertTrue(status >= 200 && status < 500, "Payment API should return valid HTTP status");
   }
 }

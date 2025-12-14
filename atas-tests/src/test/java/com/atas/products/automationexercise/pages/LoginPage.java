@@ -1,12 +1,13 @@
 package com.atas.products.automationexercise.pages;
 
 import com.atas.shared.pages.BasePage;
+import com.atas.shared.utility.BaseUrlResolver;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 
 public class LoginPage extends BasePage<LoginPage> {
 
-  private static final String BASE_URL = "https://automationexercise.com";
+  private static final String BASE_URL = BaseUrlResolver.resolveService("automationexercise");
 
   private final Locator loginEmailField = page.locator("input[data-qa='login-email']");
   private final Locator loginPasswordField = page.locator("input[data-qa='login-password']");

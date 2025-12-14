@@ -1,4 +1,5 @@
 package com.atas.products.automationexercise.pages;
+import com.atas.shared.utility.BaseUrlResolver;
 
 import com.atas.shared.pages.BasePage;
 import com.microsoft.playwright.Locator;
@@ -6,7 +7,7 @@ import com.microsoft.playwright.Page;
 
 public class ApiListPage extends BasePage<ApiListPage> {
 
-  private static final String BASE_URL = "https://automationexercise.com";
+  private static final String BASE_URL = BaseUrlResolver.resolveService("automationexercise");
 
   private final Locator pageTitle = page.locator("text=APIs List for practice").first();
 

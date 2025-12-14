@@ -2,10 +2,11 @@ package com.atas.products.automationexercise.features.user_auth_and_account.api;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.atas.shared.api.FluentApiRequest;
 import com.atas.shared.testing.ApiTestHooks;
 import com.atas.shared.testing.TestTags;
-import com.microsoft.playwright.APIResponse;
-import com.microsoft.playwright.options.RequestOptions;
+import java.util.Map;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -17,14 +18,19 @@ import org.junit.jupiter.api.Test;
 public class LoginUserApiTest extends ApiTestHooks {
 
   @Test
+  @DisplayName("Verify login API handles invalid credentials correctly")
   void loginNegativeWrongPassword() {
-    APIResponse response =
-        request.post(
-            "/api/verifyLogin",
-            RequestOptions.create()
-                .setHeader("Content-Type", "application/json")
-                .setData("{\"email\":\"noone@example.com\",\"password\":\"bad\"}"));
+    FluentApiRequest api = apiForService("automationexercise");
+    Map<String, Object> requestBody =
+        Map.of("email", "noone@example.com", "password", "bad");
 
-    assertTrue(response.status() >= 200 && response.status() < 500);
+    int status =
+        api.endpoint("/api/verifyLogin")
+            .withHeader("Content-Type", "application/json")
+            .withBody(requestBody)
+            .post()
+            .getStatus();
+
+    assertTrue(status >= 200 && status < 500, "Login API should return valid HTTP status");
   }
 }

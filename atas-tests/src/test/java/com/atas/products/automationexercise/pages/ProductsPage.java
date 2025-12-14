@@ -1,4 +1,5 @@
 package com.atas.products.automationexercise.pages;
+import com.atas.shared.utility.BaseUrlResolver;
 
 import com.atas.shared.pages.BasePage;
 import com.microsoft.playwright.Locator;
@@ -7,7 +8,7 @@ import com.microsoft.playwright.options.AriaRole;
 
 public class ProductsPage extends BasePage<ProductsPage> {
 
-  private static final String BASE_URL = "https://automationexercise.com";
+  private static final String BASE_URL = BaseUrlResolver.resolveService("automationexercise");
 
   private final Locator pageTitle = page.locator("h2.title");
   private final Locator productItems = page.locator(".product-image-wrapper");
