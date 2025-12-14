@@ -1,4 +1,26 @@
 services:
+  # Redis for caching and Pub/Sub (SSE scaling)
+  atas-redis:
+    image: redis:8.4-alpine
+    container_name: atas-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
   atas-service:
     build:
       context: ..
@@ -6,6 +28,9 @@ services:
       args:
         BUILDKIT_INLINE_CACHE: 1
     container_name: atas-service
+    depends_on:
+      atas-redis:
+        condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
       DB_URL: ${DB_URL:-jdbc:postgresql://host.docker.internal:5432/atasdb}
@@ -15,6 +40,11 @@ services:
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_VIDEO_FOLDER: ${S3_VIDEO_FOLDER:-videos}
       S3_SCREENSHOT_FOLDER: ${S3_SCREENSHOT_FOLDER:-screenshots}
+      # Redis configuration for caching and Pub/Sub
+      REDIS_HOST: ${REDIS_HOST:-atas-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_TIMEOUT: ${REDIS_TIMEOUT:-2000ms}
       # JVM optimizations for containers
       JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseG1GC"
     ports:
@@ -27,10 +57,11 @@ services:
       - screenshots:/screenshots
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
     deploy:
       resources:
         limits:
@@ -39,6 +70,8 @@ services:
           memory: 1G
 
 volumes:
+  redis-data:
+    driver: local
   videos:
     driver: local
   screenshots:
