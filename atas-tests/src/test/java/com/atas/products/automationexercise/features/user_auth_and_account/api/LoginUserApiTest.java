@@ -21,8 +21,7 @@ public class LoginUserApiTest extends ApiTestHooks {
   @DisplayName("Verify login API handles invalid credentials correctly")
   void loginNegativeWrongPassword() {
     FluentApiRequest api = apiForService("automationexercise");
-    Map<String, Object> requestBody =
-        Map.of("email", "noone@example.com", "password", "bad");
+    Map<String, Object> requestBody = Map.of("email", "noone@example.com", "password", "bad");
 
     int status =
         api.endpoint("/api/verifyLogin")

@@ -12,8 +12,8 @@ import lombok.extern.slf4j.Slf4j;
  * tests.
  *
  * <p><strong>Note:</strong> Test execution and result recording is handled automatically by
- * atas-framework via {@link com.atas.framework.execution.TestExecutionListener}. No manual
- * logging of test executions/results is needed.
+ * atas-framework via {@link com.atas.framework.execution.TestExecutionListener}. No manual logging
+ * of test executions/results is needed.
  */
 @Slf4j
 public class TestUtils {
