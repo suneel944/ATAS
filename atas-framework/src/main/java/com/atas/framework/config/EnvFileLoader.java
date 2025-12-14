@@ -50,21 +50,14 @@ public class EnvFileLoader implements ApplicationListener<ApplicationEnvironment
         if (System.getProperty(key) == null && System.getenv(key) == null) {
           System.setProperty(key, value);
           loadedCount++;
-          log.debug("Loaded {} from .env file", key);
-        } else {
-          log.debug(
-              "Skipped {} from .env file (already set as system property or environment variable)",
-              key);
         }
       }
 
       if (loadedCount > 0) {
         log.info("✅ Loaded {} variables from .env file: {}", loadedCount, userDir);
-      } else {
-        log.debug("No new variables loaded from .env file (all already set or file not found)");
       }
     } catch (Exception e) {
-      log.debug("No .env file found or error loading it (this is OK): {}", e.getMessage());
+      // .env file not found or error loading it - this is OK
     }
   }
 }
