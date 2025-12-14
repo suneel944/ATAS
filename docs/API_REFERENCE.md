@@ -392,16 +392,27 @@ curl -X POST http://localhost:8080/api/v1/auth/login \
 
 #### Get User Profile
 
-**Endpoint:** `GET /api/v1/auth/profile`
+**Endpoint:** `GET /api/v1/profile/me`
 
 **Description:** Returns the authenticated user's profile information.
 
 **Headers:**
 - `Authorization: Bearer <accessToken>`
 
+**Response:**
+```json
+{
+  "username": "admin",
+  "email": "admin@atas.local",
+  "enabled": true,
+  "accountNonLocked": true,
+  "authorities": ["ROLE_ADMIN"]
+}
+```
+
 **Example:**
 ```bash
-curl -X GET http://localhost:8080/api/v1/auth/profile \
+curl -X GET http://localhost:8080/api/v1/profile/me \
   -H "Authorization: Bearer <accessToken>"
 ```
 
@@ -444,6 +455,439 @@ The framework includes a default admin user:
 - **Password:** `admin123` (should be changed on first login)
 
 **Security Note:** Change the default password immediately in production environments.
+
+## Dashboard & Monitoring APIs
+
+### Dashboard Overview
+
+**Endpoint:** `GET /test-execution/dashboard/overview`
+
+**Description:** Returns dashboard overview statistics including total executions, success rate, and recent activity.
+
+**Example:**
+```bash
+curl -s "http://localhost:8080/api/v1/test-execution/dashboard/overview" \
+  -H "Authorization: Bearer <accessToken>" | jq .
+```
+
+### Recent Executions
+
+**Endpoint:** `GET /test-execution/dashboard/recent`
+
+**Description:** Returns a list of recent test executions.
+
+**Parameters:**
+- `limit` (optional): Number of recent executions to return (default: 10)
+
+**Example:**
+```bash
+curl -s "http://localhost:8080/api/v1/test-execution/dashboard/recent?limit=20" \
+  -H "Authorization: Bearer <accessToken>" | jq .
+```
+
+### Database Health
+
+**Endpoint:** `GET /test-execution/dashboard/database-health`
+
+**Description:** Returns database health information for the dashboard.
+
+**Example:**
+```bash
+curl -s "http://localhost:8080/api/v1/test-execution/dashboard/database-health" \
+  -H "Authorization: Bearer <accessToken>" | jq .
+```
+
+### Database Operations
+
+**Endpoint:** `GET /test-execution/dashboard/database-operations`
+
+**Description:** Returns database operation statistics.
+
+**Example:**
+```bash
+curl -s "http://localhost:8080/api/v1/test-execution/dashboard/database-operations" \
+  -H "Authorization: Bearer <accessToken>" | jq .
+```
+
+### Execution Trends
+
+**Endpoint:** `GET /test-execution/dashboard/execution-trends`
+
+**Description:** Returns execution trends over a specified number of days.
+
+**Parameters:**
+- `days` (optional): Number of days to analyze (default: 7)
+
+**Example:**
+```bash
+curl -s "http://localhost:8080/api/v1/test-execution/dashboard/execution-trends?days=30" \
+  -H "Authorization: Bearer <accessToken>" | jq .
+```
+
+### Active Executions
+
+**Endpoint:** `GET /test-execution/dashboard/active`
+
+**Description:** Returns a list of currently active test executions.
+
+**Example:**
+```bash
+curl -s "http://localhost:8080/api/v1/test-execution/dashboard/active" \
+  -H "Authorization: Bearer <accessToken>" | jq .
+```
+
+### Active Executions Live (SSE)
+
+**Endpoint:** `GET /test-execution/dashboard/active/live`
+
+**Description:** Provides real-time updates for active test executions via Server-Sent Events.
+
+**Example:**
+```bash
+curl -s "http://localhost:8080/api/v1/test-execution/dashboard/active/live" \
+  -H "Authorization: Bearer <accessToken>"
+```
+
+## Database Management APIs
+
+### Database Health
+
+**Endpoint:** `GET /database/health`
+
+**Description:** Returns database health information including connection status, pool statistics, and performance metrics.
+
+**Example:**
+```bash
+curl -s "http://localhost:8080/api/v1/database/health" \
+  -H "Authorization: Bearer <accessToken>" | jq .
+```
+
+### Database Operations
+
+**Endpoint:** `GET /database/operations`
+
+**Description:** Returns database operation statistics including read/write counts and operation types.
+
+**Example:**
+```bash
+curl -s "http://localhost:8080/api/v1/database/operations" \
+  -H "Authorization: Bearer <accessToken>" | jq .
+```
+
+### Database Live Updates (SSE)
+
+**Endpoint:** `GET /database/live`
+
+**Description:** Provides real-time database operation updates via Server-Sent Events.
+
+**Parameters:**
+- `clientId` (optional): Client identifier for the SSE connection (default: "default")
+
+**Example:**
+```bash
+curl -s "http://localhost:8080/api/v1/database/live?clientId=my-client" \
+  -H "Authorization: Bearer <accessToken>"
+```
+
+### Browse Executions
+
+**Endpoint:** `GET /database/browse/executions`
+
+**Description:** Returns a paginated list of test executions with sorting options.
+
+**Parameters:**
+- `page` (optional): Page number (default: 0)
+- `size` (optional): Page size (default: 20)
+- `sortBy` (optional): Field to sort by (default: "startTime")
+- `sortDir` (optional): Sort direction - "asc" or "desc" (default: "desc")
+
+**Example:**
+```bash
+curl -s "http://localhost:8080/api/v1/database/browse/executions?page=0&size=50&sortBy=startTime&sortDir=desc" \
+  -H "Authorization: Bearer <accessToken>" | jq .
+```
+
+### Browse Results
+
+**Endpoint:** `GET /database/browse/results`
+
+**Description:** Returns a paginated list of test results with sorting options.
+
+**Parameters:**
+- `page` (optional): Page number (default: 0)
+- `size` (optional): Page size (default: 20)
+- `sortBy` (optional): Field to sort by (default: "startTime")
+- `sortDir` (optional): Sort direction - "asc" or "desc" (default: "desc")
+
+**Example:**
+```bash
+curl -s "http://localhost:8080/api/v1/database/browse/results?page=0&size=50" \
+  -H "Authorization: Bearer <accessToken>" | jq .
+```
+
+### Get Execution Detail
+
+**Endpoint:** `GET /database/executions/{id}`
+
+**Description:** Returns detailed information about a specific test execution including all results.
+
+**Parameters:**
+- `id` (path parameter): Execution ID (database primary key)
+
+**Example:**
+```bash
+curl -s "http://localhost:8080/api/v1/database/executions/123" \
+  -H "Authorization: Bearer <accessToken>" | jq .
+```
+
+### Get Result Detail
+
+**Endpoint:** `GET /database/results/{id}`
+
+**Description:** Returns detailed information about a specific test result including steps, attachments, and metrics.
+
+**Parameters:**
+- `id` (path parameter): Result ID (database primary key)
+
+**Example:**
+```bash
+curl -s "http://localhost:8080/api/v1/database/results/456" \
+  -H "Authorization: Bearer <accessToken>" | jq .
+```
+
+### Delete Execution
+
+**Endpoint:** `DELETE /database/executions/{id}`
+
+**Description:** Deletes a test execution and all associated results, steps, attachments, and metrics.
+
+**Parameters:**
+- `id` (path parameter): Execution ID (database primary key)
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Execution deleted successfully",
+  "timestamp": "2025-12-14T12:00:00"
+}
+```
+
+**Example:**
+```bash
+curl -X DELETE "http://localhost:8080/api/v1/database/executions/123" \
+  -H "Authorization: Bearer <accessToken>"
+```
+
+### Delete Result
+
+**Endpoint:** `DELETE /database/results/{id}`
+
+**Description:** Deletes a test result and all associated steps, attachments, and metrics.
+
+**Parameters:**
+- `id` (path parameter): Result ID (database primary key)
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Result deleted successfully",
+  "timestamp": "2025-12-14T12:00:00"
+}
+```
+
+**Example:**
+```bash
+curl -X DELETE "http://localhost:8080/api/v1/database/results/456" \
+  -H "Authorization: Bearer <accessToken>"
+```
+
+### Database Statistics
+
+**Endpoint:** `GET /database/statistics`
+
+**Description:** Returns overall database statistics including total counts for executions, results, steps, attachments, and metrics.
+
+**Example:**
+```bash
+curl -s "http://localhost:8080/api/v1/database/statistics" \
+  -H "Authorization: Bearer <accessToken>" | jq .
+```
+
+**Response:**
+```json
+{
+  "totalExecutions": 150,
+  "totalResults": 1250,
+  "totalSteps": 5000,
+  "totalAttachments": 300,
+  "totalMetrics": 2500,
+  "lastUpdated": "2025-12-14T12:00:00"
+}
+```
+
+## Internal Playwright APIs
+
+These APIs are for internal use and require internal API authentication. They provide browser automation capabilities for test execution.
+
+### Create Browser Session
+
+**Endpoint:** `POST /internal/playwright/sessions`
+
+**Description:** Creates a new browser page session for automation.
+
+**Headers:**
+- `Authorization: Bearer <internal-api-token>`
+
+**Request Body:**
+```json
+{
+  "browserType": "chromium",
+  "headless": true,
+  "recordVideo": false,
+  "viewportWidth": 1280,
+  "viewportHeight": 720
+}
+```
+
+**Response:**
+```json
+{
+  "sessionId": "uuid-here",
+  "success": true
+}
+```
+
+### Navigate
+
+**Endpoint:** `POST /internal/playwright/sessions/{sessionId}/navigate`
+
+**Description:** Navigates the browser session to a URL.
+
+**Request Body:**
+```json
+{
+  "url": "https://example.com"
+}
+```
+
+### Fill Input Field
+
+**Endpoint:** `POST /internal/playwright/sessions/{sessionId}/fill`
+
+**Description:** Fills an input field with a value.
+
+**Request Body:**
+```json
+{
+  "selector": "#username",
+  "value": "testuser"
+}
+```
+
+### Click Element
+
+**Endpoint:** `POST /internal/playwright/sessions/{sessionId}/click`
+
+**Description:** Clicks an element on the page.
+
+**Request Body:**
+```json
+{
+  "selector": "button.submit"
+}
+```
+
+### Wait for Selector
+
+**Endpoint:** `POST /internal/playwright/sessions/{sessionId}/wait-for-selector`
+
+**Description:** Waits for a selector to be visible on the page.
+
+**Request Body:**
+```json
+{
+  "selector": "#content",
+  "timeout": 30000
+}
+```
+
+### Wait for URL
+
+**Endpoint:** `POST /internal/playwright/sessions/{sessionId}/wait-for-url`
+
+**Description:** Waits for the page URL to match a pattern.
+
+**Request Body:**
+```json
+{
+  "urlPattern": "/dashboard",
+  "timeout": 30000
+}
+```
+
+### Get Current URL
+
+**Endpoint:** `GET /internal/playwright/sessions/{sessionId}/url`
+
+**Description:** Returns the current URL of the page.
+
+**Response:**
+```json
+{
+  "success": true,
+  "currentUrl": "https://example.com/page"
+}
+```
+
+### Evaluate JavaScript
+
+**Endpoint:** `POST /internal/playwright/sessions/{sessionId}/evaluate`
+
+**Description:** Executes JavaScript in the browser context.
+
+**Request Body:**
+```json
+{
+  "script": "document.title"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "result": "Page Title"
+}
+```
+
+### Close Browser Session
+
+**Endpoint:** `DELETE /internal/playwright/sessions/{sessionId}`
+
+**Description:** Closes a browser session and releases resources.
+
+### Create API Request Session
+
+**Endpoint:** `POST /internal/playwright/api-sessions`
+
+**Description:** Creates a new API request context session for API testing.
+
+**Request Body:**
+```json
+{
+  "baseUrl": "https://api.example.com"
+}
+```
+
+### Close API Request Session
+
+**Endpoint:** `DELETE /internal/playwright/api-sessions/{sessionId}`
+
+**Description:** Closes an API request context session.
+
+**Note:** Internal Playwright APIs require internal API authentication. Use the internal API token obtained from `/api/v1/internal/auth/token`.
 
 ## Test Discovery Behavior
 
