@@ -1,9 +1,9 @@
 package com.atas.framework.execution;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.atas.framework.execution.dto.DetailedTestResultDto;
 import com.atas.framework.model.*;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;

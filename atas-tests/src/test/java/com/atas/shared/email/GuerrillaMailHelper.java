@@ -1,11 +1,11 @@
 package com.atas.shared.email;
 
+import com.atas.shared.api.FluentApiRequest;
+import com.atas.shared.utility.TestDataUtility;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.playwright.APIRequestContext;
-import com.atas.shared.api.FluentApiRequest;
-import com.atas.shared.utility.TestDataUtility;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;

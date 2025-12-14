@@ -17,7 +17,6 @@ import java.util.concurrent.ExecutorService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -37,11 +36,15 @@ class TestExecutionServiceTest {
 
   @Mock private RedisTemplate<String, Object> redisTemplate;
 
-  @Mock private ExecutorService executorService;
+  @Mock
+  @org.springframework.beans.factory.annotation.Qualifier("testExecutionExecutor")
+  private ExecutorService executorService;
 
-  @Mock private ExecutorService outputCaptureExecutor;
+  @Mock
+  @org.springframework.beans.factory.annotation.Qualifier("outputCaptureExecutor")
+  private ExecutorService outputCaptureExecutor;
 
-  @InjectMocks private TestExecutionService testExecutionService;
+  private TestExecutionService testExecutionService;
 
   private TestExecution testExecution;
   private TestExecutionRequest testExecutionRequest;
@@ -68,6 +71,18 @@ class TestExecutionServiceTest {
             .captureScreenshots(true)
             .timeoutMinutes(30)
             .build();
+
+    // Manually construct TestExecutionService since @InjectMocks can't handle @Qualifier
+    testExecutionService =
+        new TestExecutionService(
+            testExecutionRepository,
+            testResultRepository,
+            testDiscoveryService,
+            testInputValidator,
+            auditService,
+            redisTemplate,
+            executorService,
+            outputCaptureExecutor);
   }
 
   @Test
