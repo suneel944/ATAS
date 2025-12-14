@@ -1,48 +1,81 @@
 package com.atas.shared.testing;
 
-import com.microsoft.playwright.APIRequest;
 import com.microsoft.playwright.APIRequestContext;
 import com.microsoft.playwright.Playwright;
+import com.atas.shared.api.FluentApiRequest;
+import com.atas.shared.api.FrameworkApiRequestContextHelper;
+import com.atas.shared.utility.BaseUrlResolver;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
-/**
- * Base class that manages Playwright API setup/teardown for tests. Extend this in API test classes
- * to get a ready {@link #request}.
- */
 public abstract class ApiTestHooks {
 
-  protected Playwright playwright;
   protected APIRequestContext request;
+  private String apiSessionId;
+  private Playwright playwright;
+  private String frameworkBaseUrl;
 
   @BeforeEach
   void apiSetUp() {
-    playwright = Playwright.create();
-    request =
-        playwright
-            .request()
-            .newContext(new APIRequest.NewContextOptions().setBaseURL(resolveApiBaseUrl()));
+    frameworkBaseUrl = BaseUrlResolver.resolveFrameworkBaseUrl();
+
+    var result = FrameworkApiRequestContextHelper.createApiRequestContext(frameworkBaseUrl, "");
+
+    request = result.apiRequestContext();
+    apiSessionId = result.sessionId();
+    playwright = result.playwright();
   }
 
   @AfterEach
   void apiTearDown() {
-    if (request != null) {
-      request.dispose();
-    }
-    if (playwright != null) {
-      playwright.close();
-    }
+    Optional.ofNullable(apiSessionId)
+        .filter(s -> !s.isBlank())
+        .ifPresent(
+            sid ->
+                Optional.ofNullable(frameworkBaseUrl)
+                    .filter(url -> !url.isBlank())
+                    .ifPresent(url -> FrameworkApiRequestContextHelper.closeApiSession(url, sid)));
+
+    Optional.ofNullable(request).ifPresent(APIRequestContext::dispose);
+    Optional.ofNullable(playwright).ifPresent(Playwright::close);
   }
 
-  protected String resolveApiBaseUrl() {
-    String fromEnv = System.getenv("API_BASE_URL");
-    if (fromEnv != null && !fromEnv.isBlank()) {
-      return fromEnv;
-    }
-    String fromProp = System.getProperty("API_BASE_URL");
-    if (fromProp != null && !fromProp.isBlank()) {
-      return fromProp;
-    }
-    return "https://automationexercise.com";
+  /**
+   * Creates a FluentApiRequest instance for the specified service.
+   *
+   * @param serviceName Service name (e.g., "admin-dash-service", "order-service")
+   * @return FluentApiRequest configured for the service
+   */
+  protected FluentApiRequest apiForService(String serviceName) {
+    String baseUrl = BaseUrlResolver.resolveService(serviceName);
+    return new FluentApiRequest(request, baseUrl);
+  }
+
+  /**
+   * Creates a FluentApiRequest instance for the example 1 service.
+   *
+   * @return FluentApiRequest configured for example 1 service
+   */
+  protected FluentApiRequest example1Api() {
+    return apiForService("example-1-service");
+  }
+
+  /**
+   * Creates a FluentApiRequest instance for the example 2 service.
+   *
+   * @return FluentApiRequest configured for example 2 service
+   */
+  protected FluentApiRequest example2Api() {
+    return apiForService("example-2-service");
+  }
+
+  /**
+   * Creates a FluentApiRequest instance for the example 3 service.
+   *
+   * @return FluentApiRequest configured for example 3 service
+   */
+  protected FluentApiRequest example3Api() {
+    return apiForService("example-3-service");
   }
 }

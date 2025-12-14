@@ -44,6 +44,9 @@ public final class TestTags {
 
   public static final String SLOW = "slow";
   public static final String CRITICAL = "critical";
+  public static final String HIGH = "high";
+  public static final String MEDIUM = "medium";
+  public static final String LOW = "low";
 
   /** Feature area tags */
   public static final String AUTH = "auth";
