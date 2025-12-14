@@ -82,6 +82,29 @@ jobs:
   integration-tests:
     runs-on: ubuntu-latest
     if: github.event.inputs.test-layer == 'all' || github.event.inputs.test-layer == 'integration-tests' || github.event_name == 'pull_request'
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: atasdb
+          POSTGRES_USER: atas
+          POSTGRES_PASSWORD: ataspass
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:8.4-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -115,6 +138,10 @@ jobs:
           DB_URL: jdbc:postgresql://localhost:5432/atasdb
           DB_USERNAME: atas
           DB_PASSWORD: ataspass
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          REDIS_PASSWORD: ""
+          REDIS_TIMEOUT: 2000ms
         run: |
           make test-integration
 

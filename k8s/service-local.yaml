@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: atas-service
+  namespace: atas
+  labels:
+    app: atas-service
+spec:
+  type: NodePort  # Use NodePort for local development (kind/minikube)
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30080  # Accessible at localhost:30080 (kind maps this)
+    protocol: TCP
+    name: http
+  selector:
+    app: atas-service
+  sessionAffinity: None  # Set to ClientIP if sticky sessions needed for SSE
+
+
