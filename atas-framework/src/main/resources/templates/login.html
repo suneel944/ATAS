@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATAS - Sign In</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* Critical: Prevent white flash during initial load and scroll */
+        html, body {
+            background-color: #020617 !important;
+        }
+        body.login-page {
+            background: linear-gradient(to bottom right, #020617, #0f172a, #1e293b, #0f172a) !important;
+            background-attachment: fixed !important;
+        }
+    </style>
+</head>
+<body class="login-page loading-auth">
+    <div class="bg-gradient-1"></div>
+    <div class="bg-gradient-2"></div>
+
+
+    <div class="login-wrapper">
+        <div class="login-container spotlight-card">
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Background Circle -->
+                        <circle cx="100" cy="100" r="95" fill="#0066FF" opacity="0.1"/>
+                        <circle cx="100" cy="100" r="85" fill="#0066FF" opacity="0.2"/>
+                        
+                        <!-- Main Circle Background -->
+                        <circle cx="100" cy="100" r="75" fill="url(#gradient1)"/>
+                        
+                        <!-- Gradient Definitions -->
+                        <defs>
+                            <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#0066FF;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#0099FF;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#00CC88;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#00FF99;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        
+                        <!-- Testing Symbol - Checkmark in Shield -->
+                        <path d="M 100 40 L 130 55 L 130 90 Q 130 110 100 125 Q 70 110 70 90 L 70 55 Z" 
+                              fill="white" opacity="0.9"/>
+                        
+                        <!-- Checkmark -->
+                        <path d="M 85 80 L 95 92 L 115 65" 
+                              stroke="url(#gradient2)" 
+                              stroke-width="6" 
+                              fill="none" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round"/>
+                        
+                        <!-- Service Cloud Symbols (3 nodes representing distributed testing) -->
+                        <circle cx="65" cy="145" r="10" fill="white" opacity="0.9"/>
+                        <circle cx="100" cy="155" r="10" fill="white" opacity="0.9"/>
+                        <circle cx="135" cy="145" r="10" fill="white" opacity="0.9"/>
+                        
+                        <!-- Connection Lines -->
+                        <line x1="65" y1="145" x2="100" y2="155" stroke="white" stroke-width="2" opacity="0.7"/>
+                        <line x1="100" y1="155" x2="135" y2="145" stroke="white" stroke-width="2" opacity="0.7"/>
+                        <line x1="65" y1="145" x2="135" y2="145" stroke="white" stroke-width="2" opacity="0.7"/>
+                        
+                        <!-- Letter M (subtle, integrated) -->
+                        <text x="100" y="108" font-family="Arial, sans-serif" font-size="32" font-weight="bold" 
+                              fill="url(#gradient2)" text-anchor="middle" opacity="0.3">M</text>
+                        
+                        <!-- Small accent dots for tech feel -->
+                        <circle cx="45" cy="70" r="3" fill="white" opacity="0.5"/>
+                        <circle cx="155" cy="70" r="3" fill="white" opacity="0.5"/>
+                        <circle cx="50" cy="120" r="2" fill="white" opacity="0.4"/>
+                        <circle cx="150" cy="120" r="2" fill="white" opacity="0.4"/>
+                    </svg>
+                </div>
+                <h1 class="logo-title">ATAS</h1>
+                <p class="logo-subtitle">Advanced Testing As A Service</p>
+            </div>
+
+            <div class="form-section">
+                <div id="errorMessage" class="error-message" role="alert" aria-live="assertive" aria-hidden="true">
+                    <svg class="error-icon" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    <span class="error-text"></span>
+                </div>
+
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label class="form-label" for="username">Username</label>
+                        <div class="input-wrapper">
+                            <input 
+                                type="text" 
+                                id="username" 
+                                name="username" 
+                                class="form-input"
+                                placeholder="Enter your username" 
+                                required 
+                                autocomplete="username"
+                                autocapitalize="off"
+                                autocorrect="off"
+                                spellcheck="false"
+                                autofocus
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="password">Password</label>
+                        <div class="input-wrapper">
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password" 
+                                class="form-input"
+                                placeholder="Enter your password" 
+                                required 
+                                autocomplete="current-password"
+                            >
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit" id="loginButton">
+                        Sign In
+                    </button>
+                </form>
+
+                <div id="loadingState" class="loading-state" role="status" aria-live="polite" aria-hidden="true">
+                    <div class="spinner"></div>
+                    <span>Authenticating...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { getSafeRedirect, storeTokens, clearTokens, getAuthToken, validateToken } from '/js/core/auth.js';
+        import { parseJsonResponse } from '/js/core/api.js';
+        import { initializeSpotlightCard } from '/js/components/spotlight.js';
+        import { config } from '/js/config.js';
+
+        // Initialize spotlight effect
+        document.addEventListener('DOMContentLoaded', () => {
+            const card = document.querySelector('.login-container.spotlight-card');
+            if (card) {
+                initializeSpotlightCard(card);
+            }
+        });
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            const errorText = errorDiv.querySelector('.error-text');
+            errorText.textContent = message;
+            errorDiv.classList.add('show');
+            errorDiv.setAttribute('aria-hidden', 'false');
+            
+            setTimeout(() => {
+                errorDiv.classList.remove('show');
+                errorDiv.setAttribute('aria-hidden', 'true');
+            }, 5000);
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const loginButton = document.getElementById('loginButton');
+            const loadingState = document.getElementById('loadingState');
+            const errorMessage = document.getElementById('errorMessage');
+
+            loginButton.disabled = true;
+            loadingState.classList.add('show');
+            loadingState.setAttribute('aria-hidden', 'false');
+            errorMessage.classList.remove('show');
+            errorMessage.setAttribute('aria-hidden', 'true');
+
+            try {
+                const response = await fetch(config.api.endpoints.auth.login, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await parseJsonResponse(response);
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Login failed');
+                }
+
+                storeTokens(data.accessToken, data.refreshToken);
+                window.location.replace(getSafeRedirect());
+
+            } catch (error) {
+                showError(error.message || 'Invalid username or password');
+                loginButton.disabled = false;
+                loadingState.classList.remove('show');
+                loadingState.setAttribute('aria-hidden', 'true');
+            }
+        }
+
+        // Attach form handler
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('loginForm');
+            if (form) {
+                form.addEventListener('submit', handleLogin);
+            }
+        });
+
+        // Anti-FOUC Auto-Login Check
+        (async function() {
+            if (window.loginRedirectChecked) return;
+            window.loginRedirectChecked = true;
+
+            const token = getAuthToken();
+            
+            if (!token) {
+                document.body.classList.remove('loading-auth');
+                return;
+            }
+
+            const isValid = await validateToken();
+            if (isValid) {
+                window.location.replace(getSafeRedirect());
+            } else {
+                clearTokens();
+                document.body.classList.remove('loading-auth');
+            }
+        })();
+    </script>
+</body>
+</html>
