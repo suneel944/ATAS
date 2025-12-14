@@ -1,12 +1,19 @@
-# 🚀 Advanced Testing As A Service (ATAS)
+<div align="center">
+<img src="docs/images/atas_logo.svg" width="600" height="500"/>
 
-**ATAS** is a cloud-ready test automation platform that combines **Spring Boot + Playwright + PostgreSQL + Allure** for running, monitoring, and reporting automated tests at scale.
+# `ATAS`
+<p class="align center">
 
 [![Java](https://img.shields.io/badge/Java-21-orange)]()
 [![Maven](https://img.shields.io/badge/Maven-3.9%2B-blue)]()
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-brightgreen)]()
 [![Allure](https://img.shields.io/badge/Reporting-Allure%202.30-purple)]()
 [![License](https://img.shields.io/badge/license-MIT-green)]()
+
+</div>
+
+
+**ATAS** is a cloud-ready test automation platform that combines **Spring Boot + Playwright + PostgreSQL + Allure** for running, monitoring, and reporting automated tests at scale.
 
 ## 🎯 What is ATAS?
 
@@ -68,34 +75,49 @@ Run `make help` for the complete command list.
 ## 🏗️ Architecture
 
 ```mermaid
-graph TB
-    subgraph Tests
-        ATAS_Tests["atas-tests
-        (UI/API tests)"]
-    end
+---
+config:
+  layout: elk
+---
+flowchart TB
+    Client["Client / Developer"] -- REST APIs --> Framework["ATAS Framework<br>(Spring Boot)<br>REST APIs<br>SSE Monitoring<br>Redis Pub/Sub"]
+    LocalRunner["Local Runner<br>(mvn/make)"] -- Direct call --> Framework
+    ContainerOrch["Container Orchestrator<br>(Docker Compose / K8S)"] -- Orchestrate --> Framework
+    AutoScripts["Automation Scripts<br>(run-tests.sh)"] -- Script Wrapper --> Framework
+    Framework -- Spawn Process --> MavenProcess["Maven Process<br>(mvnw)<br>with Execution ID"]
+    MavenProcess -- Execute Tests --> Tests["ATAS Tests<br>UI Tests (Playwright)<br>API Tests<br>Page Object Model<br>TestExecutionListener"]
+    Tests -- "Auto-save" --> Listener["TestExecutionListener<br>(JUnit Extension)"]
+    Listener -. Save Results .-> PostgreSQL[("PostgreSQL<br>Results DB<br>(Test Executions &amp; Results)")]
+    Framework -- Create Execution --> PostgreSQL
+    Framework -. Save Media .-> S3[("S3 Storage<br>Media Files<br>(Videos/Screenshots)")]
+    Framework -- Publish Updates --> Redis[("Redis<br>Pub/Sub")]
+    PostgreSQL -. Monitor for SSE .-> Framework
+    Framework -- SSE Events --> Dashboard["Monitoring Dashboard<br>Real-time Updates<br>Execution Metrics<br>DB Health<br>(SSE from Framework)"]
+    PostgreSQL -. DB Health .-> Dashboard
+    Tests -. Playwright Saves Media .-> S3
+    Tests -- Generate Reports --> Allure["Allure Reports<br>HTML Dashboards<br>(Maven Plugin)"]
 
-    subgraph Framework
-        ATAS_Framework["atas-Framework
-        (Spring Boot API)"]
-    end
-
-    subgraph Data_Storage
-        PostgreSQL["PostgreSQL
-        (Results DB)"]
-        S3["S3
-        (Media Storage)"]
-    end
-
-    subgraph Reports
-        AllureReports["Allure Reports
-        (HTML dashboards)"]
-    end
-
-    ATAS_Tests --> ATAS_Framework
-    ATAS_Framework --> PostgreSQL
-    ATAS_Framework --> S3
-    PostgreSQL --> AllureReports
-    S3 --> AllureReports
+     Client:::entryPoint
+     LocalRunner:::entryPoint
+     ContainerOrch:::entryPoint
+     AutoScripts:::entryPoint
+     Framework:::framework
+     MavenProcess:::execution
+     Tests:::execution
+     Listener:::execution
+     PostgreSQL:::storage
+     S3:::s3
+     Redis:::redis
+     Dashboard:::output
+     Allure:::allure
+    classDef entryPoint fill:#a5d8ff,stroke:#1e1e1e,stroke-width:2px,color:#000000
+    classDef framework fill:#51cf66,stroke:#1e1e1e,stroke-width:2px,color:#000000
+    classDef execution fill:#ffd43b,stroke:#1e1e1e,stroke-width:2px,color:#000000
+    classDef storage fill:#9775fa,stroke:#1e1e1e,stroke-width:2px,color:#000000
+    classDef s3 fill:#ff8787,stroke:#1e1e1e,stroke-width:2px,color:#000000
+    classDef redis fill:#ff6b6b,stroke:#1e1e1e,stroke-width:2px,color:#000000
+    classDef output fill:#ffd43b,stroke:#1e1e1e,stroke-width:2px,color:#000000
+    classDef allure fill:#69db7c,stroke:#1e1e1e,stroke-width:2px,color:#000000
 ```
 
 ## 🧩 Core Modules
