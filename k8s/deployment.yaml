@@ -1,0 +1,262 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: atas-service
+  namespace: atas
+  labels:
+    app: atas-service
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0  # Zero-downtime deployments
+  selector:
+    matchLabels:
+      app: atas-service
+  template:
+    metadata:
+      labels:
+        app: atas-service
+    spec:
+      containers:
+      - name: atas-service
+        image: atas-service:local
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        env:
+        # ConfigMap values
+        - name: SPRING_PROFILES_ACTIVE
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: SPRING_PROFILES_ACTIVE
+        - name: SERVER_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: SERVER_PORT
+        - name: SERVER_TOMCAT_THREADS_MAX
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: SERVER_TOMCAT_THREADS_MAX
+        - name: SERVER_TOMCAT_THREADS_MIN_SPARE
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: SERVER_TOMCAT_THREADS_MIN_SPARE
+        - name: SERVER_TOMCAT_CONNECTION_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: SERVER_TOMCAT_CONNECTION_TIMEOUT
+        - name: ATAS_EXECUTION_CORE_POOL_SIZE
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: ATAS_EXECUTION_CORE_POOL_SIZE
+        - name: ATAS_EXECUTION_MAX_POOL_SIZE
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: ATAS_EXECUTION_MAX_POOL_SIZE
+        - name: ATAS_EXECUTION_QUEUE_CAPACITY
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: ATAS_EXECUTION_QUEUE_CAPACITY
+        - name: PLAYWRIGHT_BROWSERS_PATH
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: PLAYWRIGHT_BROWSERS_PATH
+        - name: PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD
+        - name: PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS
+        - name: PLAYWRIGHT_NODEJS_PATH
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: PLAYWRIGHT_NODEJS_PATH
+        - name: CHROMIUM_PATH
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: CHROMIUM_PATH
+        # Redis configuration
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: REDIS_HOST
+        - name: SPRING_DATA_REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: REDIS_HOST
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: REDIS_PORT
+        - name: SPRING_DATA_REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: REDIS_PORT
+        - name: REDIS_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: REDIS_TIMEOUT
+        - name: REDIS_POOL_MAX_ACTIVE
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: REDIS_POOL_MAX_ACTIVE
+        - name: REDIS_POOL_MAX_IDLE
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: REDIS_POOL_MAX_IDLE
+        - name: REDIS_POOL_MIN_IDLE
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: REDIS_POOL_MIN_IDLE
+        # Redis password (optional - set in secrets if needed)
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: atas-secrets
+              key: REDIS_PASSWORD
+              optional: true
+        # Secret values
+        - name: DB_URL
+          value: "jdbc:postgresql://atas-db.atas.svc.cluster.local:5432/atasdb"
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: atas-secrets
+              key: DB_USERNAME
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: atas-secrets
+              key: DB_PASSWORD
+        - name: S3_BUCKET
+          valueFrom:
+            secretKeyRef:
+              name: atas-secrets
+              key: S3_BUCKET
+        - name: S3_REGION
+          valueFrom:
+            secretKeyRef:
+              name: atas-secrets
+              key: S3_REGION
+        - name: S3_VIDEO_FOLDER
+          valueFrom:
+            secretKeyRef:
+              name: atas-secrets
+              key: S3_VIDEO_FOLDER
+        - name: S3_SCREENSHOT_FOLDER
+          valueFrom:
+            secretKeyRef:
+              name: atas-secrets
+              key: S3_SCREENSHOT_FOLDER
+        - name: ATAS_JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: atas-secrets
+              key: ATAS_JWT_SECRET
+        - name: ATAS_INTERNAL_API_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: atas-secrets
+              key: ATAS_INTERNAL_API_SECRET
+        - name: ATAS_INTERNAL_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: atas-secrets
+              key: ATAS_INTERNAL_API_KEY
+        # Test execution environment variables (required for API tests)
+        - name: ATAS_FRAMEWORK_URL
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: ATAS_FRAMEWORK_URL
+        - name: ADMIN_DASH_SERVICE_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: ADMIN_DASH_SERVICE_BASE_URL
+        - name: TEST_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: atas-secrets
+              key: TEST_PASSWORD
+        - name: ATAS_RECORD_LOCAL
+          valueFrom:
+            configMapKeyRef:
+              name: atas-config
+              key: ATAS_RECORD_LOCAL
+        # JVM Options
+        - name: JAVA_OPTS
+          value: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -XX:+UseStringDeduplication"
+        # Instance identification
+        - name: INSTANCE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        resources:
+          requests:
+            memory: "12Gi"
+            cpu: "3000m"
+          limits:
+            memory: "16Gi"
+            cpu: "4500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 40
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false  # Playwright needs write access
+          capabilities:
+            drop:
+            - ALL
+      # Security context for pod
+      securityContext:
+        fsGroup: 1001
+      # Image pull secrets if using private registry
+      # imagePullSecrets:
+      # - name: registry-secret
+
+
+
