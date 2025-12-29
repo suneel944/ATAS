@@ -202,46 +202,11 @@ spec:
             configMapKeyRef:
               name: atas-config
               key: ADMIN_DASH_SERVICE_BASE_URL
-        - name: AUTH0_CLIENT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: atas-secrets
-              key: AUTH0_CLIENT_SECRET
-        - name: AUTH0_CLIENT_ID
-          valueFrom:
-            secretKeyRef:
-              name: atas-secrets
-              key: AUTH0_CLIENT_ID
         - name: TEST_PASSWORD
           valueFrom:
             secretKeyRef:
               name: atas-secrets
               key: TEST_PASSWORD
-        - name: AUTH0_DOMAIN
-          valueFrom:
-            secretKeyRef:
-              name: atas-secrets
-              key: AUTH0_DOMAIN
-        - name: AUTH0_AUTH_URL
-          valueFrom:
-            secretKeyRef:
-              name: atas-secrets
-              key: AUTH0_AUTH_URL
-        - name: AUTH0_ACCESS_TOKEN_URL
-          valueFrom:
-            secretKeyRef:
-              name: atas-secrets
-              key: AUTH0_ACCESS_TOKEN_URL
-        - name: AUTH0_REDIRECT_URI
-          valueFrom:
-            secretKeyRef:
-              name: atas-secrets
-              key: AUTH0_REDIRECT_URI
-        - name: AUTH0_AUDIENCE
-          valueFrom:
-            secretKeyRef:
-              name: atas-secrets
-              key: AUTH0_AUDIENCE
         - name: ATAS_RECORD_LOCAL
           valueFrom:
             configMapKeyRef:
